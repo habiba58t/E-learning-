@@ -1,24 +1,24 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-export type ProductDocument = progressSchema & Document;
+export type ProgressDocument = progressSchema & Document;
 
 @Schema()
 export class progressSchema {
+  
   @Prop({ required: true, unique: true })
-  progress_id: string;
+  email: string;
+  
+  @Prop({ required: true, unique: true })
+  course_code: string;
 
   @Prop({ required: true })
-  user_id: string;
-
-  @Prop({ required: true })
-  course_id: string;
-
-  @Prop({ required: true })
-  completion_percentage : number;
+  completion_percentage: number;
 
   @Prop({ required: true })
   last_accessed: Date;
+
+  
 }
 
-export const ProductSchema = SchemaFactory.createForClass(progressSchema);
+export const ProgressSchema = SchemaFactory.createForClass(progressSchema);
