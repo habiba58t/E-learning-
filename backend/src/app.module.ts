@@ -5,9 +5,11 @@ import { ProgressModule } from './progress/progress.module';
 import { UsersModule } from './users/users.module';
 import { CoursesModule } from './courses/courses.module';
 import { ModulesModule } from './modules/modules.module';
+import { QuizzesModule } from './quizzes/quizzes.module';
+import { QuestionsModule } from './questions/questions.module';
 
 @Module({
-  imports: [ProgressModule, UsersModule, CoursesModule, ModulesModule],
+  imports: [ProgressModule, UsersModule, CoursesModule, ModulesModule, QuizzesModule, QuestionsModule],
   controllers: [AppController],
   providers: [AppService],
 })
