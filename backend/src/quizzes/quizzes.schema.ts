@@ -4,15 +4,11 @@ import { Question } from '../questions/questions.schema'; // Import Question sch
 
 @Schema()
 export class Quiz extends Document {
-  @Prop({ required: true, unique: true })
-  quiz_id: string;
-
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Module', required: true })
-    module_id: mongoose.Schema.Types.ObjectId;
-
-
-  @Prop({ type: [Question], required: true }) // Define the questions as an array of Question objects
-  questions: Question[];
+  @Prop({
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Question' }],
+    required: true,
+  }) // Reference to Question schema using ObjectId
+  questions: mongoose.Schema.Types.ObjectId[];
 
   @Prop({ default: Date.now }) // Automatically set to the current date/time
   created_at: Date;
