@@ -4,6 +4,9 @@ import { Document } from 'mongoose';
 @Schema()
 
 export class Responses{
+  @Prop({required:true, unique:true})
+  email:string;
+
  @Prop({ required: true, type: [{ type: Object }] })
   answers: { [key: string]: any }[];
 
@@ -12,6 +15,7 @@ export class Responses{
 
   @Prop({ required: true, type: Date, default: Date.now })
   submittedAt: Date;
+
 
 }
 export const ResponsesSchema = SchemaFactory.createForClass(Responses);
