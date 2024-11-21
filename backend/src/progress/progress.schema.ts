@@ -6,10 +6,10 @@ export type ProgressDocument = progressSchema & Document;
 @Schema()
 export class progressSchema {
   
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true})
   email: string;
   
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
   course_code: string;
 
   @Prop({ required: true })
