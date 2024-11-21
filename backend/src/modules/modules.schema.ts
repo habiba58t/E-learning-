@@ -5,12 +5,6 @@ export type ModulesDocument = Module & Document;
 
 @Schema()
 export class Module { 
-  @Prop({ required: true, unique: true })
-  module_id: string;
-
-  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Courses' }] }) 
-  course_id: mongoose.Schema.Types.ObjectId[]; 
-
   @Prop({ required: true })
   title: string;
 
@@ -22,6 +16,13 @@ export class Module {
 
   @Prop({ required: true })
   level: string;
+
+  @Prop({ type: [{ type:mongoose.Schema.Types.ObjectId, ref: 'quizzes' }] })
+  quizzes: quizzez[];
+
+  @Prop({ type: [{ type:mongoose.Schema.Types.ObjectId, ref: 'questions' }] })
+  questions: question[];
+
 
   @Prop({ required: true, default: Date.now }) 
   created_at: Date;
