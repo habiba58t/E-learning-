@@ -1,13 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import * as mongoose from 'mongoose';
+import { Courses } from '../courses/courses.schema'; // Adjust path as necessary
 
-// Defining the UserDocument type
-export type UserDocument = User & Document;
+export type UsersDocument = Users & Document;
 
 @Schema()
-export class User {
-  @Prop({ required: true, unique: true })
-  user_id: string; 
+export class Users {
 
   @Prop({ required: true })
   name: string; 
@@ -16,10 +15,7 @@ export class User {
   email: string; 
 
   @Prop({ required: true })
-  password: string; 
-
-  @Prop({ required: true })
-  profile_hash: string; 
+  password_hash: string; 
 
   @Prop({ required: true, enum: ['student', 'instructor', 'admin'] })
   role: string; 
@@ -29,6 +25,10 @@ export class User {
 
   @Prop({ required: true })
   created_at: Date; 
+
+  // Reference to Courses by ObjectId
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Courses' }] })
+  courses: Courses[]; // An array of courses the user is associated with
 }
 
-export const UserSchema = SchemaFactory.createForClass(User);
+export const UsersSchema = SchemaFactory.createForClass(Users);

@@ -1,14 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose from 'mongoose';
+import mongoose, { Document } from 'mongoose'; // Import mongoose correctly
+import { Quiz } from '../quizzes/quizzes.schema'; // Adjust the import path if needed
+import { Question } from '../questions/questions.schema'; // Adjust the import path if needed
+
+export type ModuleDocument = Module & Document;
 
 @Schema()
-export class Module { 
-  @Prop({ required: true, unique: true })
-  module_id: string;
-
-  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Courses' }] }) 
-  course_id: mongoose.Schema.Types.ObjectId[]; 
-
+export class Module {
   @Prop({ required: true })
   title: string;
 
@@ -21,9 +19,16 @@ export class Module {
   @Prop({ required: true })
   level: string;
 
-  @Prop({ required: true, default: Date.now }) 
+  // Reference to Quiz documents using ObjectId
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Quiz' }] })
+  quizzes: mongoose.Schema.Types.ObjectId[];
+
+  // Reference to Question documents using ObjectId
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Question' }] })
+  questions: mongoose.Schema.Types.ObjectId[];
+
+  @Prop({ required: true, default: Date.now })
   created_at: Date;
 }
-
 
 export const ModuleSchema = SchemaFactory.createForClass(Module);
