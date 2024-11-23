@@ -19,6 +19,9 @@ export class Module {
   @Prop({ required: true })
   level: string;
 
+  @Prop({ required: true })
+  status: number ;
+
   // Reference to Quiz documents using ObjectId
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Quiz' }] })
   quizzes: mongoose.Schema.Types.ObjectId[];

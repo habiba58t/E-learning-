@@ -6,7 +6,7 @@ export type ProgressDocument = Progress & Document;  // Type for the document
 @Schema()
 export class Progress {  // Class name should be ProgressSchema
   @Prop({ required: true })
-  email: string;
+  Username: string;
   
   @Prop({ required: true })
   course_code: string;
