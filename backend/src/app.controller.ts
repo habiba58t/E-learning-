@@ -10,8 +10,5 @@ export class AppController {
     return this.appService.getHello();
   }
 
-  @Get('db-status')
-  checkDatabaseConnection(): string {
-    return this.appService.checkDatabaseConnection();
-  }
+  
 }

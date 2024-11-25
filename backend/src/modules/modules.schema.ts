@@ -3,7 +3,7 @@ import mongoose, { Document } from 'mongoose'; // Import mongoose correctly
 import { Quiz } from '../quizzes/quizzes.schema'; // Adjust the import path if needed
 import { Question } from '../questions/questions.schema'; // Adjust the import path if needed
 
-export type ModuleDocument = Module & Document;
+
 
 @Schema()
 export class Module {
@@ -30,8 +30,12 @@ export class Module {
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Question' }] })
   questions: mongoose.Schema.Types.ObjectId[];
 
+  // Reference to notes documents using ObjectId
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Note' }] })
+  notes: mongoose.Schema.Types.ObjectId[];
+
   @Prop({ required: true, default: Date.now })
   created_at: Date;
 }
-
 export const ModuleSchema = SchemaFactory.createForClass(Module);
+

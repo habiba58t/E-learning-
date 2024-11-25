@@ -3,8 +3,7 @@ import { Document } from 'mongoose';
 import * as mongoose from 'mongoose'; // Import mongoose to use ObjectId
 import { Module } from '../modules/modules.schema'; // Correct import for the Module schema
 
-// Defining the CoursesDocument type
-export type CoursesDocument = Courses & Document;
+
 
 @Schema()
 export class Courses {
