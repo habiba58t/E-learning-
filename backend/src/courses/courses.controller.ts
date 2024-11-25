@@ -1,10 +1,11 @@
 
-import { Controller, Get, Post, Body, Param, Put, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete,NotFoundException  } from '@nestjs/common';
 import { CoursesService } from './courses.service';
 import { Courses} from './courses.schema';
 import { CreateCourseDto } from './dto/CreateCourse.dto';
 import { UpdateCourseDto } from './dto/UpdateCourse.dto';
 import { Module } from '../modules/modules.schema';
+import { CreateModuleDto } from '../modules/dto/CreateModule.dto';
 
 @Controller('courses')
 export class CoursesController {
@@ -34,15 +35,24 @@ export class CoursesController {
     return this.coursesService.update(course_code, updateCourseDto);
   }
 
-  // DELETE /products/:id: Delete a product by its ID
+  // DELETE /courses/:course_code: Delete a product by its ID
   @Delete(':course_code')
   async delete(@Param('course_code') course_code: string): Promise<Courses> {
     return this.coursesService.delete(course_code);
   }
-
+//GET/courses/:course_code: retrieve all modules of a speicifc course
   @Get(':course_code/modules')
   async getModulesForCourse(@Param('course_code') course_code: string): Promise<Module[]> {
     return this.coursesService.getModulesForCourse(course_code);
   }
+
+ // @Post(':courseCode/modules')
+  //async addModuleToCourse( @Param('courseCode') courseCode: string,@Body() createModuleDto: CreateModuleDto,): Promise<Courses> {
+    //const updatedCourse = await this.coursesService.addModuleToCourse(courseCode, createModuleDto);
+    //if (!updatedCourse) {
+      //throw new NotFoundException(`Course with code ${courseCode} not found`);
+    //}
+   // return updatedCourse;
+  //}
 
 }

@@ -29,13 +29,13 @@ async findAll(): Promise<Courses[]> {
     return course;
   }
 
-  // Create a new product
-  async create(createProductDto: CreateCourseDto): Promise<Courses> {
-    const newProduct = new this.courseModel(createProductDto);
-    return newProduct.save();
+  // Create a new course
+  async create(createCourseDto: CreateCourseDto): Promise<Courses> {
+    const newCourse = new this.courseModel(createCourseDto);
+    return newCourse.save();
   }
 
-  // Update an existing product by ID
+  // Update an existing course by ID
   async update(course_code: string, updateCourseDto: UpdateCourseDto): Promise<Courses> {
     const updatedCourse = await this.courseModel.findByIdAndUpdate(course_code, updateCourseDto, { new: true }).exec();
     if (!updatedCourse) {
@@ -53,16 +53,18 @@ async findAll(): Promise<Courses[]> {
     }
     return deletedCourse;
   }
-
+//GET/courses/:course_code: retrieve all modules of a speicifc course
   async getModulesForCourse(course_code: string): Promise<Module[]> {
     const course = await this.findOne(course_code); // Fetch the course by its code
 
     const modules = await Promise.all(
       course.modules.map((moduleId) =>
-        this.modulesService.findOne(moduleId), // Fetch each module by its ObjectId
+        this.modulesService.findById(moduleId), // Fetch each module by its ObjectId
       ),
     );
 
     return modules;
   }
+
+  
 }
