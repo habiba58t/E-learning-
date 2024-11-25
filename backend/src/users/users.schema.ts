@@ -3,7 +3,7 @@ import { Document } from 'mongoose';
 import * as mongoose from 'mongoose';
 import { Courses } from '../courses/courses.schema'; // Adjust path as necessary
 
-export type UsersDocument = Users & Document;
+
 
 @Schema()
 export class Users {

@@ -4,7 +4,7 @@ import { Question } from '../questions/questions.schema'; // Import Question sch
 import { Responses } from '../responses/responses.schema'; // Import Responses schema
 
 @Schema()
-export class Quiz extends mongoose.Document {
+export class Quiz{
   @Prop({
     type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Question' }],
     required: true,

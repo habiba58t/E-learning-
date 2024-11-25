@@ -3,7 +3,7 @@ import { Document } from 'mongoose';
 import * as mongoose from 'mongoose';
 
 @Schema()
-export class Responses extends Document { 
+export class Responses { 
   @Prop({ required: true})
   email: string;
 

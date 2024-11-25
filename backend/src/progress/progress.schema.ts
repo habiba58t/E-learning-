@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-export type ProgressDocument = Progress & Document;  // Type for the document
+
 
 @Schema()
 export class Progress {  // Class name should be ProgressSchema

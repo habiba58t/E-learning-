@@ -1,9 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { Document } from 'mongoose'; // Import mongoose correctly
+import mongoose from 'mongoose'; // Import mongoose correctly
 import { Quiz } from '../quizzes/quizzes.schema'; // Adjust the import path if needed
 import { Question } from '../questions/questions.schema'; // Adjust the import path if needed
-
-export type ModuleDocument = Module & Document;
 
 @Schema()
 export class Module {

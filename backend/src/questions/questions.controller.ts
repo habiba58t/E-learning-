@@ -2,33 +2,35 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { QuestionsService } from './questions.service';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { UpdateQuestionDto } from './dto/update-question.dto';
+import mongoose from 'mongoose';
 
 @Controller('questions')
 export class QuestionsController {
   constructor(private readonly questionsService: QuestionsService) {}
 
   @Post()
-  create(@Body() createQuestionDto: CreateQuestionDto) {
-    return this.questionsService.create(createQuestionDto);
+  async create(@Body() createQuestionDto: CreateQuestionDto) {
+    return await this.questionsService.create(createQuestionDto);
   }
 
   @Get()
-  findAll() {
-    return this.questionsService.findAll();
+  async findAll() {
+    return await this.questionsService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.questionsService.findOne(+id);
+  @Get(':difficulty_level')
+  async findOne(@Param('difficulty_level') difficulty_level: string) {
+      return await this.questionsService.findOne(difficulty_level);
   }
-
+  
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateQuestionDto: UpdateQuestionDto) {
-    return this.questionsService.update(+id, updateQuestionDto);
+  async update(@Param('id') id: mongoose.Types.ObjectId, @Body() updateQuestionDto: UpdateQuestionDto) {
+    let updateq = await this.questionsService.update(id, updateQuestionDto);
+    return updateq;
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.questionsService.remove(+id);
+  async delete(@Param('id') id: mongoose.Types.ObjectId) {
+    return this.questionsService.delete(id);
   }
 }
