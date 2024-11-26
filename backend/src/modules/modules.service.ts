@@ -29,7 +29,7 @@ export class ModulesService {
       }
  //get module by title 
       async findByTitle(title: string): Promise<Module> {
-        const module = await this.moduleModel.findById(title).exec();
+        const module = await this.moduleModel.findOne({title}).exec();
         if (!module) {
           throw new NotFoundException(`Module with title ${title} not found`);
         }
@@ -39,11 +39,12 @@ export class ModulesService {
 // Create a new Module
 async create(createModuleDto: CreateModuleDto): Promise<Module> {
   const newModule = new this.moduleModel(createModuleDto);
-  return newModule.save();
+  const savedModule = await newModule.save();  // Save the module and get the fully populated document
+  return savedModule;
 }
 // Update an existing module by title
 async update(title: string, updateModuleDto: UpdateModuleDto): Promise<Module> {
-  const updatedModule = await this.moduleModel.findByIdAndUpdate(title, updateModuleDto, { new: true }).exec();
+  const updatedModule = await this.moduleModel.findOneAndDelete({title, updateModuleDto}, { new: true }).exec();
   if (!updatedModule) {
     throw new NotFoundException(`Module with title${title} not found`);
   }
@@ -52,7 +53,7 @@ async update(title: string, updateModuleDto: UpdateModuleDto): Promise<Module> {
 
 // Delete a module by title
 async delete(title: string): Promise<Module> {
-  const deletedModule = await this.moduleModel.findByIdAndDelete(title).exec();
+  const deletedModule = await this.moduleModel.findOneAndDelete({title}).exec();
   if (!deletedModule) {
     throw new NotFoundException(`Module with title ${title} not found`);
   }

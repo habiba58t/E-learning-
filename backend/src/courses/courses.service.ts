@@ -7,7 +7,8 @@ import { Model } from 'mongoose';
 import { CreateCourseDto } from './dto/CreateCourse.dto';
 import { UpdateCourseDto } from './dto/UpdateCourse.dto';
 import { ModulesService } from '../modules/modules.service';
-
+import { CreateModuleDto } from 'src/modules/dto/CreateModule.dto';
+import * as mongoose from 'mongoose'; // Import mongoose to use ObjectId
 @Injectable()
 export class CoursesService {
     constructor(
@@ -22,7 +23,7 @@ async findAll(): Promise<Courses[]> {
 
 
   async findOne(course_code: string): Promise<Courses> {
-    const course = await this.courseModel.findById(course_code).exec();
+    const course = await this.courseModel.findOne({course_code}).exec();
     if (!course) {
       throw new NotFoundException(`Course with course code ${course_code} not found`);
     }
@@ -37,7 +38,7 @@ async findAll(): Promise<Courses[]> {
 
   // Update an existing course by ID
   async update(course_code: string, updateCourseDto: UpdateCourseDto): Promise<Courses> {
-    const updatedCourse = await this.courseModel.findByIdAndUpdate(course_code, updateCourseDto, { new: true }).exec();
+    const updatedCourse = await this.courseModel.findOneAndUpdate({course_code, updateCourseDto}, { new: true }).exec();
     if (!updatedCourse) {
       throw new NotFoundException(`Course with Course code${course_code} not found`);
     }
@@ -47,7 +48,7 @@ async findAll(): Promise<Courses[]> {
 
   // Delete a course by course_code
   async delete(course_code: string): Promise<Courses> {
-    const deletedCourse = await this.courseModel.findByIdAndDelete(course_code).exec();
+    const deletedCourse = await this.courseModel.findOneAndDelete({course_code}).exec();
     if (!deletedCourse) {
       throw new NotFoundException(`Course code with course_code ${course_code} not found`);
     }
@@ -65,6 +66,32 @@ async findAll(): Promise<Courses[]> {
 
     return modules;
   }
+  //PUT: add module to course 
+  async addModuleToCourse(courseCode: string,createModuleDto: CreateModuleDto,): Promise<Courses> {
+    const newModule = await this.modulesService.create(createModuleDto); // create new module
+    const course = await this.courseModel.findOne({ course_code: courseCode }).exec();
+  if (!course) {
+    throw new NotFoundException(`Course with Course code ${courseCode} not found`);
+  }
+ // course.modules.push(newModule._id);
 
-  
+  // Step 4: Save the updated course with the new module reference
+  const updatedCourse = await course.save();
+
+  return updatedCourse; 
+}
+
+//PUT: remove module from array of modules in specific course
+//async DeleteModuleFromCourse(courseCode: string, title:string): Promise<Courses> {
+ // const deletedModule= await this.modulesService.delete(title);
+  // Use $pull to remove the moduleId from the modules array atomically
+  //const updatedCourse = await this.courseModel.findOneAndUpdate({ course_code: courseCode }, { $pull: { modules: deletedModule._id} },{ new: true } ).exec();
+  //if (!updatedCourse) {
+    //throw new NotFoundException(`Course with course code ${courseCode} not found`);
+ // }
+
+  //return updatedCourse;  // Return the updated course
+//}
+
+
 }

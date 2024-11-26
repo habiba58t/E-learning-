@@ -6,6 +6,7 @@ import { CreateCourseDto } from './dto/CreateCourse.dto';
 import { UpdateCourseDto } from './dto/UpdateCourse.dto';
 import { Module } from '../modules/modules.schema';
 import { CreateModuleDto } from '../modules/dto/CreateModule.dto';
+import * as mongoose from 'mongoose'; // Import mongoose to use ObjectId
 
 @Controller('courses')
 export class CoursesController {
@@ -46,13 +47,15 @@ export class CoursesController {
     return this.coursesService.getModulesForCourse(course_code);
   }
 
- // @Post(':courseCode/modules')
-  //async addModuleToCourse( @Param('courseCode') courseCode: string,@Body() createModuleDto: CreateModuleDto,): Promise<Courses> {
-    //const updatedCourse = await this.coursesService.addModuleToCourse(courseCode, createModuleDto);
-    //if (!updatedCourse) {
-      //throw new NotFoundException(`Course with code ${courseCode} not found`);
-    //}
-   // return updatedCourse;
-  //}
+ // @PUT(':courseCode/modules')
+  async addModuleToCourse( @Param('courseCode') courseCode: string,@Body() createModuleDto: CreateModuleDto): Promise<Courses> {
+    return this.coursesService.addModuleToCourse(courseCode, createModuleDto);
+}
+
+//@Put: delete module from course
+//async DeleteModuleFromCourse( @Param('courseCode') courseCode: string , @Param ('title')title:string): Promise<Courses> {
+ // return this.coursesService.DeleteModuleFromCourse(courseCode, title);
+//}
+
 
 }
