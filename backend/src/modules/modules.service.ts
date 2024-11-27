@@ -7,12 +7,17 @@ import { Quiz } from '../quizzes/quizzes.schema';
 import { CreateModuleDto } from './dto/CreateModule.dto';
 import { UpdateModuleDto } from './dto/UpdateModule.dto';
 import { QuizzesService } from '../quizzes/quizzes.service';
-
+import {Question} from '../questions/questions.schema'
+import { QuestionsService } from 'src/questions/questions.service';
+import { Note } from 'src/notes/notes.schema';
+import { NotesService } from 'src/notes/notes.service';
 @Injectable()
 export class ModulesService {
   constructor(
     @InjectModel(Module.name) private moduleModel: Model<Module>,
-    @Inject(forwardRef(() => QuizzesService)) private readonly quizzesService: QuizzesService, // Inject ModulesService with forwardRef
+    @Inject(forwardRef(() => QuizzesService)) private readonly quizzesService: QuizzesService,
+    @Inject(forwardRef(() => QuestionsService)) private readonly questionsService: QuestionsService,
+    @Inject(forwardRef(() => NotesService)) private readonly notesService: NotesService, // Inject ModulesService with forwardRef
   ) {}
 
     async findAll(): Promise<Module[]> {
@@ -72,4 +77,31 @@ async delete(title: string): Promise<Module> {
 
   //return quizzes;
 //}
+
+//GET/modules/:title: retrieve all quizzes for specific module 
+// async getQuestionForModule(title: string): Promise<Question[]> {
+//   const module = await this.findByTitle(title); // Fetch the module by its title
+
+//   const questions = await Promise.all(
+//     module.questions.map((moduleId) =>
+//       this.questionsService.findOne(moduleId), // Fetch each quiz by its
+//     ),
+//   );
+
+//   return questions;
+// }
+
+
+//GET/modules/:title: retrieve all quizzes for specific module 
+// async getNotesForModule(title: string): Promise<Note[]> {
+//   const module = await this.findByTitle(title); // Fetch the module by its title
+
+//   const notes = await Promise.all(
+//     module.notes.map((moduleId) =>
+//       this.notesService.findOne(moduleId), // Fetch each quiz by its
+//     ),
+//   );
+
+//   return notes;
+// }
 }

@@ -7,6 +7,7 @@ import { UpdateCourseDto } from './dto/UpdateCourse.dto';
 import { Module } from '../modules/modules.schema';
 import { CreateModuleDto } from '../modules/dto/CreateModule.dto';
 import * as mongoose from 'mongoose'; // Import mongoose to use ObjectId
+import { UpdateModuleDto } from 'src/modules/dto/UpdateModule.dto';
 
 @Controller('courses')
 export class CoursesController {
@@ -24,10 +25,12 @@ export class CoursesController {
     return this.coursesService.findOne(course_code);
   }
 
-  // POST /products: Create a new product
+  // POST /courses: Create a new product
   @Post()
   async create(@Body() createCourseDto: CreateCourseDto): Promise<Courses> {
-    return this.coursesService.create(createCourseDto);
+    const newCourse=  await this.coursesService.create(createCourseDto);
+    return newCourse;
+
   }
 
   // PUT /products/:id: Update an existing product by its ID
@@ -35,6 +38,8 @@ export class CoursesController {
   async update(@Param('course_code') course_code: string, @Body() updateCourseDto: UpdateCourseDto): Promise<Courses> {
     return this.coursesService.update(course_code, updateCourseDto);
   }
+
+
 
   // DELETE /courses/:course_code: Delete a product by its ID
   @Delete(':course_code')
@@ -51,6 +56,8 @@ export class CoursesController {
   async addModuleToCourse( @Param('courseCode') courseCode: string,@Body() createModuleDto: CreateModuleDto): Promise<Courses> {
     return this.coursesService.addModuleToCourse(courseCode, createModuleDto);
 }
+
+
 
 //@Put: delete module from course
 //async DeleteModuleFromCourse( @Param('courseCode') courseCode: string , @Param ('title')title:string): Promise<Courses> {

@@ -14,7 +14,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
   //imports: [ProgressModule, UsersModule, CoursesModule, ModulesModule, ResponsesModule, QuizzesModule, QuestionsModule,NotesModule,MongooseModule.forRoot('mongodb://localhost:27017/E-Learning')],
-  imports: [ CoursesModule,ModulesModule,MongooseModule.forRoot('mongodb://127.0.0.1/e-learning')],
+  imports: [ CoursesModule,ModulesModule,MongooseModule.forRoot('mongodb://localhost:27017/E-Learning')],
   
   controllers: [AppController],
   providers: [AppService],

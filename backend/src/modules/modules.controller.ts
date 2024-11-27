@@ -6,6 +6,9 @@ import { Module } from './modules.schema';
 import { Quiz } from '../quizzes/quizzes.schema';
 import { CreateModuleDto } from './dto/CreateModule.dto';
 import { UpdateModuleDto } from './dto/UpdateModule.dto';
+import {Question} from '../questions/questions.schema'
+import { Note } from 'src/notes/notes.schema';
+
 
 @Controller('modules')
 
@@ -53,5 +56,18 @@ async delete(@Param('title') title: string): Promise<Module> {
 //async getQuizForModule(@Param('title') title: string): Promise<Quiz[]> {
   //return this.modulesService.getQuizForModule(title);
 //}
+
+
+//GET retrieve all quizzes of a module
+// @Get(':title/questions')
+// async getQuizForModule(@Param('title') title: string): Promise<Question[]> {
+//   return this.modulesService.getQuestionsForModule(title);
+//  }
+
+ //GET retrieve all quizzes of a module
+// @Get(':title/notes')
+// async getNotesForModule(@Param('title') title: string): Promise<Note[]> {
+//   return this.modulesService.getNotesForModule(title);
+//  }
 }
 

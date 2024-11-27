@@ -33,18 +33,26 @@ async findAll(): Promise<Courses[]> {
   // Create a new course
   async create(createCourseDto: CreateCourseDto): Promise<Courses> {
     const newCourse = new this.courseModel(createCourseDto);
-    return newCourse.save();
+    return await newCourse.save();
   }
 
-  // Update an existing course by ID
+ // Update an existing course by ID
   async update(course_code: string, updateCourseDto: UpdateCourseDto): Promise<Courses> {
-    const updatedCourse = await this.courseModel.findOneAndUpdate({course_code, updateCourseDto}, { new: true }).exec();
+    const updatedCourse = await this.courseModel
+      .findOneAndUpdate({ course_code }, updateCourseDto, { new: true })
+      .exec();
+  
     if (!updatedCourse) {
-      throw new NotFoundException(`Course with Course code${course_code} not found`);
+      throw new NotFoundException(  `Course with Course code${course_code} not found`);
     }
     return updatedCourse;
   }
 
+  
+  
+  
+
+ 
 
   // Delete a course by course_code
   async delete(course_code: string): Promise<Courses> {
@@ -73,13 +81,20 @@ async findAll(): Promise<Courses[]> {
   if (!course) {
     throw new NotFoundException(`Course with Course code ${courseCode} not found`);
   }
- // course.modules.push(newModule._id);
+  //course.modules.push(newModule._id);
+  
 
   // Step 4: Save the updated course with the new module reference
   const updatedCourse = await course.save();
 
   return updatedCourse; 
 }
+
+
+
+
+
+
 
 //PUT: remove module from array of modules in specific course
 //async DeleteModuleFromCourse(courseCode: string, title:string): Promise<Courses> {

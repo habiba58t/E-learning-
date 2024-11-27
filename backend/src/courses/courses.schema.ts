@@ -6,7 +6,7 @@ import { Module } from '../modules/modules.schema'; // Correct import for the Mo
 
 
 @Schema()
-export class Courses {
+export class Courses extends mongoose.Document {
   @Prop({ required: true, unique: true })
   course_code: string;
 
@@ -28,9 +28,13 @@ export class Courses {
   @Prop({ required: true })
   created_at: Date; 
 
+ 
+
   // Reference to Module documents using ObjectId
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Module' }] })
   modules: mongoose.Schema.Types.ObjectId[];
+
+  
 }
 
 export const CoursesSchema = SchemaFactory.createForClass(Courses);
