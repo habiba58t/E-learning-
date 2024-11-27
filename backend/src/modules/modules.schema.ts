@@ -36,6 +36,9 @@ export class Module {
 
   @Prop({ required: true, default: Date.now })
   created_at: Date;
+
+  // Explicitly type `_id` as ObjectId
+  _id:mongoose.Schema.Types.ObjectId;
 }
 export const ModuleSchema = SchemaFactory.createForClass(Module);
 

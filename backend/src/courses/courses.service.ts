@@ -66,32 +66,53 @@ async findAll(): Promise<Courses[]> {
 
     return modules;
   }
+<<<<<<< Updated upstream
   //PUT: add module to course 
   async addModuleToCourse(courseCode: string,createModuleDto: CreateModuleDto,): Promise<Courses> {
     const newModule = await this.modulesService.create(createModuleDto); // create new module
     const course = await this.courseModel.findOne({ course_code: courseCode }).exec();
+=======
+  
+ //PUT: add module to course
+async addModuleToCourse(courseCode: string, createModuleDto: CreateModuleDto): Promise<Courses> {
+  // Create new module and save it to the database
+  const newModule = await this.modulesService.create(createModuleDto);
+
+  // Check if the module was created successfully and has an _id
+  if (!newModule || !newModule._id) {
+    throw new Error('Failed to create the module.');
+  }
+
+  // Find the course by course code
+  const course = await this.courseModel.findOne({ course_code: courseCode }).exec();
+>>>>>>> Stashed changes
   if (!course) {
     throw new NotFoundException(`Course with Course code ${courseCode} not found`);
   }
  // course.modules.push(newModule._id);
 
+<<<<<<< Updated upstream
   // Step 4: Save the updated course with the new module reference
+=======
+  // Add the module's _id to the course's modules array
+  course.modules.push(newModule._id);
+
+  // Save the updated course document
+>>>>>>> Stashed changes
   const updatedCourse = await course.save();
 
   return updatedCourse; 
 }
 
 //PUT: remove module from array of modules in specific course
-//async DeleteModuleFromCourse(courseCode: string, title:string): Promise<Courses> {
- // const deletedModule= await this.modulesService.delete(title);
-  // Use $pull to remove the moduleId from the modules array atomically
-  //const updatedCourse = await this.courseModel.findOneAndUpdate({ course_code: courseCode }, { $pull: { modules: deletedModule._id} },{ new: true } ).exec();
-  //if (!updatedCourse) {
-    //throw new NotFoundException(`Course with course code ${courseCode} not found`);
- // }
-
-  //return updatedCourse;  // Return the updated course
-//}
+async DeleteModuleFromCourse(courseCode: string, title:string): Promise<Courses> {
+  const deletedModule= await this.modulesService.delete(title);
+  const updatedCourse = await this.courseModel.findOneAndUpdate({ course_code: courseCode }, { $pull: { modules: deletedModule._id} },{ new: true } ).exec();
+  if (!updatedCourse) {
+    throw new NotFoundException(`Course with course code ${courseCode} not found`);
+  }
+  return updatedCourse;  // Return the updated course
+}
 
 
 }
