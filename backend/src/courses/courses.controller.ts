@@ -47,10 +47,26 @@ export class CoursesController {
     return this.coursesService.delete(course_code);
   }
 //GET/courses/:course_code: retrieve all modules of a speicifc course
+  // @Get(':course_code/modules')
+  // async getModulesForCourse(@Param('course_code') course_code: string): Promise<Module[]> {
+  //   return this.coursesService.getModulesForCourse(course_code);
+  // }
+
+
   @Get(':course_code/modules')
-  async getModulesForCourse(@Param('course_code') course_code: string): Promise<Module[]> {
-    return this.coursesService.getModulesForCourse(course_code);
+  async getModulesForCourse(
+    @Param('course_code') course_code: string,
+  ): Promise<Module[]> {
+    // Call the service method to get the modules for the course
+    const modules = await this.coursesService.getModulesForCourse(course_code);
+    
+    if (!modules || modules.length === 0) {
+      throw new NotFoundException(`No modules found for course ${course_code}`);
+    }
+
+    return modules;
   }
+
 
  // @PUT(':courseCode/modules')
   async addModuleToCourse( @Param('courseCode') courseCode: string,@Body() createModuleDto: CreateModuleDto): Promise<Courses> {

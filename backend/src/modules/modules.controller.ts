@@ -41,7 +41,7 @@ async findByTitle(@Param('title') title: string): Promise<Module> {
  }
  
  // PUT /module/:title: Update an existing module by its title
- @Put('title')
+ @Put(':title')
  async update(@Param('title') title: string, @Body() updateModuleDto: UpdateModuleDto): Promise<Module> {
    return this.modulesService.update(title, updateModuleDto);
  }

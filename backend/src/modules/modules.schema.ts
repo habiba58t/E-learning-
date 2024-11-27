@@ -1,13 +1,13 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { Document } from 'mongoose'; // Import mongoose correctly
 import { Quiz } from '../quizzes/quizzes.schema'; // Adjust the import path if needed
 import { Question } from '../questions/questions.schema'; // Adjust the import path if needed
-
+import { Document,Types } from 'mongoose';
+import * as mongoose from 'mongoose'
 
 
 @Schema()
-export class Module {
-  @Prop({ required: true })
+export class Module extends Document{
+  @Prop({ required: true,unique: true })
   title: string;
 
   @Prop({ required: true })
@@ -21,6 +21,8 @@ export class Module {
 
   @Prop({ required: true })
   status: number ;
+
+  //_id: mongoose.Schema.Types.ObjectId;
 
   // Reference to Quiz documents using ObjectId
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Quiz' }] })

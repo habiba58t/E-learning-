@@ -2,7 +2,7 @@ import * as mongoose from 'mongoose'; // Import mongoose to use ObjectId
 
 export class UpdateModuleDto {
     readonly title: string;
-    readonly content: string;
+     content: string;
     readonly resources: string[];
     readonly level: string;
     readonly status: number;

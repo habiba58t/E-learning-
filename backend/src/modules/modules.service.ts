@@ -49,7 +49,7 @@ async create(createModuleDto: CreateModuleDto): Promise<Module> {
 }
 // Update an existing module by title
 async update(title: string, updateModuleDto: UpdateModuleDto): Promise<Module> {
-  const updatedModule = await this.moduleModel.findOneAndDelete({title, updateModuleDto}, { new: true }).exec();
+  const updatedModule = await this.moduleModel.findOneAndUpdate({title, updateModuleDto}, { new: true });
   if (!updatedModule) {
     throw new NotFoundException(`Module with title${title} not found`);
   }

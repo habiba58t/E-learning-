@@ -13,6 +13,7 @@ import * as mongoose from 'mongoose'; // Import mongoose to use ObjectId
 export class CoursesService {
     constructor(
       @InjectModel(Courses.name) private courseModel: Model<Courses>,
+      @InjectModel(Courses.name) private moduleModel: Model<Module>,
       @Inject(forwardRef(() => ModulesService)) private readonly modulesService: ModulesService, // Inject ModulesService with forwardRef
     ) {}
     
@@ -63,32 +64,111 @@ async findAll(): Promise<Courses[]> {
     return deletedCourse;
   }
 //GET/courses/:course_code: retrieve all modules of a speicifc course
+  // async getModulesForCourse(course_code: string): Promise<Module> {
+  //   const course = await this.findOne(course_code); // Fetch the course by its code
+
+  //   const modules = await Promise.all(
+  //     course.modules.map((moduleId) =>
+  //       this.modulesService.findById(moduleId), // Fetch each module by its ObjectId
+  //     ),
+  //   );
+
+  //   return modules;
+  // }
+
+
+
+
   async getModulesForCourse(course_code: string): Promise<Module[]> {
-    const course = await this.findOne(course_code); // Fetch the course by its code
-
-    const modules = await Promise.all(
-      course.modules.map((moduleId) =>
-        this.modulesService.findById(moduleId), // Fetch each module by its ObjectId
-      ),
+    const course = await this.findOne(course_code);
+  
+    if (!course) {
+      throw new NotFoundException(`Course with code ${course_code} not found`);
+    }
+  
+    // Get all modules
+    const allModules = await this.modulesService.findAll();
+  
+    // Filter the modules that match the ObjectIds in the course.modules array
+    const modules = allModules.filter(module =>
+      course.modules.some(courseModuleId =>
+        courseModuleId.toString() === module._id.toString() // Convert both to strings
+      )
     );
-
+  
     return modules;
   }
+  
+
+
   //PUT: add module to course 
-  async addModuleToCourse(courseCode: string,createModuleDto: CreateModuleDto,): Promise<Courses> {
-    const newModule = await this.modulesService.create(createModuleDto); // create new module
-    const course = await this.courseModel.findOne({ course_code: courseCode }).exec();
+//   async addModuleToCourse(courseCode: string,createModuleDto: CreateModuleDto,): Promise<Courses> {
+//     const newModule = await this.modulesService.create(createModuleDto); // create new module
+//     const course = await this.courseModel.findOne({ course_code: courseCode }).exec();
+//   if (!course) {
+//     throw new NotFoundException(`Course with Course code ${courseCode} not found`);
+//   }
+//   course.modules.push(newModule._id);
+  
+
+//   // Step 4: Save the updated course with the new module reference
+//   const updatedCourse = await course.save();
+
+//   return updatedCourse; 
+// }
+
+
+// async addModuleToCourse(courseCode: string, createModuleDto: CreateModuleDto): Promise<Courses> {
+//   // Step 1: Create a new module using the createModuleDto
+//   const newModule = await this.modulesService.create(createModuleDto);
+
+//   // Step 2: Fetch the course using the provided course code
+//   const course = await this.courseModel.findOne({ course_code: courseCode }).exec();
+  
+//   // Step 3: Check if the course exists, and throw an exception if not
+//   if (!course) {
+//     throw new NotFoundException(`Course with Course code ${courseCode} not found`);
+//   }
+
+//   // Step 4: Add the new module's _id to the course's modules array
+//   course.modules.push(newModule._id);
+
+//   // Step 5: Save the updated course with the new module reference
+//   const updatedCourse = await course.save();
+
+//   // Step 6: Return the updated course
+//   return updatedCourse;
+// }
+
+
+
+async addModuleToCourse(courseCode: string, createModuleDto: CreateModuleDto): Promise<Courses> {
+  // Create new module and save it to the database
+  const newModule = await this.modulesService.create(createModuleDto);
+
+  // Check if the module was created successfully and has an _id
+  if (!newModule || !newModule._id) {
+    throw new Error('Failed to create the module.');
+  }
+
+  // Find the course by course code
+  const course = await this.courseModel.findOne({ course_code: courseCode }).exec();
   if (!course) {
     throw new NotFoundException(`Course with Course code ${courseCode} not found`);
   }
-  //course.modules.push(newModule._id);
-  
 
-  // Step 4: Save the updated course with the new module reference
+  // Add the module's _id to the course's modules array
+  //course.modules.push(newModule._id );
+
+  // Save the updated course document
   const updatedCourse = await course.save();
 
-  return updatedCourse; 
+  return updatedCourse;
 }
+
+
+
+
 
 
 
