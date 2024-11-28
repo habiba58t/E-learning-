@@ -4,8 +4,8 @@ import * as mongoose from 'mongoose';
 
 @Schema()
 export class Responses { 
-  @Prop({ required: true})
-  email: string;
+  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'Users'})
+  username: mongoose.Schema.Types.ObjectId;
 
   // Store answers with the associated question ID
   @Prop({ required: true, type: [{ questionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Question' }, answer: String }] })
