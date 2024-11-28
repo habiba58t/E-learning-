@@ -6,8 +6,8 @@ export class Note extends Document {
   @Prop({ required: true })
   userId: string;
 
-  @Prop()
-  courseId?: string;
+  @Prop({ required: true })
+  course_Code: string;
 
   @Prop({ required: true })
   content: string;

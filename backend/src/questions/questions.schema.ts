@@ -11,6 +11,9 @@ export class Question extends Document {
 
   @Prop({ required: true })
   correct_answer: string;
+
+  @Prop({ required:true}) 
+  type: string;
 }
 
 export const QuestionsSchema = SchemaFactory.createForClass(Question);

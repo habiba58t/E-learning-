@@ -7,12 +7,12 @@ import { CoursesModule } from './courses/courses.module';
 import { ModulesModule } from './modules/modules.module';
 import { ResponsesModule } from './responses/responses.module';
 import { MongooseModule } from '@nestjs/mongoose';
-import { QuizzesModule } from './quizzes/quizzes.module';
+//import { QuizzesModule } from './quizzes/quizzes.module';
 import { QuestionsModule } from './questions/questions.module';
 import {NotesModule} from './notes/notes.module'
 
 @Module({
-  imports: [ProgressModule, UsersModule, CoursesModule, ModulesModule, ResponsesModule, QuizzesModule, QuestionsModule,NotesModule,MongooseModule.forRoot('mongodb://localhost:27017/E-Learning')],
+  imports: [ProgressModule, UsersModule, CoursesModule, ModulesModule, ResponsesModule, QuestionsModule,NotesModule,MongooseModule.forRoot('mongodb://localhost:27017/E-Learning')],
   controllers: [AppController],
   providers: [AppService],
 })
