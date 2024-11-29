@@ -37,11 +37,21 @@ export class CoursesController {
   }
 
   // POST /courses: Create a new product
-  @Post()
-  async create(@Body() createCourseDto: CreateCourseDto): Promise<Courses> {
-    const newCourse=  await this.coursesService.create(createCourseDto);
-    return newCourse;
+  // @Post()
+  // async create(@Body() createCourseDto: CreateCourseDto): Promise<Courses> {
+  //   const newCourse=  await this.coursesService.create(createCourseDto);
+  //   return newCourse;
 
+  // }
+
+
+  @Post(':username')
+  async create(
+    @Param('username') username: string,  // Get instructor username from URL
+    @Body() createCourseDto: CreateCourseDto  // Get course data from the body
+  ): Promise<Courses> {
+    // Pass the username and course data to the service to create the course and associate it with the instructor
+    return this.coursesService.create(createCourseDto,username);
   }
 
   // PUT /products/:id: Update an existing product by its ID
@@ -64,17 +74,18 @@ export class CoursesController {
   // }
 
 
-  @Get(':course_code/modules')
+  // Get modules for a student in a specific course
+  @Get(':course_code/modules/:username')
   async getModulesForCourseStudent(
-    @Param('course_code') course_code: string,): Promise<Module[]> {
-    // Call the service method to get the modules for the course
-    const modules = await this.coursesService.getModulesForCourseStudent(course_code);
-    
-    if (!modules || modules.length === 0) {
-      throw new NotFoundException(`No modules found for course ${course_code}`);
+    @Param('course_code') course_code: string,
+    @Param('username') username: string
+  ): Promise<Module[]> {
+    try {
+      // Call the service method to get the filtered modules for the student
+      return await this.coursesService.getModulesForCourseStudent(course_code, username);
+    } catch (error) {
+      throw new NotFoundException(error.message);
     }
-
-    return modules;
   }
 
   @Get(':course_code/modules')
@@ -114,4 +125,14 @@ async DeleteModuleFromCourse( @Param('courseCode') courseCode: string , @Param (
   async toggleOutdated(@Param('course_code') course_code: string): Promise<Courses> {
     return this.coursesService.toggleOutdated(course_code);
   } 
+
+
+
+  // Get average score of a specific course 
+  @Get(':course_code/average-score')
+async getAverageScore(@Param('course_code') course_code: string): Promise<{ averageScore: number }> {
+  const averageScore = await this.coursesService.getAverageScoreForCourse(course_code);
+  return { averageScore };
+}
+
 }

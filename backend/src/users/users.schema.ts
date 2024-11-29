@@ -2,9 +2,9 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import * as mongoose from 'mongoose';
 import { Courses } from '../courses/courses.schema'; // Adjust path as necessary
+import { HydratedDocument } from 'mongoose';
 
-
-
+export type userDocument = HydratedDocument<Users>
 @Schema()
 export class Users {
 
@@ -31,7 +31,7 @@ export class Users {
 
   // Reference to Courses by ObjectId
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Courses' }] })
-  courses: Courses[]; // An array of courses the user is associated with
+  courses: mongoose.Types.ObjectId[]; // An array of courses the user is associated with
 
   @Prop({ required: true })
   totalRating: number; //sum of ratings for intructor                  //INSTRUCTOR Attribute only

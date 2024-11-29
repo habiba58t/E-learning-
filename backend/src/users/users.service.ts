@@ -9,13 +9,13 @@ export class UsersService {
     constructor(@InjectModel(Users.name) private readonly userModel: Model<Users>, ){}
 
     //GET: get array of courses for a speicifc user
-    async findCoursesArray(username: string): Promise<Courses[]> {
-        const found= await this.userModel.findOne({username });
-        if (!found) {
-            throw new NotFoundException(`User with username ${username} not found`);
-          }
-        return found.courses;
-    }
+    // async findCoursesArray(username: string): Promise<Courses[]> {
+    //     const found= await this.userModel.findOne({username });
+    //     if (!found) {
+    //         throw new NotFoundException(`User with username ${username} not found`);
+    //       }
+    //     return found.courses;
+    // }
 
 
 

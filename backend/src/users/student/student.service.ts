@@ -34,4 +34,35 @@ export class StudentService {
       
   //      return validCourses;
     //  }
+
+
+    // Method to enroll a student in a course
+    async enrollStudentInCourse(username: string, courseId: string): Promise<Users> {
+        // Find the student by username
+        const student = await this.userModel.findOne({ username }).exec();
+        if (!student) {
+          throw new NotFoundException(`Student with username ${username} not found`);
+        }
+    
+        // Find the course by its ID
+        const course = await this.courseModel.findById(courseId).exec();
+        if (!course) {
+          throw new NotFoundException(`Course with ID ${courseId} not found`);
+        }
+    
+        // Check if the student is already enrolled in the course
+        // The 'student.courses' array contains ObjectIds, so compare with course._id
+        if (student.courses.includes(course._id)) {
+          throw new Error(`Student is already enrolled in this course`);
+        }
+    
+        // Add the course's ObjectId to the student's courses array
+        student.courses.push(course._id);
+    
+        // Save the updated student document
+        await student.save();
+    
+        // Return the updated student
+        return student;
+      }
 }

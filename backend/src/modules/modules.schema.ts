@@ -14,8 +14,8 @@ export class Module {
   @Prop({ required: true })
   content: string;
 
-  @Prop({ required: true })
-  resources: string[];
+  @Prop({ type: [{ type: Object }], default: [] })
+  resources: { filePath: string; fileType: string; originalName: string }[]
 
   @Prop({ required: true })
   level: string;

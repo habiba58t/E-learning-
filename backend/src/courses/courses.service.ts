@@ -10,11 +10,14 @@ import { ModulesService } from '../modules/modules.service';
 import { CreateModuleDto } from 'src/modules/dto/CreateModule.dto';
 import * as mongoose from 'mongoose'; // Import mongoose to use ObjectId
 import { moduleDocument } from '../modules/modules.schema';
+import { userDocument } from 'src/users/users.schema';
+import { Users } from 'src/users/users.schema';
 @Injectable()
 export class CoursesService {
   constructor(
     @InjectModel(Courses.name) private readonly courseModel: Model<Courses>,
     @InjectModel(Module.name) private readonly moduleModel: Model<moduleDocument>,
+    @InjectModel(Users.name) private readonly userModel: Model<Users>,
       @Inject(forwardRef(() => ModulesService)) private readonly modulesService: ModulesService, // Inject ModulesService with forwardRef
     ) {}
     
@@ -52,11 +55,35 @@ async findAll(): Promise<Courses[]> {
 
 
   // Create a new course
-  async create(createCourseDto: CreateCourseDto): Promise<Courses> {
-    const newCourse = new this.courseModel(createCourseDto);
-    newCourse.created_at= new Date();
+  // async create(createCourseDto: CreateCourseDto): Promise<Courses> {
+  //   const newCourse = new this.courseModel(createCourseDto);
+  //   newCourse.created_at= new Date();
     
-    return await newCourse.save();
+  //   return await newCourse.save();
+  // }
+
+  async create(createCourseDto: CreateCourseDto, username: string): Promise<Courses> {
+    // Step 1: Create the new course
+    const newCourse = new this.courseModel(createCourseDto);
+    newCourse.created_at = new Date();
+
+    // Save the new course to the database
+    const savedCourse = await newCourse.save();
+
+    // Step 2: Find the instructor by their username
+    const instructor = await this.userModel.findOne({ username }).exec();
+    if (!instructor) {
+      throw new NotFoundException(`Instructor with username ${username} not found`);
+    }
+
+    // Step 3: Add the new course's ObjectId to the instructor's courses array
+    instructor.courses.push(savedCourse._id);  // Cast _id to the correct type
+
+    // Step 4: Save the updated instructor
+    await instructor.save();
+
+    // Step 5: Return the newly created course
+    return savedCourse;
   }
 
   // Update an existing course by ID
@@ -153,21 +180,34 @@ async toggleOutdated(course_code: string): Promise<Courses> {
   course.isOutdated = !course.isOutdated;
   return await course.save();
 }
+// Get modules that are not outdated and match student level for student
+async getModulesForCourseStudent(course_code: string, username: string): Promise<Module[]> {
+  // Step 1: Fetch the student by their username
+  const student = await this.userModel.findOne({ username }).exec();
+  if (!student) {
+    throw new NotFoundException(`Student with username ${username} not found`);
+  }
 
-async getModulesForCourseStudent(course_code: string): Promise<Module[]> {
+  // Step 2: Fetch the course by its code
   const course = await this.findOne(course_code);
-
   if (!course) {
     throw new NotFoundException(`Course with code ${course_code} not found`);
   }
 
-  // Fetch all modules by their ObjectIds
+  // Step 3: Fetch all modules for the course
   const modules = await this.moduleModel.find({
     _id: { $in: course.modules }, // Match ObjectIds in `course.modules`
   }).exec();
-  const validModules = modules.filter((modules) => !modules.isOutdated);
+
+  // Step 4: Filter the modules based on the student's level and outdated status
+  const validModules = modules.filter(module => 
+    module.level === student.studentLevel && !module.isOutdated
+  );
+
   return validModules;
 }
+
+
 
 
 async getModulesForCourseInstructor(course_code: string): Promise<Module[]> {
@@ -184,5 +224,58 @@ async getModulesForCourseInstructor(course_code: string): Promise<Module[]> {
  
   return modules;
 }
+
+
+
+
+
+
+
+
+
+// Get Average score of a specific module 
+async getAverageScoreForCourse(course_code: string): Promise<number> {
+  // Step 1: Find the course and deeply populate nested fields
+  const course = await this.courseModel
+    .findOne({ course_code })
+    .populate({
+      path: 'modules', // Populate modules
+      populate: {
+        path: 'quizzes', // Populate quizzes within modules
+        populate: {
+          path: 'responses', // Populate responses within quizzes
+          select: 'score', // Only fetch the 'score' field
+        },
+      },
+    })
+    .exec();
+
+  if (!course) {
+    throw new NotFoundException(`Course with code ${course_code} not found`);
+  }
+
+  // Step 2: Traverse through populated modules, quizzes, and responses
+  let totalScore = 0;
+  let totalResponses = 0;
+
+  course.modules.forEach((module: any) => {
+    module.quizzes.forEach((quiz: any) => {
+      quiz.responses.forEach((response: any) => {
+        totalScore += response.score; // Accumulate scores
+        totalResponses += 1; // Count responses
+      });
+    });
+  });
+
+  // Step 3: Calculate average and return
+  if (totalResponses === 0) {
+    return 0; // No responses, average is 0
+  }
+
+  const averageScore = totalScore / totalResponses;
+  return averageScore;
+}
+
+
 
 }

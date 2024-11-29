@@ -5,10 +5,10 @@ import { Courses } from 'src/courses/courses.schema';
 export class UsersController {
     constructor(private readonly usersService: UsersService) {}
      //GET: get array of courses for a speicifc user
-    @Get(':username')
-  async findCoursesArray(@Param('username') username: string): Promise<Courses[]> {
-    return this.usersService.findCoursesArray(username);
-  }
+  //   @Get(':username')
+  // async findCoursesArray(@Param('username') username: string): Promise<Courses[]> {
+  //   return this.usersService.findCoursesArray(username);
+  // }
 
 
 }

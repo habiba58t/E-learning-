@@ -127,4 +127,30 @@ async toggleOutdated(title: string): Promise<Module> {
   return await module.save();
 }
 
+
+
+
+// Method to add file metadata to a Module's resources
+async addFileToModule(moduleId: string, fileUrl: string, originalName: string, fileType: string): Promise<Module> {
+  const module = await this.moduleModel.findById(moduleId).exec();
+  if (!module) {
+    throw new Error(`Module with ID ${moduleId} not found`);
+  }
+
+  // Create metadata for the uploaded file
+  const fileMetadata = {
+    filePath: fileUrl,
+    fileType: fileType,
+    originalName: originalName,
+  };
+
+  // Add file metadata to resources array
+  module.resources.push(fileMetadata);
+
+  // Save the updated module
+  await module.save();
+
+  return module;
+}
+
 }

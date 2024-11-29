@@ -1,4 +1,9 @@
 
+import {  UseInterceptors, UploadedFile,} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+import { v4 as uuidv4 } from 'uuid'; // to generate unique file names
 import { ModulesService } from './modules.service';
 import * as mongoose from 'mongoose';
 import { Controller, Get, Post, Body, Param, Put, Delete } from '@nestjs/common';
@@ -82,4 +87,46 @@ async delete(@Param('title') title: string): Promise<moduleDocument> {
   async toggleOutdated(@Param('title') title: string): Promise<Module> {
     return this.modulesService.toggleOutdated(title);
   } 
+
+
+
+
+
+
+
+
+
+// Upload files to resourses array
+
+  @Post(':moduleId/upload')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads', // Folder to store uploaded files
+        filename: (req, file, callback) => {
+          const fileExtName = extname(file.originalname);
+          const fileName = `${uuidv4()}${fileExtName}`;
+          callback(null, fileName);
+        },
+      }),
+    }),
+  )
+  async uploadFile(
+    @Param('moduleId') moduleId: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    // Save the file metadata (e.g., file path) in the module
+    const fileUrl = `/uploads/${file.filename}`; // Assuming files are served from '/uploads' folder
+    const fileType = file.mimetype;
+    const originalName = file.originalname;
+
+    // Add the file metadata to the Module's resources array
+    const updatedModule = await this.modulesService.addFileToModule(moduleId, fileUrl, originalName, fileType);
+
+    return {
+      message: 'File uploaded successfully!',
+      file: fileUrl,
+      module: updatedModule,
+    };
+  }
 }
