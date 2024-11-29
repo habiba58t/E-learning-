@@ -37,8 +37,8 @@ async findByTitle(@Param('title') title: string): Promise<Module> {
 
  // POST /module: Create a new module
  @Post()
- async create(@Body() createCourseDto: CreateModuleDto): Promise<moduleDocument> {
-   return this.modulesService.create(createCourseDto);
+ async create(@Body() createModuleDto: CreateModuleDto): Promise<moduleDocument> {
+  return await this.modulesService.create(createModuleDto);
  }
  
  // PUT /module/:title: Update an existing module by its title
@@ -70,4 +70,16 @@ async delete(@Param('title') title: string): Promise<moduleDocument> {
 // async getNotesForModule(@Param('title') title: string): Promise<Note[]> {
 //   return this.modulesService.getNotesForModule(title);
 //  }
+
+//GET: find outdated attributed of specific module
+@Get(':title')
+  async findOutdated(@Param('title') title: string): Promise<boolean> {
+    return this.modulesService.findOutdated(title);
+  }
+
+  //PUT: toggle outdated attributed of specific module
+  @Put(':title')
+  async toggleOutdated(@Param('title') title: string): Promise<Module> {
+    return this.modulesService.toggleOutdated(title);
+  } 
 }

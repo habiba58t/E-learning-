@@ -19,7 +19,7 @@ export class Courses  {
   @Prop({ required: true })
   category: string; 
 
-  @Prop({ required: true, enum: ['Beginner', 'Intermediate', 'Advanced'] })
+  @Prop({ required: true, enum: ['easy', 'medium', 'hard'] })
   level: string; 
 
   @Prop({ required: true })
@@ -28,13 +28,19 @@ export class Courses  {
   @Prop({ required: true })
   created_at: Date; 
 
- 
+
   // Reference to Module documents using ObjectId
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Module' }] })
 modules: mongoose.Types.ObjectId[]; // Store ObjectId references
 
+    @Prop({ required: true })
+totalRating: number; //sum of ratings for course
 
-  
+@Prop({ required: true })
+totalStudents: number; //number of students who voted for course
+
+  @Prop({required: true })
+  isOutdated: boolean;
 }
 
 export const CoursesSchema = SchemaFactory.createForClass(Courses);

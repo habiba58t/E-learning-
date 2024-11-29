@@ -46,8 +46,8 @@ export class ModulesService {
 // Create a new Module
 async create(createModuleDto: CreateModuleDto): Promise<moduleDocument> {
   const newModule = new this.moduleModel(createModuleDto);
-  const savedModule = await newModule.save();  // Save the module and get the fully populated document
-  return savedModule;
+  newModule.created_at= new Date(); 
+  return await newModule.save();
 }
 // Update an existing module by title
 async update(title: string, updateModuleDto: UpdateModuleDto): Promise<Module> {
@@ -106,4 +106,25 @@ async delete(title: string): Promise<moduleDocument> {
 
 //   return notes;
 // }
+
+//GET: find course outdated attribute by course code
+async findOutdated(title: string): Promise<boolean> {
+  const module = await this.moduleModel.findOne({ title }, { isOutdated: 1, _id: 0 }) 
+  if (!module) {
+    throw new NotFoundException(`Course with module ${title} not found`);
+  }
+
+  return module.isOutdated;
+}
+
+//PUT: change outdated of course
+async toggleOutdated(title: string): Promise<Module> {
+  const module = await this.moduleModel.findOne({ title }).exec();
+  if (!module) {
+    throw new NotFoundException(`Course with module ${title} not found`);
+  }
+  module.isOutdated = !module.isOutdated;
+  return await module.save();
+}
+
 }

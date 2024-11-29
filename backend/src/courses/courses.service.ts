@@ -24,7 +24,7 @@ async findAll(): Promise<Courses[]> {
     return this.courseModel.find().exec();
   }
 
-
+//GET: find course by course code
   async findOne(course_code: string): Promise<Courses> {
     const course = await this.courseModel.findOne({course_code}).exec();
     if (!course) {
@@ -33,9 +33,19 @@ async findAll(): Promise<Courses[]> {
     return course;
   }
 
+  //GET: find course by course code
+  async findCourseByTitle(title: string): Promise<Courses> {
+    const course = await this.courseModel.findOne({title}).exec();
+    if (!course) {
+      throw new NotFoundException(`Course with title ${title} not found`);
+    }
+    return course;
+  }
+
   // Create a new course
   async create(createCourseDto: CreateCourseDto): Promise<Courses> {
     const newCourse = new this.courseModel(createCourseDto);
+    newCourse.created_at= new Date();
     return await newCourse.save();
   }
 
@@ -50,12 +60,6 @@ async findAll(): Promise<Courses[]> {
     }
     return updatedCourse;
   }
-
-  
-  
-  
-
- 
 
   // Delete a course by course_code
   async delete(course_code: string): Promise<Courses> {
@@ -185,6 +189,27 @@ async DeleteModuleFromCourse(courseCode: string, title:string): Promise<Courses>
   }
 
   return updatedCourse;  // Return the updated course
+}
+
+
+//GET: find course outdated attribute by course code
+async findOutdated(course_code: string): Promise<boolean> {
+  const course = await this.courseModel.findOne({ course_code }, { isOutdated: 1, _id: 0 }) 
+  if (!course) {
+    throw new NotFoundException(`Course with course code ${course_code} not found`);
+  }
+
+  return course.isOutdated;
+}
+
+//PUT: change outdated of course
+async toggleOutdated(course_code: string): Promise<Courses> {
+  const course = await this.courseModel.findOne({ course_code }).exec();
+  if (!course) {
+    throw new NotFoundException(`Course with course code ${course_code} not found`);
+  }
+  course.isOutdated = !course.isOutdated;
+  return await course.save();
 }
 
 

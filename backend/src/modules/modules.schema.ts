@@ -17,13 +17,11 @@ export class Module {
   @Prop({ required: true })
   resources: string[];
 
-  @Prop({ required: true })
+  @Prop({ required: true ,enum: ['easy', 'medium', 'hard']})
   level: string;
 
   @Prop({ required: true })
   status: number ;
-
-  //_id: mongoose.Schema.Types.ObjectId;
 
   // Reference to Quiz documents using ObjectId
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Quiz' }] })
@@ -39,5 +37,14 @@ export class Module {
 
   @Prop({ required: true, default: Date.now })
   created_at: Date;
+
+  @Prop({ required: true })
+  totalRating: number; //sum of ratings for module
+  
+  @Prop({ required: true })
+  totalStudents: number; //number of students who voted for module
+
+  @Prop({required: true })
+  isOutdated: boolean;
 }
 export const ModuleSchema = SchemaFactory.createForClass(Module);

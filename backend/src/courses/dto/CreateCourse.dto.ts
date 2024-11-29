@@ -9,4 +9,7 @@ export class CreateCourseDto {
     readonly created_by: string;
     readonly created_at: Date;
     readonly  modules: mongoose.Schema.Types.ObjectId[];
+    readonly  totalRating:number=0;
+    readonly  totalStudents:number=0;
+    readonly  isOutdated: boolean=false;
   }

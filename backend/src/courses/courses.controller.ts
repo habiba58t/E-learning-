@@ -25,6 +25,12 @@ export class CoursesController {
     return this.coursesService.findOne(course_code);
   }
 
+  // GET /Course/:course code: Retrieve a specific product by its ID
+  @Get(':title')
+  async findCourseByTitle(@Param('title') title: string): Promise<Courses> {
+    return this.coursesService.findCourseByTitle(title);
+  }
+
   // POST /courses: Create a new product
   @Post()
   async create(@Body() createCourseDto: CreateCourseDto): Promise<Courses> {
@@ -55,8 +61,7 @@ export class CoursesController {
 
   @Get(':course_code/modules')
   async getModulesForCourse(
-    @Param('course_code') course_code: string,
-  ): Promise<Module[]> {
+    @Param('course_code') course_code: string,): Promise<Module[]> {
     // Call the service method to get the modules for the course
     const modules = await this.coursesService.getModulesForCourse(course_code);
     
@@ -80,5 +85,14 @@ async DeleteModuleFromCourse( @Param('courseCode') courseCode: string , @Param (
   return this.coursesService.DeleteModuleFromCourse(courseCode, title);
 }
 
+//GET: find outdated attributed of specific course
+@Get(':course_code')
+  async findOutdated(@Param('course_code') course_code: string): Promise<boolean> {
+    return this.coursesService.findOutdated(course_code);
+  }
 
+  @Put(':course_code')
+  async toggleOutdated(@Param('course_code') course_code: string): Promise<Courses> {
+    return this.coursesService.toggleOutdated(course_code);
+  } 
 }
