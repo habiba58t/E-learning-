@@ -8,12 +8,15 @@ import { CoursesService } from 'src/courses/courses.service';
 import { Users } from '../users.schema';
 import { UsersSchema } from '../users.schema';
 import { UsersService } from '../users.service';
+import { Module } from 'src/modules/modules.schema';
+import {moduleDocument } from 'src/modules/modules.schema';
 
 @Injectable()
 export class InstructorService {
     constructor(
         @InjectModel(Users.name) private readonly userModel: Model<Users>, //msh motakeda
         @InjectModel(Courses.name) private readonly courseModel: Model<Courses>,
+        @InjectModel(Module.name) private readonly moduleModel: Model<moduleDocument>,
         @Inject(forwardRef(() => CoursesService)) private readonly coursesService: CoursesService,
         @Inject(forwardRef(() => UsersService)) private readonly usersService: UsersService,
     ){}
@@ -34,4 +37,9 @@ export class InstructorService {
       
    //     return courses;
     //  }
+
+//mehtaga agyb modules of a course
+    async getModulesForStudent(): Promise<Module[]> {
+        return 
+    }
 }

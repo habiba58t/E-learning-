@@ -96,7 +96,7 @@ async findAll(): Promise<Courses[]> {
 
 
 
-  async getModulesForCourse(course_code: string): Promise<Module[]> {
+  async getModulesForCourseStudent(course_code: string): Promise<Module[]> {
     const course = await this.findOne(course_code);
   
     if (!course) {
@@ -107,7 +107,22 @@ async findAll(): Promise<Courses[]> {
     const modules = await this.moduleModel.find({
       _id: { $in: course.modules }, // Match ObjectIds in `course.modules`
     }).exec();
+    const validModules = modules.filter((modules) => !modules.isOutdated);
+    return validModules;
+  }
+
+  async getModulesForCourseInstructor(course_code: string): Promise<Module[]> {
+    const course = await this.findOne(course_code);
   
+    if (!course) {
+      throw new NotFoundException(`Course with code ${course_code} not found`);
+    }
+  
+    // Fetch all modules by their ObjectIds
+    const modules = await this.moduleModel.find({
+      _id: { $in: course.modules }, // Match ObjectIds in `course.modules`
+    }).exec();
+   
     return modules;
   }
   

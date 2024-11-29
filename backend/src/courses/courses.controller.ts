@@ -65,10 +65,10 @@ export class CoursesController {
 
 
   @Get(':course_code/modules')
-  async getModulesForCourse(
+  async getModulesForCourseStudent(
     @Param('course_code') course_code: string,): Promise<Module[]> {
     // Call the service method to get the modules for the course
-    const modules = await this.coursesService.getModulesForCourse(course_code);
+    const modules = await this.coursesService.getModulesForCourseStudent(course_code);
     
     if (!modules || modules.length === 0) {
       throw new NotFoundException(`No modules found for course ${course_code}`);
@@ -76,6 +76,20 @@ export class CoursesController {
 
     return modules;
   }
+
+  @Get(':course_code/modules')
+  async getModulesForInstructor(
+    @Param('course_code') course_code: string,): Promise<Module[]> {
+    // Call the service method to get the modules for the course
+    const modules = await this.coursesService.getModulesForCourseInstructor(course_code);
+    
+    if (!modules || modules.length === 0) {
+      throw new NotFoundException(`No modules found for course ${course_code}`);
+    }
+
+    return modules;
+  }
+
 
 
   @Put(':courseCode/modules')
