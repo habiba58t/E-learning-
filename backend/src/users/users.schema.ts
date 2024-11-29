@@ -1,37 +1,35 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
-import * as mongoose from 'mongoose';
+import { Document, Types } from 'mongoose';
 import { Courses } from '../courses/courses.schema'; // Adjust path as necessary
 
-
+export type UserDocument = Document & Users;
 
 @Schema()
 export class Users {
 
   @Prop({ required: true })
-  name: string; 
+  name: string;
 
   @Prop({ required: true, unique: true })
-  Username: string; 
+  username: string; // Changed to lowercase for consistency
 
   @Prop({ required: true, unique: true })
-  email: string; 
+  email: string;
 
   @Prop({ required: true })
-  password_hash: string; 
+  passwordHash: string; // Changed to camelCase
 
   @Prop({ required: true, enum: ['student', 'instructor', 'admin'] })
-  role: string; 
+  role: string;
 
-  @Prop({ required: false })
-  picture_url: string; 
+  @Prop()
+  pictureUrl?: string; // Changed to camelCase and made optional
 
-  @Prop({ required: true })
-  created_at: Date; 
+  @Prop({ required: true, default: Date.now }) // Set default to the current date
+  createdAt: Date; // Changed to camelCase
 
-  // Reference to Courses by ObjectId
-  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Courses' }] })
-  courses: Courses[]; // An array of courses the user is associated with
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Courses' }] })
+  courses: Types.ObjectId[]; // Use ObjectId array to align with Mongoose references
 }
 
 export const UsersSchema = SchemaFactory.createForClass(Users);
