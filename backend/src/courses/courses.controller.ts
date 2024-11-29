@@ -25,10 +25,15 @@ export class CoursesController {
     return this.coursesService.findOne(course_code);
   }
 
-  // GET /Course/:course code: Retrieve a specific product by its title
+  // GET /Course/:course code: Retrieve a specific product by its ID
   @Get(':title')
   async findCourseByTitle(@Param('title') title: string): Promise<Courses> {
     return this.coursesService.findCourseByTitle(title);
+  }
+
+  @Get('id/:ObjectId')
+  async findById(@Param('ObjectId') ObjectId: mongoose.Schema.Types.ObjectId): Promise<Courses> {
+    return this.coursesService.findById(ObjectId);
   }
 
   // POST /courses: Create a new product
@@ -60,10 +65,10 @@ export class CoursesController {
 
 
   @Get(':course_code/modules')
-  async getModulesForCourse(
+  async getModulesForCourseStudent(
     @Param('course_code') course_code: string,): Promise<Module[]> {
     // Call the service method to get the modules for the course
-    const modules = await this.coursesService.getModulesForCourse(course_code);
+    const modules = await this.coursesService.getModulesForCourseStudent(course_code);
     
     if (!modules || modules.length === 0) {
       throw new NotFoundException(`No modules found for course ${course_code}`);
@@ -71,6 +76,20 @@ export class CoursesController {
 
     return modules;
   }
+
+  @Get(':course_code/modules')
+  async getModulesForInstructor(
+    @Param('course_code') course_code: string,): Promise<Module[]> {
+    // Call the service method to get the modules for the course
+    const modules = await this.coursesService.getModulesForCourseInstructor(course_code);
+    
+    if (!modules || modules.length === 0) {
+      throw new NotFoundException(`No modules found for course ${course_code}`);
+    }
+
+    return modules;
+  }
+
 
 
   @Put(':courseCode/modules')
@@ -95,6 +114,4 @@ async DeleteModuleFromCourse( @Param('courseCode') courseCode: string , @Param (
   async toggleOutdated(@Param('course_code') course_code: string): Promise<Courses> {
     return this.coursesService.toggleOutdated(course_code);
   } 
-
- 
 }

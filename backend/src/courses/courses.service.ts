@@ -41,10 +41,21 @@ async findAll(): Promise<Courses[]> {
     return course;
   }
 
+  //get module by id for courses
+  async findById(ObjectId: mongoose.Schema.Types.ObjectId): Promise<Courses> {
+    const course = await this.courseModel.findById(ObjectId).exec();
+    if (!course) {
+      throw new NotFoundException(`course with Object id ${ObjectId} not found`);
+    }
+    return course;
+  }
+
+
   // Create a new course
   async create(createCourseDto: CreateCourseDto): Promise<Courses> {
     const newCourse = new this.courseModel(createCourseDto);
     newCourse.created_at= new Date();
+    
     return await newCourse.save();
   }
 
@@ -141,6 +152,37 @@ async toggleOutdated(course_code: string): Promise<Courses> {
   }
   course.isOutdated = !course.isOutdated;
   return await course.save();
+}
+
+async getModulesForCourseStudent(course_code: string): Promise<Module[]> {
+  const course = await this.findOne(course_code);
+
+  if (!course) {
+    throw new NotFoundException(`Course with code ${course_code} not found`);
+  }
+
+  // Fetch all modules by their ObjectIds
+  const modules = await this.moduleModel.find({
+    _id: { $in: course.modules }, // Match ObjectIds in `course.modules`
+  }).exec();
+  const validModules = modules.filter((modules) => !modules.isOutdated);
+  return validModules;
+}
+
+
+async getModulesForCourseInstructor(course_code: string): Promise<Module[]> {
+  const course = await this.findOne(course_code);
+
+  if (!course) {
+    throw new NotFoundException(`Course with code ${course_code} not found`);
+  }
+
+  // Fetch all modules by their ObjectIds
+  const modules = await this.moduleModel.find({
+    _id: { $in: course.modules }, // Match ObjectIds in `course.modules`
+  }).exec();
+ 
+  return modules;
 }
 
 }

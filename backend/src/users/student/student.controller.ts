@@ -9,10 +9,11 @@ export class StudentController {
     constructor(private readonly studentService: StudentService) {}
 
   //GET: get courses for user  
-   // @Get()
-   // async getCoursesForStudent(): Promise<Courses[]> {
+  //  @Get()
+    //async getCoursesForStudent(): Promise<Courses[]> {
      //hanroo7 user ngyb array of courses ,loop put courses in array get course by objectId WHEre is outdated false
-   // }
+   //  return this.studentService.getCoursesForStudent();
+    //}
 
 
 }
