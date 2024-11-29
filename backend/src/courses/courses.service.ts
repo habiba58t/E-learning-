@@ -42,10 +42,21 @@ async findAll(): Promise<Courses[]> {
     return course;
   }
 
+  //get module by id for courses
+  async findById(ObjectId: mongoose.Schema.Types.ObjectId): Promise<Courses> {
+    const course = await this.courseModel.findById(ObjectId).exec();
+    if (!course) {
+      throw new NotFoundException(`course with Object id ${ObjectId} not found`);
+    }
+    return course;
+  }
+
+
   // Create a new course
   async create(createCourseDto: CreateCourseDto): Promise<Courses> {
     const newCourse = new this.courseModel(createCourseDto);
     newCourse.created_at= new Date();
+    
     return await newCourse.save();
   }
 

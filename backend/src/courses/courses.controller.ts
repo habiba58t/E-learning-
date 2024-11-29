@@ -31,6 +31,11 @@ export class CoursesController {
     return this.coursesService.findCourseByTitle(title);
   }
 
+  @Get('id/:ObjectId')
+  async findById(@Param('ObjectId') ObjectId: mongoose.Schema.Types.ObjectId): Promise<Courses> {
+    return this.coursesService.findById(ObjectId);
+  }
+
   // POST /courses: Create a new product
   @Post()
   async create(@Body() createCourseDto: CreateCourseDto): Promise<Courses> {
