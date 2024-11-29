@@ -24,6 +24,12 @@ export class CoursesController {
     return this.coursesService.findOne(course_code);
   }
 
+  // GET /Course/:course code: Retrieve a specific product by its ID
+  @Get(':title')
+  async getCourseByTitle(@Param('title') title: string): Promise<Courses> {
+    return this.coursesService.getCourseByTitle(title);
+  }
+
   // POST /products: Create a new product
   @Post()
   async create(@Body() createCourseDto: CreateCourseDto): Promise<Courses> {

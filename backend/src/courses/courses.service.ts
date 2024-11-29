@@ -21,11 +21,20 @@ async findAll(): Promise<Courses[]> {
     return this.courseModel.find().exec();
   }
 
-
+//Get: find course by title
   async findOne(course_code: string): Promise<Courses> {
     const course = await this.courseModel.findOne({course_code}).exec();
     if (!course) {
       throw new NotFoundException(`Course with course code ${course_code} not found`);
+    }
+    return course;
+  }
+
+  //Get: find course by title
+  async getCourseByTitle(title: string): Promise<Courses> {
+    const course = await this.courseModel.findOne({title}).exec();
+    if (!course) {
+      throw new NotFoundException(`Course with title ${title} not found`);
     }
     return course;
   }

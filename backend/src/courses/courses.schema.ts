@@ -31,6 +31,8 @@ export class Courses {
   // Reference to Module documents using ObjectId
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Module' }] })
   modules: mongoose.Schema.Types.ObjectId[];
+
+  
 }
 
 export const CoursesSchema = SchemaFactory.createForClass(Courses);
