@@ -25,7 +25,7 @@ export class CoursesController {
     return this.coursesService.findOne(course_code);
   }
 
-  // GET /Course/:course code: Retrieve a specific product by its ID
+  // GET /Course/:course code: Retrieve a specific product by its title
   @Get(':title')
   async findCourseByTitle(@Param('title') title: string): Promise<Courses> {
     return this.coursesService.findCourseByTitle(title);
@@ -95,4 +95,6 @@ async DeleteModuleFromCourse( @Param('courseCode') courseCode: string , @Param (
   async toggleOutdated(@Param('course_code') course_code: string): Promise<Courses> {
     return this.coursesService.toggleOutdated(course_code);
   } 
+
+ 
 }

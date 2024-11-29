@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Quiz } from '../quizzes/quizzes.schema'; // Adjust the import path if needed
 import { Question } from '../questions/questions.schema'; // Adjust the import path if needed
-import { Document,Types } from 'mongoose';
+import { Types } from 'mongoose';
 import * as mongoose from 'mongoose'
 import { HydratedDocument } from 'mongoose';
 
@@ -17,11 +17,13 @@ export class Module {
   @Prop({ required: true })
   resources: string[];
 
-  @Prop({ required: true ,enum: ['easy', 'medium', 'hard']})
+  @Prop({ required: true })
   level: string;
 
   @Prop({ required: true })
   status: number ;
+
+  //_id: mongoose.Schema.Types.ObjectId;
 
   // Reference to Quiz documents using ObjectId
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Quiz' }] })
@@ -48,3 +50,4 @@ export class Module {
   isOutdated: boolean;
 }
 export const ModuleSchema = SchemaFactory.createForClass(Module);
+
