@@ -8,24 +8,25 @@ export class AuthController {
     constructor(private authService: AuthService) {}
 
     @Post('login')
-    async login(@Body() signInDto: SignInDto) {
+    async login(@Body() signInDto: SignInDto,@Res({ passthrough: true }) res) {
         try {
             console.log('Attempting login...');
             // Call the AuthService to handle login
             const result = await this.authService.login(signInDto);
 
             // Set the token in the cookie
-            // res.cookie('token', result.access_token, {
-            //     httpOnly: true, // Prevents client-side JavaScript access
-            //     secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-            //     maxAge: 3600 * 1000, // Cookie expiration time in milliseconds
-            // });
+            res.cookie('token', result.access_token, {
+                httpOnly: true, // Prevents client-side JavaScript access
+                secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+                maxAge: 3600 * 1000, // Cookie expiration time in milliseconds
+            });
 
             // Return success response
             return {
                 statusCode: HttpStatus.OK,
                 message: 'Login successful',
                 user: result.payload,
+                access_token:result.access_token
             };
         } catch (error) {
             console.log(error);

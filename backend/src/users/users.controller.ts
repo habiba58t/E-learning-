@@ -4,6 +4,8 @@ import { AuthGuard } from '../auth/guards/authentication.guard';
 import { AuthorizationGuard } from '../auth/guards/authorization.guard';
 import { createDto } from './dto/createuser.dto';
 import { UserDocument, Users } from './users.schema';
+import { Role, Roles } from 'src/auth/decorators/role.decorator';
+
 
 @Controller('users')
 export class UsersController {
@@ -31,8 +33,8 @@ export class UsersController {
   }
 
   @Get('/')
-//   @UseGuards(JwtAuthGuard, RolesGuard)
-//   @Roles('admin') // Only admin can view all users
+  @Roles(Role.Admin)
+  @UseGuards(AuthGuard, AuthorizationGuard) // Only admin can view all users
   async findAll(): Promise<Users[]> {
     return this.usersService.findAll();
   }

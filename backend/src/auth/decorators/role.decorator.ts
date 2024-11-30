@@ -5,5 +5,5 @@ export const Roles =
 export enum Role {
     User = 'student',
     Instructor='instrictor',
-    Admin = 'admin',
+    Admin = 'admin'
   }

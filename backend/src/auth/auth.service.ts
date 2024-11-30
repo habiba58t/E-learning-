@@ -35,36 +35,45 @@ export class AuthService {
     return 'Registered successfully';
   }
 
-  async login(signInDto:SignInDto){
-   
-    
-    const user = await this.usersService.findOneByUsername(signInDto.username);
+  async login(signInDto: SignInDto) {
+    const { username, password } = signInDto;
   
+    // Log username for debugging
+    console.log(`Attempting login for username: ${username}`);
+  
+    // Find user by username
+    const user = await this.usersService.findOneByUsername(username);
     if (!user) {
-      console.error(`User not found for username: ${signInDto.username}`); // Log failure
+      console.error(`User not found for username: ${username}`);
       throw new NotFoundException('User not found');
     }
   
-    // Compare password hash
-    const isPasswordValid = await bcrypt.compare(signInDto.password, user.passwordHash);
+    // Compare hashed passwords
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordValid) {
-      console.error(`Invalid password for user: ${signInDto.username}`); // Log failure
+      console.error(`Invalid password for user: ${username}`);
       throw new UnauthorizedException('Invalid credentials');
     }
   
-    console.log(`User authenticated: ${signInDto.username}, generating token...`); // Log success
-    // Generate JWT token
-    const payload = {
-     username: user.username,
-      role: user.role,
-    };
+    console.log(`User authenticated: ${username}, generating token...`);
   
-    const access_token = await this.jwtService.signAsync(payload);
+    // JWT payload
+    const payload = { username: user.username, role: user.role };
+    console.log("payload met");
+    // Debugging JWT configuration
+    const secret = process.env.JWT_SECRET || 'defaultSecret';
+    const expiresIn = process.env.JWT_EXPIRES_IN || '1h';
+    console.log('JWT Configuration:', { secret, expiresIn });
+  
+    // Generate token
+    const token = await this.jwtService.signAsync(payload, { expiresIn });
+    console.log('Generated token:', token);
   
     return {
-      access_token,
+      access_token: token,
       payload,
     };
   }
+  
   
 }
