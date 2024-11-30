@@ -25,7 +25,7 @@ export class Courses  {
   @Prop({ required: true })
   created_by: string;
 
-  @Prop({ required: true })
+  @Prop()
   created_at: Date; 
 
 
@@ -33,13 +33,13 @@ export class Courses  {
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Module' }] })
 modules: mongoose.Types.ObjectId[]; // Store ObjectId references
 
-    @Prop({ required: true })
+    @Prop()
 totalRating: number; //sum of ratings for course
 
-@Prop({ required: true })
+@Prop()
 totalStudents: number; //number of students who voted for course
 
-  @Prop({required: true })
+  @Prop()
   isOutdated: boolean;
 }
 

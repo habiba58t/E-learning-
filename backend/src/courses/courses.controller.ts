@@ -38,22 +38,22 @@ export class CoursesController {
   }
 
   // POST /courses: Create a new product
-  // @Post()
-  // async create(@Body() createCourseDto: CreateCourseDto): Promise<Courses> {
-  //   const newCourse=  await this.coursesService.create(createCourseDto);
-  //   return newCourse;
+  @Post()
+  async create(@Body() createCourseDto: CreateCourseDto): Promise<Courses> {
+    const newCourse=  await this.coursesService.create(createCourseDto);
+    return newCourse;
 
-  // }
-
-
-  @Post(':username')
-  async create(
-    @Param('username') username: string,  // Get instructor username from URL
-    @Body() createCourseDto: CreateCourseDto  // Get course data from the body
-  ): Promise<Courses> {
-    // Pass the username and course data to the service to create the course and associate it with the instructor
-    return this.coursesService.create(createCourseDto,username);
   }
+
+
+  // @Post(':username')
+  // async create(
+  //   @Param('username') username: string,  // Get instructor username from URL
+  //   @Body() createCourseDto: CreateCourseDto  // Get course data from the body
+  // ): Promise<Courses> {
+  //   // Pass the username and course data to the service to create the course and associate it with the instructor
+  //   return this.coursesService.create(createCourseDto,username);
+  // }
 
   // PUT /products/:id: Update an existing product by its ID
   @Put(':course_code')

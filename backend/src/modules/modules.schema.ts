@@ -12,7 +12,7 @@ export class Module {
   @Prop({ required: true,unique: true })
   title: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, enum: ['easy', 'medium', 'hard'] })
   level: string;
 
   @Prop({ required: true })

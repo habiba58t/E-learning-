@@ -56,36 +56,36 @@ export class CoursesService {
 
 
   // Create a new course
-  // async create(createCourseDto: CreateCourseDto): Promise<Courses> {
-  //   const newCourse = new this.courseModel(createCourseDto);
-  //   newCourse.created_at= new Date();
-    
-  //   return await newCourse.save();
-  // }
-
-  async create(createCourseDto: CreateCourseDto, username: string): Promise<Courses> {
-    // Step 1: Create the new course
+  async create(createCourseDto: CreateCourseDto): Promise<Courses> {
     const newCourse = new this.courseModel(createCourseDto);
-    newCourse.created_at = new Date();
-
-    // Save the new course to the database
-    const savedCourse = await newCourse.save();
-
-    // Step 2: Find the instructor by their username
-    const instructor = await this.userModel.findOne({ username }).exec();
-    if (!instructor) {
-      throw new NotFoundException(`Instructor with username ${username} not found`);
-    }
-
-    // Step 3: Add the new course's ObjectId to the instructor's courses array
-    instructor.courses.push(savedCourse._id);  // Cast _id to the correct type
-
-    // Step 4: Save the updated instructor
-    await instructor.save();
-
-    // Step 5: Return the newly created course
-    return savedCourse;
+    newCourse.created_at= new Date();
+    
+    return await newCourse.save();
   }
+
+  // async create(createCourseDto: CreateCourseDto, username: string): Promise<Courses> {
+  //   // Step 1: Create the new course
+  //   const newCourse = new this.courseModel(createCourseDto);
+  //   newCourse.created_at = new Date();
+
+  //   // Save the new course to the database
+  //   const savedCourse = await newCourse.save();
+
+  //   // Step 2: Find the instructor by their username
+  //   const instructor = await this.userModel.findOne({ username }).exec();
+  //   if (!instructor) {
+  //     throw new NotFoundException(`Instructor with username ${username} not found`);
+  //   }
+
+  //   // Step 3: Add the new course's ObjectId to the instructor's courses array
+  //   instructor.courses.push(savedCourse._id);  // Cast _id to the correct type
+
+  //   // Step 4: Save the updated instructor
+  //   await instructor.save();
+
+  //   // Step 5: Return the newly created course
+  //   return savedCourse;
+  // }
 
  // Update an existing course by ID
   async update(course_code: string, updateCourseDto: UpdateCourseDto): Promise<Courses> {
