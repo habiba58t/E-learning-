@@ -2,12 +2,12 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
 @Schema()
-export class Recommendation extends Document {
+export class Recommendation {
   @Prop({ required: true, unique: true })
   recommendationid: string; 
 
   @Prop({ required: true })
-  userid: string; 
+  Username: string; 
 
   @Prop({ type: [String], required: true })
   recommendeditems: string[]; 

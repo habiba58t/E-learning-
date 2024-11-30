@@ -1,13 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document,Types } from 'mongoose';
 import * as mongoose from 'mongoose'; // Import mongoose to use ObjectId
 import { Module } from '../modules/modules.schema'; // Correct import for the Module schema
+import { HydratedDocument } from 'mongoose';
 
-// Defining the CoursesDocument type
-export type CoursesDocument = Courses & Document;
-
+export type courseDocument = HydratedDocument<Courses>
 @Schema()
-export class Courses {
+export class Courses  {
   @Prop({ required: true, unique: true })
   course_code: string;
 
@@ -20,7 +19,7 @@ export class Courses {
   @Prop({ required: true })
   category: string; 
 
-  @Prop({ required: true, enum: ['Beginner', 'Intermediate', 'Advanced'] })
+  @Prop({ required: true, enum: ['easy', 'medium', 'hard'] })
   level: string; 
 
   @Prop({ required: true })
@@ -29,9 +28,19 @@ export class Courses {
   @Prop({ required: true })
   created_at: Date; 
 
+
   // Reference to Module documents using ObjectId
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Module' }] })
-  modules: mongoose.Schema.Types.ObjectId[];
+modules: mongoose.Types.ObjectId[]; // Store ObjectId references
+
+    @Prop({ required: true })
+totalRating: number; //sum of ratings for course
+
+@Prop({ required: true })
+totalStudents: number; //number of students who voted for course
+
+  @Prop({required: true })
+  isOutdated: boolean;
 }
 
 export const CoursesSchema = SchemaFactory.createForClass(Courses);

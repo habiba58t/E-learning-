@@ -3,9 +3,9 @@ import { Document } from 'mongoose';
 import * as mongoose from 'mongoose';
 
 @Schema()
-export class Responses extends Document { 
+export class Responses { 
   @Prop({ required: true})
-  email: string;
+  Username: string;
 
   // Store answers with the associated question ID
   @Prop({ required: true, type: [{ questionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Question' }, answer: String }] })
