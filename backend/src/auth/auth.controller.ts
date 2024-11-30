@@ -21,6 +21,17 @@ export class AuthController {
                 maxAge: 3600 * 1000, // Cookie expiration time in milliseconds
             });
 
+            res.cookie('username', result.payload.username, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                maxAge: 3600 * 1000,
+            });
+            res.cookie('role', result.payload.role, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                maxAge: 3600 * 1000,
+            });
+
             // Return success response
             return {
                 statusCode: HttpStatus.OK,
