@@ -63,6 +63,8 @@ export class CoursesController {
 
 
 
+
+
   // DELETE /courses/:course_code: Delete a product by its ID
   @Delete(':course_code')
   async delete(@Param('course_code') course_code: string): Promise<Courses> {
