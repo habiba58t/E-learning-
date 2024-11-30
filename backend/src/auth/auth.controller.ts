@@ -14,23 +14,22 @@ export class AuthController {
             // Call the AuthService to handle login
             const result = await this.authService.login(signInDto);
 
-            // Set the token in the cookie
-            res.cookie('token', result.access_token, {
-                httpOnly: true, // Prevents client-side JavaScript access
-                secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-                maxAge: 3600 * 1000, // Cookie expiration time in milliseconds
-            });
+           // Combine data into a single object
+        const combinedData = {
+            token: result.access_token,
+            username: result.payload.username,
+            role: result.payload.role,
+        };
 
-            res.cookie('username', result.payload.username, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                maxAge: 3600 * 1000,
-            });
-            res.cookie('role', result.payload.role, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                maxAge: 3600 * 1000,
-            });
+        // Convert the object to a JSON string
+        const combinedDataString = JSON.stringify(combinedData);
+
+        // Set the single cookie
+        res.cookie('user_data', combinedDataString, {
+            httpOnly: true, // Prevents client-side JavaScript access
+            secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+            maxAge: 3600 * 1000, // Cookie expiration time in milliseconds
+        });
 
             // Return success response
             return {
