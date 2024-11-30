@@ -4,6 +4,7 @@ import { Question } from '../questions/questions.schema'; // Adjust the import p
 import { Types } from 'mongoose';
 import * as mongoose from 'mongoose'
 import { HydratedDocument } from 'mongoose';
+import { Content } from './content/content.schema';
 
 export type moduleDocument = HydratedDocument<Module>
 @Schema()
@@ -12,30 +13,25 @@ export class Module {
   title: string;
 
   @Prop({ required: true })
-  content: string;
-
-  @Prop({ type: [{ type: Object }], default: [] })
-  resources: { filePath: string; fileType: string; originalName: string }[]
-
-  @Prop({ required: true })
   level: string;
 
   @Prop({ required: true })
   status: number ;
 
-  //_id: mongoose.Schema.Types.ObjectId;
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Content' }] })
+  content: mongoose.Types.ObjectId[];
 
   // Reference to Quiz documents using ObjectId
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Quiz' }] })
-  quizzes: mongoose.Schema.Types.ObjectId[];
+  quizzes:mongoose.Types.ObjectId[];
 
   // Reference to Question documents using ObjectId
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Question' }] })
-  questions: mongoose.Schema.Types.ObjectId[];
+  questions: mongoose.Types.ObjectId[];
 
   // Reference to notes documents using ObjectId
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Note' }] })
-  notes: mongoose.Schema.Types.ObjectId[];
+  notes: mongoose.Types.ObjectId[];
 
   @Prop({ required: true, default: Date.now })
   created_at: Date;

@@ -21,10 +21,11 @@ export class CoursesService {
       @Inject(forwardRef(() => ModulesService)) private readonly modulesService: ModulesService, // Inject ModulesService with forwardRef
     ) {}
     
+  //GET ALL COURSES //PUBLIC  
+    async findAll(): Promise<{ title: string; description: string }[]> {
+      return this.courseModel.find().select('title description').exec();
+    }
     
-async findAll(): Promise<Courses[]> {
-    return this.courseModel.find().exec();
-  }
 
 
   async findOne(course_code: string): Promise<Courses> {
@@ -44,7 +45,7 @@ async findAll(): Promise<Courses[]> {
     return course;
   }
 
-  //get module by id for courses
+  //get course by objectId
   async findById(ObjectId: mongoose.Schema.Types.ObjectId): Promise<Courses> {
     const course = await this.courseModel.findById(ObjectId).exec();
     if (!course) {

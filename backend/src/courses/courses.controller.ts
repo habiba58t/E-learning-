@@ -13,8 +13,9 @@ import { courseDocument } from './courses.schema';
 export class CoursesController {
     constructor(private readonly coursesService: CoursesService) {}
 
+    //GET ALL COURSES   //PUBLIC 
 @Get()
-  async findAll(): Promise<Courses[]> {
+  async findAll(): Promise<{ title: string; description: string }[]> {
     return this.coursesService.findAll();
   
   }

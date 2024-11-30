@@ -12,14 +12,22 @@ import { QuestionsService } from 'src/questions/questions.service';
 import { Note } from 'src/notes/notes.schema';
 import { NotesService } from 'src/notes/notes.service';
 import { moduleDocument } from './modules.schema';
+import { Content } from './content/content.schema';
+import { contentDocument } from './content/content.schema';
+import { ContentService } from './content/content.service';
+
+
+
 @Injectable()
 export class ModulesService {
   constructor(
    // @InjectModel(Module.name) private moduleModel: Model<Module>,
     @InjectModel(Module.name) private readonly moduleModel: Model<moduleDocument>,
+    @InjectModel(Content.name) private readonly contentModel: Model<contentDocument>,
     @Inject(forwardRef(() => QuizzesService)) private readonly quizzesService: QuizzesService,
     @Inject(forwardRef(() => QuestionsService)) private readonly questionsService: QuestionsService,
     @Inject(forwardRef(() => NotesService)) private readonly notesService: NotesService, // Inject ModulesService with forwardRef
+    @Inject(forwardRef(() => ContentService)) private readonly contentService: ContentService, 
   ) {}
 
     async findAll(): Promise<Module[]> {
@@ -93,6 +101,28 @@ async delete(title: string): Promise<moduleDocument> {
 //   return questions;
 // }
 
+//GET/modules/:title: retrieve all question for specific module 
+// async getQuestionForModule(title: string): Promise<Question[]> {
+//   const module = await this.findByTitle(title); // Fetch the module by its title
+
+//   const questions = await Promise.all(
+//     module.questions.map((moduleId) =>
+//       this.questionsService.findOne(moduleId), // Fetch each quiz by its
+//     ),
+//   );
+
+//   return questions;
+// }
+
+//Get array of quesiton by moduleId
+async findQuestionsByModuleId(ObjectId: mongoose.Schema.Types.ObjectId): Promise<mongoose.Types.ObjectId[]> {
+  const module = await this.moduleModel.findOne({ObjectId}).exec();
+        if (!module) {
+          throw new NotFoundException(`Module with ObjectId ${ObjectId} not found`);
+        }
+        return module.questions;
+}
+
 
 //GET/modules/:title: retrieve all quizzes for specific module 
 // async getNotesForModule(title: string): Promise<Note[]> {
@@ -131,7 +161,7 @@ async toggleOutdated(title: string): Promise<Module> {
 
 
 // Method to add file metadata to a Module's resources
-async addFileToModule(moduleId: string, fileUrl: string, originalName: string, fileType: string): Promise<Module> {
+async addFileToModule(moduleId: string, fileUrl: string, originalName: string, fileType: string,contentTitle:string): Promise<Module> {
   const module = await this.moduleModel.findById(moduleId).exec();
   if (!module) {
     throw new Error(`Module with ID ${moduleId} not found`);
@@ -143,10 +173,17 @@ async addFileToModule(moduleId: string, fileUrl: string, originalName: string, f
     fileType: fileType,
     originalName: originalName,
   };
+// Create contentDto to match the CreateContentDto structure
+// Create contentDto to match the CreateContentDto structure
+const contentDto = {
+  title: contentTitle, // The title field should match 'title' in CreateContentDto
+  resources: [fileMetadata], // resources should be an array of file metadata objects
+};
 
-  // Add file metadata to resources array
-  module.resources.push(fileMetadata);
-
+// Create content and pass it to the content service
+const contents = await this.contentService.createContent(contentDto);
+ module.content.push(contents._id);
+ 
   // Save the updated module
   await module.save();
 

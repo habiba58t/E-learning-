@@ -17,6 +17,8 @@ import { UsersSchema } from 'src/users/users.schema';
 import { UsersService } from 'src/users/users.service';
 import { StudentService } from 'src/users/student/student.service';
 import { InstructorService } from 'src/users/instructor/instructor.service';
+import { ContentService } from 'src/modules/content/content.service';
+import { ContentSchema } from 'src/modules/content/content.schema';
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: 'Courses', schema: CoursesSchema }]),
@@ -25,13 +27,13 @@ import { InstructorService } from 'src/users/instructor/instructor.service';
     MongooseModule.forFeature([{ name: 'Question', schema: QuestionsSchema }]),
     MongooseModule.forFeature([{ name: 'Note', schema: NoteSchema }]),
     MongooseModule.forFeature([{ name: 'Users', schema: UsersSchema }]),
-    
+    MongooseModule.forFeature([{ name: 'Content', schema: ContentSchema }]),
 
      // Ensure this is imported here too
   ],
 
-  providers: [CoursesService,ModulesService,QuizzesService,QuestionsService,NotesService,StudentService,InstructorService,UsersService],
+  providers: [CoursesService,ModulesService,QuizzesService,QuestionsService,NotesService,StudentService,InstructorService,UsersService,ContentService],
   controllers: [CoursesController],
-  exports:[CoursesService,ModulesService,QuizzesService,QuestionsService,NotesService,StudentService,InstructorService,UsersService]
+  exports:[CoursesService,ModulesService,QuizzesService,QuestionsService,NotesService,StudentService,InstructorService,UsersService,ContentService]
 })
 export class CoursesModule {}

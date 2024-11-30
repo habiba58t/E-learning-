@@ -14,6 +14,9 @@ import { UpdateModuleDto } from './dto/UpdateModule.dto';
 import {Question} from '../questions/questions.schema'
 import { Note } from 'src/notes/notes.schema';
 import { moduleDocument } from './modules.schema';
+import { Content } from './content/content.schema';
+import { contentDocument } from './content/content.schema';
+
 
 
 @Controller('modules')
@@ -69,6 +72,18 @@ async delete(@Param('title') title: string): Promise<moduleDocument> {
 // async getQuizForModule(@Param('title') title: string): Promise<Question[]> {
 //   return this.modulesService.getQuestionsForModule(title);
 //  }
+//GET retrieve all quizzes of a module
+// @Get(':title/questions')
+// async getQuestionsForModule(@Param('title') title: string): Promise<Question[]> {
+//   return this.modulesService.getQuestionsForModule(title);
+//  }
+
+//GET: find array of questions by moduleId
+@Get('id/:ObjectId')             
+async findQuestionsByModuleId(@Param('ObjectId') ObjectId: mongoose.Schema.Types.ObjectId): Promise<mongoose.Types.ObjectId[]> {
+  return this.modulesService.findQuestionsByModuleId(ObjectId);
+} 
+//ADD QUIZ TO MODULE
 
  //GET retrieve all quizzes of a module
 // @Get(':title/notes')
@@ -112,7 +127,7 @@ async delete(@Param('title') title: string): Promise<moduleDocument> {
     }),
   )
   async uploadFile(
-    @Param('moduleId') moduleId: string,
+    @Param('moduleId') moduleId: string, @Param('contentTitle') contentTitle: string,
     @UploadedFile() file: Express.Multer.File,
   ) {
     // Save the file metadata (e.g., file path) in the module
@@ -121,7 +136,7 @@ async delete(@Param('title') title: string): Promise<moduleDocument> {
     const originalName = file.originalname;
 
     // Add the file metadata to the Module's resources array
-    const updatedModule = await this.modulesService.addFileToModule(moduleId, fileUrl, originalName, fileType);
+    const updatedModule = await this.modulesService.addFileToModule(moduleId, fileUrl, originalName, fileType,contentTitle);
 
     return {
       message: 'File uploaded successfully!',
