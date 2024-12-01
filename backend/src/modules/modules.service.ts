@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
+import { Controller, Delete, Param,  InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Module} from './modules.schema';
 import * as mongoose from 'mongoose';
@@ -189,5 +190,59 @@ const contents = await this.contentService.createContent(contentDto);
 
   return module;
 }
+
+
+
+
+
+
+
+
+
+// delete module and all related quizzes and questions 
+async deleteModule(moduleId: mongoose.Types.ObjectId): Promise<any> {
+  // Step 1: Find the module to delete
+  const module = await this.moduleModel.findById(moduleId).exec();
+  if (!module) {
+    throw new NotFoundException(`Module with ID ${moduleId} not found`);
+  }
+
+  // Step 2: Extract related quizzes and questions
+  const { quizzes = [], questions = [] } = module;
+
+  // Step 3: Delete related Quizzes using Quizzes API
+  try {
+    if (quizzes.length > 0) {
+      await Promise.all(
+        quizzes.map(async (quizId) => {
+          await this.quizzesService.deleteQuiz(new mongoose.Types.ObjectId(quizId));
+        })
+      );
+    }
+  } catch (error) {
+    console.error("Error deleting quizzes for module:", error);
+    throw new InternalServerErrorException("Failed to delete related quizzes for module.");
+  }
+
+  // Step 4: Delete related Questions using Questions API
+  try {
+    if (questions.length > 0) {
+      await Promise.all(
+        questions.map(async (questionId) => {
+          await this.questionsService.delete(new mongoose.Types.ObjectId(questionId));
+        })
+      );
+    }
+  } catch (error) {
+    console.error("Error deleting questions for module:", error);
+    throw new InternalServerErrorException("Failed to delete related questions for module.");
+  }
+
+  // Step 5: Delete the module itself
+  await this.moduleModel.findByIdAndDelete(moduleId).exec();
+
+  return { message: "Module and its related data deleted successfully" };
+}
+
 
 }

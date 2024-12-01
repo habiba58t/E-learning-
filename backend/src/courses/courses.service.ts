@@ -1,5 +1,5 @@
 
-import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, forwardRef ,InternalServerErrorException} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { courseDocument, Courses } from './courses.schema';
 import { Module } from '../modules/modules.schema';
@@ -13,13 +13,16 @@ import { moduleDocument } from '../modules/modules.schema';
 import { userDocument } from 'src/users/users.schema';
 import { Users } from 'src/users/users.schema';
 import { HydratedDocument } from 'mongoose';
+
 @Injectable()
 export class CoursesService {
   constructor(
     @InjectModel(Courses.name) private readonly courseModel: Model<courseDocument>,
     @InjectModel(Module.name) private readonly moduleModel: Model<moduleDocument>,
 
-    @InjectModel(Users.name) private readonly userModel: Model<Users>,
+
+
+    @InjectModel(Users.name) private readonly userModel: Model<userDocument>,
       @Inject(forwardRef(() => ModulesService)) private readonly modulesService: ModulesService, // Inject ModulesService with forwardRef
     ) {}
     
@@ -108,13 +111,13 @@ export class CoursesService {
  
 
   // Delete a course by course_code
-  async delete(course_code: string): Promise<Courses> {
-    const deletedCourse = await this.courseModel.findOneAndDelete({course_code}).exec();
-    if (!deletedCourse) {
-      throw new NotFoundException(`Course code with course_code ${course_code} not found`);
-    }
-    return deletedCourse;
-  }
+  // async delete(course_code: string): Promise<Courses> {
+  //   const deletedCourse = await this.courseModel.findOneAndDelete({course_code}).exec();
+  //   if (!deletedCourse) {
+  //     throw new NotFoundException(`Course code with course_code ${course_code} not found`);
+  //   }
+  //   return deletedCourse;
+  // }
 //GET/courses/:course_code: retrieve all modules of a speicifc course
 async getModulesForCourse(course_code: string): Promise<Module[]> {
   const course = await this.findOne(course_code);
@@ -258,7 +261,8 @@ async getModulesForCourseStudent(course_code: string, username: string): Promise
   }
 
   // Step 2: Fetch the course by its code
-  const course = await this.findOne(course_code);
+  const course = await this.courseModel.findOne({ course_code: course_code }).exec();
+ // await this.findOne(course_code);
   if (!course) {
     throw new NotFoundException(`Course with code ${course_code} not found`);
   }
@@ -270,6 +274,7 @@ async getModulesForCourseStudent(course_code: string, username: string): Promise
 
   // Step 4: Filter the modules based on the student's level and outdated status
   const validModules = modules.filter(module => {
+    
     // Get the student's level for the current course using the course _id
     const studentLevel = student.studentLevel.get(course._id);
 
@@ -348,6 +353,48 @@ async getAverageScoreForCourse(course_code: string): Promise<number> {
   const averageScore = totalScore / totalResponses;
   return averageScore;
 }
+
+
+
+
+async delete(course_code: string): Promise<Courses> {
+  // Step 1: Find and delete the course
+  const deletedCourse = await this.courseModel.findOneAndDelete({ course_code }).exec();
+  if (!deletedCourse) {
+    throw new NotFoundException(`Course with course_code ${course_code} not found`);
+  }
+
+  // Step 2: Extract related module IDs
+  const { modules = [], _id: courseId } = deletedCourse;
+
+  // Step 3: Delete related Modules using Modules API
+  try {
+    if (modules.length > 0) {
+      await Promise.all(
+        modules.map(async (moduleId) => {
+          await this.modulesService.deleteModule(new mongoose.Types.ObjectId(moduleId));
+        })
+      );
+    }
+  } catch (error) {
+    console.error("Error deleting modules:", error);
+    throw new InternalServerErrorException("Failed to delete related modules.");
+  }
+
+  // Step 4: Remove the course from instructors' courses array
+  try {
+    await this.userModel.updateMany(
+      { courses: courseId }, // Find instructors with this course ID
+      { $pull: { courses: courseId } } // Remove the course ID from the array
+    );
+  } catch (error) {
+    console.error("Error updating instructors:", error);
+    throw new InternalServerErrorException("Failed to update instructors.");
+  }
+
+  return deletedCourse;
+}
+
 
 
 

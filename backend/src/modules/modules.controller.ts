@@ -6,7 +6,7 @@ import { extname } from 'path';
 import { v4 as uuidv4 } from 'uuid'; // to generate unique file names
 import { ModulesService } from './modules.service';
 import * as mongoose from 'mongoose';
-import { Controller, Get, Post, Body, Param, Put, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete,NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { Module } from './modules.schema';
 import { Quiz } from '../quizzes/quizzes.schema';
 import { CreateModuleDto } from './dto/CreateModule.dto';
@@ -143,6 +143,31 @@ async findQuestionsByModuleId(@Param('ObjectId') ObjectId: mongoose.Schema.Types
       file: fileUrl,
       module: updatedModule,
     };
+  }
+
+
+
+
+// Delete modules and all related quizzes and questions 
+
+  @Delete(':moduleId')
+  async deleteModule(@Param('moduleId') moduleId: string) {
+    try {
+      const moduleObjectId = new mongoose.Types.ObjectId(moduleId); // Convert moduleId to ObjectId
+
+      // Call the service to delete the module and its related data
+      const result = await this.modulesService.deleteModule(moduleObjectId);
+
+      return {
+        message: result.message, // Return success message from service
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      // General error handling for issues like database connection errors
+      throw new InternalServerErrorException('Failed to delete the module or related data.');
+    }
   }
 }
 
