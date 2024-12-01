@@ -16,6 +16,8 @@ import { moduleDocument } from './modules.schema';
 import { Content } from './content/content.schema';
 import { contentDocument } from './content/content.schema';
 import { ContentService } from './content/content.service';
+//import {quizDocument} from 'src/quizzes/quizzes.service'
+//import { QqestionsDocument } from 'src/questions/questions.schema';
 
 
 
@@ -25,6 +27,8 @@ export class ModulesService {
    // @InjectModel(Module.name) private moduleModel: Model<Module>,
     @InjectModel(Module.name) private readonly moduleModel: Model<moduleDocument>,
     @InjectModel(Content.name) private readonly contentModel: Model<contentDocument>,
+    @InjectModel(Quiz.name) private readonly quizModel: Model<Quiz>,
+    @InjectModel(Question.name) private readonly questionModel: Model<Question>,
     @Inject(forwardRef(() => QuizzesService)) private readonly quizzesService: QuizzesService,
     @Inject(forwardRef(() => QuestionsService)) private readonly questionsService: QuestionsService,
     @Inject(forwardRef(() => NotesService)) private readonly notesService: NotesService, // Inject ModulesService with forwardRef
@@ -115,14 +119,6 @@ async delete(title: string): Promise<moduleDocument> {
 //   return questions;
 // }
 
-//Get array of quesiton by moduleId
-async findQuestionsByModuleId(ObjectId: mongoose.Schema.Types.ObjectId): Promise<mongoose.Types.ObjectId[]> {
-  const module = await this.moduleModel.findOne({ObjectId}).exec();
-        if (!module) {
-          throw new NotFoundException(`Module with ObjectId ${ObjectId} not found`);
-        }
-        return module.questions;
-}
 
 
 //GET/modules/:title: retrieve all quizzes for specific module 
@@ -243,6 +239,87 @@ async deleteModule(moduleId: mongoose.Types.ObjectId): Promise<any> {
 
   return { message: "Module and its related data deleted successfully" };
 }
+
+
+//get all quizzes of module by module objectid
+async getQuizzesForModule(ObjectId: mongoose.Schema.Types.ObjectId): Promise<Quiz[]> {
+  const module = await this.findById(ObjectId);
+
+  if (!module) {
+    throw new NotFoundException(`module with code ${ObjectId} not found`);
+  }
+
+  // Fetch all modules by their ObjectIds
+  const quizzes = await this.quizModel.find({
+    _id: { $in: module.quizzes }, // Match ObjectIds in `course.modules`
+  }).exec();
+
+  return quizzes;
+}
+
+//get all questions of module by module objectid
+async getQuestionsForModule(ObjectId: mongoose.Schema.Types.ObjectId): Promise<Question[]> {
+  const module = await this.findById(ObjectId);
+
+  if (!module) {
+    throw new NotFoundException(`module with code ${ObjectId} not found`);
+  }
+
+  // Fetch all modules by their ObjectIds
+  const questions = await this.questionModel.find({
+    _id: { $in: module.questions }, // Match ObjectIds in `course.modules`
+  }).exec();
+
+  return questions;
+}
+
+
+// Add quiz to modules array
+async addQuizToModule(moduleId: mongoose.Types.ObjectId, quizId: mongoose.Types.ObjectId): Promise<Module> {
+  // Find the module by ID
+  const module = await this.moduleModel.findById(moduleId).exec();
+  if (!module) {
+    throw new NotFoundException(`Module with ID ${moduleId} not found.`);
+  }
+
+  // Check if the quiz is already in the array
+  if (module.quizzes.some((existingQuizId) => existingQuizId.equals(quizId))) {
+    throw new Error('Quiz is already added to this module.');
+  }
+
+  // Add the quiz ID to the array
+  module.quizzes.push(quizId);
+
+  // Save the updated module
+  await module.save();
+
+  return module;
+}
+
+
+
+// Add question to modules array
+async addQuestionToModule(moduleId: mongoose.Types.ObjectId, questionId: mongoose.Types.ObjectId): Promise<Module> {
+  // Find the module by ID
+  const module = await this.moduleModel.findById(moduleId).exec();
+  if (!module) {
+    throw new NotFoundException(`Module with ID ${moduleId} not found.`);
+  }
+
+  // Check if the quiz is already in the array
+  if (module.quizzes.some((existingQuizId) => existingQuizId.equals(questionId))) {
+    throw new Error('Quiz is already added to this module.');
+  }
+
+  // Add the quiz ID to the array
+  module.quizzes.push(questionId);
+
+  // Save the updated module
+  await module.save();
+
+  return module;
+}
+
 
 
 }

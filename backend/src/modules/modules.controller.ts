@@ -80,12 +80,60 @@ async delete(@Param('title') title: string): Promise<moduleDocument> {
 
 //GET: find array of questions by moduleId
 @Get('id/:ObjectId')             
-async findQuestionsByModuleId(@Param('ObjectId') ObjectId: mongoose.Schema.Types.ObjectId): Promise<mongoose.Types.ObjectId[]> {
-  return this.modulesService.findQuestionsByModuleId(ObjectId);
+async getQuestionsForModule(@Param('ObjectId') ObjectId: mongoose.Schema.Types.ObjectId): Promise<Question[]> {
+  return this.modulesService.getQuestionsForModule(ObjectId);
+} 
+
+
+//GET: find array of queizzes  by moduleId
+@Get('id/:ObjectId')             
+async getQuizzesForModule(@Param('ObjectId') ObjectId: mongoose.Schema.Types.ObjectId): Promise<Quiz[]> {
+  return this.modulesService.getQuizzesForModule(ObjectId);
 } 
 //ADD QUIZ TO MODULE
+@Put(':moduleId/add-quiz/:quizId')
+  async addQuizToModule(
+    @Param('moduleId') moduleId: string, // Module ID as string
+    @Param('quizId') quizId: string, // Quiz ID as string
+  ) {
+    const updatedModule = await this.modulesService.addQuizToModule(
+      new mongoose.Types.ObjectId(moduleId), // Convert to ObjectId
+      new mongoose.Types.ObjectId(quizId), // Convert to ObjectId
+    );
 
- //GET retrieve all quizzes of a module
+    return {
+      message: 'Quiz successfully added to the module.',
+      module: updatedModule,
+    };
+  }
+
+
+
+  //ADD QUESTION TO MODULE
+@Put(':moduleId/add-question/:quizId')
+async addQuestionToModule(
+  @Param('moduleId') moduleId: string, // Module ID as string
+  @Param('questionId') questionId: string, // Quiz ID as string
+) {
+  const updatedModule = await this.modulesService.addQuestionToModule(
+    new mongoose.Types.ObjectId(moduleId), // Convert to ObjectId
+    new mongoose.Types.ObjectId(questionId), // Convert to ObjectId
+  );
+
+  return {
+    message: 'Question successfully added to the module.',
+    module: updatedModule,
+  };
+}
+
+
+
+
+
+  
+
+
+ //GET retrieve all notes of a module
 // @Get(':title/notes')
 // async getNotesForModule(@Param('title') title: string): Promise<Note[]> {
 //   return this.modulesService.getNotesForModule(title);
@@ -169,5 +217,12 @@ async findQuestionsByModuleId(@Param('ObjectId') ObjectId: mongoose.Schema.Types
       throw new InternalServerErrorException('Failed to delete the module or related data.');
     }
   }
+
+
+
+
+
+
+  
 }
 
