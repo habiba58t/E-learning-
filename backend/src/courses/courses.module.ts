@@ -4,7 +4,7 @@ import { CoursesController } from './courses.controller';
 import { ModulesService } from 'src/modules/modules.service';
 import { ModulesController } from 'src/modules/modules.controller';
 import { MongooseModule } from '@nestjs/mongoose';
-import { CoursesSchema } from './courses.schema';
+import { Courses, CoursesSchema } from './courses.schema';
 import { ModulesModule } from '../modules/modules.module'; 
 import { ModuleSchema } from '../modules/modules.schema';
 import { QuizzesSchema } from '../quizzes/quizzes.schema';

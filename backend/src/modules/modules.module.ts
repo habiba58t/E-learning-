@@ -9,11 +9,12 @@ import { QuestionsService } from 'src/questions/questions.service';
 import { NotesService } from 'src/notes/notes.service';
 import { QuestionsSchema } from 'src/questions/questions.schema';
 import { NoteSchema } from 'src/notes/notes.schema';
+import { ProgressModule } from 'src/progress/progress.module';
 
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: 'Module', schema: ModuleSchema }]),
+    MongooseModule.forFeature([{ name: 'Module', schema: ModuleSchema }]), ProgressModule,
     MongooseModule.forFeature([{ name: 'Quiz', schema: QuizzesSchema }]),
     MongooseModule.forFeature([{ name: 'Question', schema: QuestionsSchema }]),
     MongooseModule.forFeature([{ name: 'Note', schema: NoteSchema }]),
