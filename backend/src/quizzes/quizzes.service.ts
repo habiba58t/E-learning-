@@ -12,6 +12,7 @@ import { Student, StudentsDocument } from '../users/students/students.schema'; /
 import { CreateQuizDto } from './dto/create-quiz.dto';  // DTO for quiz creation
 import { Module } from '../modules/modules.schema'; // Assuming Module schema exists
 import { ResponsesService } from '../responses/responses.service';
+import { Courses, CoursesDocument } from '../courses/courses.schema';
 
 //findQuestionsByModuleId(moduleId) in modules?*
 //addQuestionToModule(moduleId, newQuestion._id) in modules?*
@@ -48,6 +49,7 @@ export class QuizzesService {
     @InjectModel(Question.name) private questionModel: Model<QuestionsDocument>,
     @InjectModel(Student.name) private studentModel: Model<StudentsDocument>, // Inject Student model
     @InjectModel(Responses.name) private responseModel: Model<ResponsesDocument>, // Inject Student model
+    @InjectModel(Courses.name) private courseModel: Model<CoursesDocument>, // Inject Student model
 
     private readonly moduleService: ModulesService,
     private readonly questionService: QuestionsService,
@@ -361,8 +363,7 @@ async checkStudentQuizStatus(
 
 
 
- // Method for students to submit their answers and create a response
-//have the answers and corresponding question IDs sent from the FRONTEND
+// Method for students to submit their answers and create a response
 async submitQuiz(
   quizId: mongoose.Types.ObjectId,
   studentUsername: string,
@@ -400,7 +401,7 @@ async submitQuiz(
   const scorePercentage = score / allQuestions.length;
 
   // Apply penalty for failing (score < 0.5)
-  const penalty = scorePercentage < 0.5 ? 1 - scorePercentage : 0;
+  const penalty = scorePercentage < 0.5 ? -(1-scorePercentage) : 0; // Penalty if score is less than 50%
 
   // Prepare response data
   const responseData = {
@@ -430,15 +431,30 @@ async submitQuiz(
   quiz.responses.push(response._id);
   await quiz.save();
 
-  // Step 4: Update student's score
+  // Step 4: Update the student's score for the course
   const student = await this.studentModel.findOne({ username: studentUsername });
   if (student) {
-    student.studentScore += (scorePercentage < 0.5 ? -penalty : scorePercentage);
-    await student.save();
-  }
+    // Find the course by populating the modules to access quizzes
+    const course = await this.courseModel.findOne({ 'modules.quizzes._id': quizId }).populate('modules.quizzes');
 
-  // Step 5: Update the student's level based on the new score
-  await student.setStudentLevel(studentUsername, student.studentScore);
+    if (course) {
+      // Find the existing course score entry for the student
+      const courseStudentScore = student.studentScores.find(score => score.course_id.equals(course._id));
+
+      // If the course exists in the student's scores array, update the score directly
+      if (courseStudentScore) {
+        // Apply penalty for failing (score < 0.5) or add the score for passing
+        courseStudentScore.value += (penalty ? penalty : scorePercentage);
+      } else {
+        // If the course doesn't exist in the student's scores, create a new entry
+        student.studentScores.push({ course_id: course._id, value: courseStudentScore.value });
+      }
+
+      await student.save();
+      await this.studentService.setUserLevel(studentUsername, course._id, student.studentScores); //CHECK IF IMPLEMENTED LIKE THIS
+    }
+    
+  }
 
   // Prepare message for frontend
   const message = scorePercentage < 0.5 
@@ -448,6 +464,9 @@ async submitQuiz(
   // Return the result message
   return { message };
 }
+
+
+
 
 // Delete quiz by ID
 async deleteQuiz(quizId: mongoose.Types.ObjectId): Promise<{ message: string }> {
