@@ -10,5 +10,6 @@ import { Quiz, QuizzesSchema } from './quizzes.schema';
   ],
   controllers: [QuizzesController],
   providers: [QuizzesService],
+  exports: [QuizzesService], // Exporting for potential use in other modules
 })
 export class QuizzesModule {}

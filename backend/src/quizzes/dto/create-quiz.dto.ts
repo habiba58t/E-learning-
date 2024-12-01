@@ -1,17 +1,22 @@
-// create-quiz.dto.ts
-
-import { IsEnum, IsNumber } from 'class-validator';
-
-export enum QuestionType {
-  MCQ = 'mcq',
-  TRUE_FALSE = 't/f',
-  BOTH = 'both',
-}
+import { IsNotEmpty, IsString, IsEnum, IsNumber, ArrayNotEmpty, IsBoolean, IsMongoId } from 'class-validator';
 
 export class CreateQuizDto {
-  @IsNumber()
-  no_of_questions: number;
+  @IsMongoId({ each: true })
+  @ArrayNotEmpty()
+  questions: string[]; // Array of Question ObjectIds
 
-  @IsEnum(QuestionType, { message: 'types_of_questions must be mcq, t/f, or both' })
-  types_of_questions: QuestionType;
+  @IsString()
+  @IsNotEmpty()
+  created_by: string; // Username of the quiz creator
+
+  @IsNumber()
+  @IsNotEmpty()
+  no_of_questions: number; // Number of questions in the quiz
+
+  @IsEnum(['mcq', 't/f', 'both'], { message: 'types_of_questions must be one of: mcq, t/f, both' })
+  types_of_questions: 'mcq' | 't/f' | 'both'; // Question types
+
+  @IsBoolean()
+  @IsNotEmpty()
+  isOutdated: boolean; // Indicates if the quiz is outdated
 }
