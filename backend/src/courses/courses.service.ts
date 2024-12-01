@@ -1,7 +1,7 @@
 
 import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Courses } from './courses.schema';
+import { courseDocument, Courses } from './courses.schema';
 import { Module } from '../modules/modules.schema';
 import { Model } from 'mongoose';
 import { CreateCourseDto } from './dto/CreateCourse.dto';
@@ -12,11 +12,13 @@ import * as mongoose from 'mongoose'; // Import mongoose to use ObjectId
 import { moduleDocument } from '../modules/modules.schema';
 import { userDocument } from 'src/users/users.schema';
 import { Users } from 'src/users/users.schema';
+import { HydratedDocument } from 'mongoose';
 @Injectable()
 export class CoursesService {
   constructor(
-    @InjectModel(Courses.name) private readonly courseModel: Model<Courses>,
+    @InjectModel(Courses.name) private readonly courseModel: Model<courseDocument>,
     @InjectModel(Module.name) private readonly moduleModel: Model<moduleDocument>,
+
     @InjectModel(Users.name) private readonly userModel: Model<Users>,
       @Inject(forwardRef(() => ModulesService)) private readonly modulesService: ModulesService, // Inject ModulesService with forwardRef
     ) {}
@@ -267,9 +269,13 @@ async getModulesForCourseStudent(course_code: string, username: string): Promise
   }).exec();
 
   // Step 4: Filter the modules based on the student's level and outdated status
-  const validModules = modules.filter(module => 
-    module.level === student.studentLevel && !module.isOutdated
-  );
+  const validModules = modules.filter(module => {
+    // Get the student's level for the current course using the course _id
+    const studentLevel = student.studentLevel.get(course._id);
+
+    // Return modules that match the student's level and are not outdated
+    return studentLevel === module.level && !module.isOutdated;
+});
 
   return validModules;
 }
