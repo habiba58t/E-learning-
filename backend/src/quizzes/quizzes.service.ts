@@ -1,19 +1,20 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, UseGuards } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { Quiz, QuizzesDocument } from './quizzes.schema';  // Assuming your Quiz schema is defined
 import { QuestionsService } from '../questions/questions.service'; // Service to fetch questions
 import { ModulesService } from '../modules/modules.service'; // Service to interact with the module
-import { StudentsService } from '../users/students/students.service'; // Service to get the student
 import { Question, QuestionsDocument } from '../questions/questions.schema'; // Assuming Question schema
 import { Responses, ResponsesDocument } from '../responses/responses.schema'; // Assuming Question schema
-
-import { Student, StudentsDocument } from '../users/students/students.schema'; // Assuming Student schema
+import {StudentService} from '../users/student/student.service'
+import { Users, userDocument } from '../users/users.schema'; // Assuming Student schema
 import { CreateQuizDto } from './dto/create-quiz.dto';  // DTO for quiz creation
-import { Module } from '../modules/modules.schema'; // Assuming Module schema exists
 import { ResponsesService } from '../responses/responses.service';
-import { Courses, CoursesDocument } from '../courses/courses.schema';
-
+import { Courses, courseDocument } from '../courses/courses.schema';
+import {Module, moduleDocument} from '../modules/modules.schema';
+import { Role, Roles } from 'src/auth/decorators/role.decorator';
+import { AuthGuard } from 'src/auth/guards/authentication.guard';
+import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
 //findQuestionsByModuleId(moduleId) in modules?*
 //addQuestionToModule(moduleId, newQuestion._id) in modules?*
 //addQuizToModule(moduleId, quiz._id) in modules?*
@@ -42,22 +43,28 @@ import { Courses, CoursesDocument } from '../courses/courses.schema';
 //quizzes will have an attribute isOutdated, clicking sets it to true, done
 //for student calling getQuizzesByStudentId -> selects isOutdated==false only
 
+
+@UseGuards(AuthGuard) // Apply AuthGuard globally to all methods
 @Injectable()
 export class QuizzesService {
   constructor(
     @InjectModel(Quiz.name) private readonly quizModel: Model<QuizzesDocument>,
     @InjectModel(Question.name) private questionModel: Model<QuestionsDocument>,
-    @InjectModel(Student.name) private studentModel: Model<StudentsDocument>, // Inject Student model
+    @InjectModel(Users.name) private studentModel: Model<userDocument>, // Inject Student model
     @InjectModel(Responses.name) private responseModel: Model<ResponsesDocument>, // Inject Student model
-    @InjectModel(Courses.name) private courseModel: Model<CoursesDocument>, // Inject Student model
+    @InjectModel(Courses.name) private courseModel: Model<courseDocument>, // Inject Student model
+    @InjectModel(Module.name) private moduleModel: Model<moduleDocument>, // Inject Student model
 
     private readonly moduleService: ModulesService,
     private readonly questionService: QuestionsService,
-    private readonly studentService: StudentsService,  // Injecting the user service
+    private readonly studentService: StudentService,  // Injecting the user service
     private readonly responseService: ResponsesService
     ) { }
 
 // Instructor generates the "imaginary" quiz
+//the quiz should be added to the module arrya of quizzes
+@UseGuards(AuthorizationGuard) // Additional guard for authorization
+@Roles(Role.Admin, Role.Instructor) // Restrict roles to admin and instructor
 async generateQuiz(
   no_of_questions: number,
   types_of_questions: 'mcq' | 't/f' | 'both',
@@ -222,6 +229,8 @@ private randomizeQuestions(questions: QuestionsDocument[], numberOfQuestions: nu
 //and for each a button see reponses
 //in front end u will get all the quizzes and see if isOutdated is true to set UI
  // Get all quizzes created by an instructor fully populated
+ @UseGuards(AuthorizationGuard) // Additional guard for authorization
+  @Roles(Role.Admin, Role.Instructor) // Restrict roles to admin and instructor
  async getQuizzesByInstructorId(instructorId: mongoose.Types.ObjectId): Promise<QuizzesDocument[]> {
   return await this.quizModel.find({ created_by: instructorId }).populate('questions');
 }
@@ -232,6 +241,7 @@ private randomizeQuestions(questions: QuestionsDocument[], numberOfQuestions: nu
 
     // Get quizzes available for students (non-outdated quizzes) according to the modules of the course
     //they take that do have active quizzes
+
     async getQuizzesForStudents(username: string): Promise<QuizzesDocument[]> {
       // Step 1: Get all courses the student is enrolled in
       const student = await this.studentModel.findOne({ username }).populate('courses.module.quizzes'); // courses will be populated
@@ -294,6 +304,9 @@ private randomizeQuestions(questions: QuestionsDocument[], numberOfQuestions: nu
   //instructor can make a quiz outdated
   
 // Get responses by quiz ID (student answers and scores) -> instructor sees report for a certain quiz
+@UseGuards(AuthorizationGuard) // Additional guard for authorization
+  @Roles(Role.Admin, Role.Instructor) // Restrict roles to admin and instructor, student can't see
+  //other students' scores/responses
 async getResponsesByQuizId(quizId: mongoose.Types.ObjectId): Promise<any[]> {
   const quiz = await this.quizModel.findById(quizId).populate('responses');
   if (!quiz) {
@@ -305,7 +318,7 @@ async getResponsesByQuizId(quizId: mongoose.Types.ObjectId): Promise<any[]> {
   //in front end make it downloadable
 }
 
-
+//for a specific student
 async getResponsesByQuizIdAndUsername(quizId: mongoose.Types.ObjectId, username: string): Promise<ResponsesDocument | null> {
   // Step 1: Find the quiz by its ID
   const quiz = await this.quizModel.findOne({ _id: quizId });
@@ -360,10 +373,8 @@ async checkStudentQuizStatus(
 }
 
 
-
-
-
 // Method for students to submit their answers and create a response
+//creates response and adds it to the array of responses in the quiz
 async submitQuiz(
   quizId: mongoose.Types.ObjectId,
   studentUsername: string,
@@ -428,8 +439,11 @@ async submitQuiz(
   }
 
   // Step 3: Update the quiz with the new or updated response
+// Check if the response ID already exists in the quiz's responses array to avoid duplicates
+if (!quiz.responses.includes(response._id)) {
   quiz.responses.push(response._id);
   await quiz.save();
+}
 
   // Step 4: Update the student's score for the course
   const student = await this.studentModel.findOne({ username: studentUsername });
@@ -469,13 +483,41 @@ async submitQuiz(
 
 
 // Delete quiz by ID
+//when quiz is deleted, it should be deleted from the module
+//it's correspoding responses should also be deleted so loop on reponses array
+//and delete reponses before quiz is deleted
+@UseGuards(AuthorizationGuard) // Additional guard for authorization
+@Roles(Role.Admin, Role.Instructor) // Restrict roles to admin and instructor
 async deleteQuiz(quizId: mongoose.Types.ObjectId): Promise<{ message: string }> {
-  const deletedQuiz = await this.quizModel.findByIdAndDelete(quizId);
-  if (!deletedQuiz) {
+  // Step 1: Find the quiz to delete
+  const quiz = await this.quizModel.findById(quizId).exec();
+  if (!quiz) {
     throw new Error('Quiz not found');
   }
-  return { message: 'Quiz deleted successfully' };
+
+  // Step 2: Delete all responses associated with the quiz
+  // Loop through the quiz's responses array and delete each response
+  for (const responseId of quiz.responses) {
+    await this.responseModel.findByIdAndDelete(responseId).exec();
+  }
+
+  // Step 3: Remove the quiz reference from the module
+  // Assuming the module has a 'quizzes' array that contains this quizId
+  const module = await this.moduleModel.findOneAndUpdate(
+    { quizzes: quizId },  // Find the module that contains this quizId
+    { $pull: { quizzes: quizId } }  // Remove the quizId from the quizzes array
+  ).exec();
+  
+  if (!module) {
+    throw new Error('Module not found or quiz reference not found in the module');
+  }
+
+  // Step 4: Delete the quiz itself
+  await this.quizModel.findByIdAndDelete(quizId).exec();
+
+  return { message: 'Quiz and associated responses deleted successfully' };
 }
+
 
 
 

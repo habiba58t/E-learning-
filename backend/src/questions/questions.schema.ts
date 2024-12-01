@@ -12,6 +12,9 @@ export class Question {
 
   @Prop({ required: true })
   correct_answer: string;
+
+  @Prop({required:true, enum: ['mcq', 't/f', 'both']})
+  type:string;
 }
 
 // Create the schema
