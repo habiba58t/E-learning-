@@ -39,6 +39,9 @@ export class Users {
   @Prop({ required: true })
   totalStudents: number; //number of students who voted for intructor       ///INSTRUCTOR Attribute only
 
+  @Prop()                                                                 ///INSTRUCTOR Attribute only
+   averageRating: number; 
+
   @Prop({ type: Map, of: Number, required: true })
   studentScore: Map<mongoose.Types.ObjectId, number>;
   

@@ -138,16 +138,18 @@ async getAverageScore(@Param('course_code') course_code: string): Promise<{ aver
   return { averageScore };
 }
 
-// //Get totalRating
-//   @Get(':courseId/total-rating')
-//   async getTotalRating(@Param('courseId') courseId: string): Promise<{ totalRating: number }> {
-//     const course = await this.coursesService.getCourseById(courseId);
-//     return { totalRating: course.totalRating || 0 };
-//   }
+// //Get AverageRating  of Instructor
+   @Get(':courseId')
+   async getTotalRating(@Param('ObjectId') ObjectId: mongoose.Types.ObjectId): Promise<number> {
+    return await this.coursesService.getTotalRating(ObjectId);
+   }
 
+//SET TOTALRATING TOTALSTUDENTS AVERAGE RATING
 
-
-
+@Get()
+async setRating(@Param('ObjectId') ObjectId: mongoose.Types.ObjectId, @Param('score')score:number): Promise<void> {
+  await this.coursesService.setRating(ObjectId,score);
+}
 
 
 

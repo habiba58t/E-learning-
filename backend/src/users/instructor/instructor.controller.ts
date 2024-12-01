@@ -19,6 +19,19 @@ export class InstructorController {
      //hanroo7 user ngyb array of courses ,loop put courses in array get course by objectId WHEre is outdated false
      return this.instructorService.getModulesForStudent();
    }
+
+   // //Get AverageRating  of Instructor
+  @Get(':moduleId')
+  async getTotalRating(@Param('ObjectId') ObjectId: mongoose.Types.ObjectId): Promise<number> {
+   return await this.instructorService.getTotalRating(ObjectId);
+  }
+
+//SET TOTALRATING TOTALSTUDENTS AVERAGE RATING
+
+@Get()
+async setRating(@Param('ObjectId') ObjectId: mongoose.Types.ObjectId, @Param('score')score:number): Promise<void> {
+ await this.instructorService.setRating(ObjectId,score);
+}
  
 
 

@@ -395,6 +395,19 @@ async delete(course_code: string): Promise<Courses> {
   return deletedCourse;
 }
 
+//GET AVERAGE RATING
+async getTotalRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
+ const course = await this.courseModel.findById(ObjectId);
+ return course.totalRating;
+}
+
+//SET RATING,TOTAL,AVERAGE
+async setRating(ObjectId: mongoose.Types.ObjectId,score:number): Promise<void> {
+  const course = await this.courseModel.findById(ObjectId);
+  course.totalRating = course.totalRating + score;
+  course.totalStudents += 1;
+  course.averageRating = course.totalRating/course.totalStudents;
+}
 
 
 

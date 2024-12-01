@@ -320,6 +320,19 @@ async addQuestionToModule(moduleId: mongoose.Types.ObjectId, questionId: mongoos
   return module;
 }
 
+//GET AVERAGE RATING
+async getTotalRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
+  const course = await this.moduleModel.findById(ObjectId);
+  return course.totalRating;
+ }
+ 
+ //SET RATING,TOTAL,AVERAGE
+ async setRating(ObjectId: mongoose.Types.ObjectId,score:number): Promise<void> {
+   const module = await this.moduleModel.findById(ObjectId);
+   module.totalRating = module.totalRating + score;
+   module.totalStudents += 1;
+   module.averageRating = module.totalRating/module.totalStudents;
+ }
 
 
 }

@@ -218,6 +218,18 @@ async addQuestionToModule(
     }
   }
 
+  // //Get AverageRating  of Instructor
+  @Get(':moduleId')
+  async getTotalRating(@Param('ObjectId') ObjectId: mongoose.Types.ObjectId): Promise<number> {
+   return await this.modulesService.getTotalRating(ObjectId);
+  }
+
+//SET TOTALRATING TOTALSTUDENTS AVERAGE RATING
+
+@Get()
+async setRating(@Param('ObjectId') ObjectId: mongoose.Types.ObjectId, @Param('score')score:number): Promise<void> {
+ await this.modulesService.setRating(ObjectId,score);
+}
 
 
 
