@@ -138,4 +138,12 @@ async getAverageScore(@Param('course_code') course_code: string): Promise<{ aver
   return { averageScore };
 }
 
+// //Get totalRating
+//   @Get(':courseId/total-rating')
+//   async getTotalRating(@Param('courseId') courseId: string): Promise<{ totalRating: number }> {
+//     const course = await this.coursesService.getCourseById(courseId);
+//     return { totalRating: course.totalRating || 0 };
+//   }
+
+
 }

@@ -8,15 +8,18 @@ import { CoursesService } from 'src/courses/courses.service';
 import { Users } from '../users.schema';
 import { UsersSchema } from '../users.schema';
 import { UsersService } from '../users.service';
-
+import { ProgressService } from 'src/progress/progress.service';
+import { Progress } from 'src/progress/progress.schema';
 @Injectable()
 export class StudentService {
 
     constructor(
         @InjectModel(Users.name) private readonly userModel: Model<Users>, //msh motakeda
         @InjectModel(Courses.name) private readonly courseModel: Model<Courses>,
+        @InjectModel(Progress.name) private readonly progressModel: Model<Progress>,
         @Inject(forwardRef(() => CoursesService)) private readonly coursesService: CoursesService,
         @Inject(forwardRef(() => UsersService)) private readonly usersService: UsersService,
+        @Inject(forwardRef(() => ProgressService)) private readonly progressService: ProgressService,
     ){}
 
     //GET: all courses student enrolled in and not outdated                 DONE EXCEPT USERNAME NEED TO GET FROM TOKEN
@@ -58,7 +61,19 @@ export class StudentService {
     
         // Add the course's ObjectId to the student's courses array
         student.courses.push(course._id);
-    
+       student.studentScore=0;
+       student.studentLevel="easy";
+       const username1=student.username;
+      // Prepare the progress data
+    const progressDto= {
+      username: student.username,
+      course_code: course._id, 
+      completetion_percentage: 0,
+      last_accessed: new Date() 
+  };
+
+  // Create the progress record
+  //const createdProgress = await this.progressService.create(progressDto);
         // Save the updated student document
         await student.save();
     
