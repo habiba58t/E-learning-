@@ -10,6 +10,7 @@ import { UsersSchema } from '../users.schema';
 import { UsersService } from '../users.service';
 import { ProgressService } from 'src/progress/progress.service';
 import { Progress } from 'src/progress/progress.schema';
+import { HydratedDocument } from 'mongoose';
 @Injectable()
 export class StudentService {
 
@@ -80,4 +81,105 @@ export class StudentService {
         // Return the updated student
         return student;
       }
+
+
+//GET STUDENT SCORE
+async getStudentScore(username: string, objectId: mongoose.Types.ObjectId): Promise<number | null> {
+  // Find the user by username
+  const student = await this.usersService.findUserByUsername(username);
+
+  if (!student) {
+    throw new Error(`User with username ${username} not found`);
+  }
+
+  // Ensure studentScore exists and is a Map
+  if (!student.studentScore || !(student.studentScore instanceof Map)) {
+    throw new Error(`Student score not found for user ${username}`);
+  }
+
+  // Retrieve the score using the ObjectId as the key
+  const score = student.studentScore.get(objectId);
+
+  // Return the score or null if not found
+  return score ?? null;
+}
+
+//GET STUDENT Level
+async getStudentLevel(username: string, objectId: mongoose.Types.ObjectId): Promise<string | null> {
+  // Find the user by username
+  const student = await this.usersService.findUserByUsername(username);
+
+  if (!student) {
+    throw new Error(`User with username ${username} not found`);
+  }
+
+  // Ensure studentScore exists and is a Map
+  if (!student.studentLevel || !(student.studentLevel instanceof Map)) {
+    throw new Error(`Student level not found for user ${username}`);
+  }
+
+  // Retrieve the score using the ObjectId as the key
+  const level = student.studentLevel.get(objectId);
+
+  // Return the score or null if not found
+  return level ?? null;
+}
+
+//SET STUDENT SCORE
+async setStudentScore(username: string, objectId: mongoose.Types.ObjectId, newScore: number): Promise<void> {
+  // Find the user by username
+  const student: HydratedDocument<Users> = await this.userModel.findOne({ username });
+
+  if (!student) {
+    throw new Error(`User with username ${username} not found`);
+  }
+
+  if (!student.studentScore || !(student.studentScore instanceof Map)) {
+    throw new Error(`Student score map not found for user ${username}`);
+  }
+
+  const currentScore = student.studentScore.get(objectId); 
+  const updatedScore = currentScore + newScore;
+
+  // Set the new score in the map
+  student.studentScore.set(objectId, updatedScore);
+
+
+  await student.save();
+  await this.setStudentLevel(username,objectId, updatedScore);
+ 
+}
+
+//SET STUDENT SCORE
+async setStudentLevel(username: string, objectId: mongoose.Types.ObjectId, updatedScore: number): Promise<void> {
+  // Find the user by username
+  const student: HydratedDocument<Users> = await this.userModel.findOne({ username });
+
+  if (!student) {
+    throw new Error(`User with username ${username} not found`);
+  }
+
+  if (!student.studentLevel || !(student.studentLevel instanceof Map)) {
+    throw new Error(`Student score map not found for user ${username}`);
+  }
+  let Newlevel: string;
+    if (updatedScore >= 0 && updatedScore <= 2.9) {
+      Newlevel = 'easy';
+    } else if (updatedScore >= 3 && updatedScore <= 6.9) {
+      Newlevel = 'medium';
+    } else if (updatedScore >= 7) {
+      Newlevel = 'hard';
+    } else {
+      Newlevel = 'easy'; // Default 
+    }
+  const level = student.studentLevel.get(objectId);
+  if (level != Newlevel) {
+  student.studentLevel.set(objectId,Newlevel);
+  }
+
+
+  await student.save();
+
+}
+
 }

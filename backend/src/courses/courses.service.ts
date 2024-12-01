@@ -51,7 +51,7 @@ export class CoursesService {
   }
 
   //get course by objectId
-  async findById(ObjectId: mongoose.Schema.Types.ObjectId): Promise<Courses> {
+  async findById(ObjectId: mongoose.Types.ObjectId): Promise<Courses> {
     const course = await this.courseModel.findById(ObjectId).exec();
     if (!course) {
       throw new NotFoundException(`course with Object id ${ObjectId} not found`);

@@ -33,7 +33,7 @@ export class CoursesController {
   }
 
   @Get('id/:ObjectId')
-  async findById(@Param('ObjectId') ObjectId: mongoose.Schema.Types.ObjectId): Promise<Courses> {
+  async findById(@Param('ObjectId') ObjectId: mongoose.Types.ObjectId): Promise<Courses> {
     return this.coursesService.findById(ObjectId);
   }
 

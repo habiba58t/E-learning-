@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Param, Put, Delete } from '@nestjs/common';
 import * as mongoose from 'mongoose';
 import { StudentService } from './student.service';
-import { UsersSchema } from '../users.schema';
+import { Users, UsersSchema } from '../users.schema';
 import { Courses } from 'src/courses/courses.schema';
 import { CoursesService } from 'src/courses/courses.service';
 @Controller('student')
@@ -15,7 +15,28 @@ export class StudentController {
    //  return this.studentService.getCoursesForStudent();
     //}
 
+   //GET STUDENT SCORE
+   @Get() 
+   async getStudentScore(@Param('username') username: string, @Param('objectId')objectId:mongoose.Types.ObjectId): Promise<number | null>{
+    return this.studentService.getStudentScore(username,objectId);
    
+  }
+ //GET STUDENT LEVEL
+   @Get() 
+   async getStudentLevel(@Param('username') username: string, @Param('objectId')objectId:mongoose.Types.ObjectId ): Promise<string | null> {
+    return this.studentService.getStudentLevel(username,objectId);
+   }
+
+   @Put() 
+   async setStudentScore(@Param('username') username: string, @Param('objectId')objectId:mongoose.Types.ObjectId, @Param('newScore')newScore:number): Promise<void>{
+     this.studentService.setStudentScore(username,objectId,newScore);
+   
+  }
+ //GET STUDENT LEVEL
+   @Put() 
+   async setStudentLevel(@Param('username') username: string, @Param('objectId')objectId:mongoose.Types.ObjectId, @Param('updatedScore') updatedScore:number ): Promise<void> {
+     this.studentService.setStudentLevel(username,objectId,updatedScore);
+   }
 
 
 }

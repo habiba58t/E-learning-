@@ -39,13 +39,9 @@ export class Users {
   @Prop({ required: true })
   totalStudents: number; //number of students who voted for intructor       ///INSTRUCTOR Attribute only
 
-  @Prop({
-    type: Map,
-    of: Number,
-    required: true,
-  })
-  studentScore: Map<mongoose.Types.ObjectId, number>; // Map of ObjectId to number
-
+  @Prop({ type: Map, of: Number, required: true })
+  studentScore: Map<mongoose.Types.ObjectId, number>;
+  
   @Prop({
     type: Map,
     of: String,
