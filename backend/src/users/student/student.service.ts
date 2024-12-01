@@ -61,8 +61,8 @@ export class StudentService {
     
         // Add the course's ObjectId to the student's courses array
         student.courses.push(course._id);
-       student.studentScore=0;
-       student.studentLevel="easy";
+        student.studentScore.set(course._id, 0); 
+        student.studentLevel.set(course._id, 'easy');
        const username1=student.username;
       // Prepare the progress data
     const progressDto= {

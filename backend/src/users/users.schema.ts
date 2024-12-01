@@ -39,11 +39,20 @@ export class Users {
   @Prop({ required: true })
   totalStudents: number; //number of students who voted for intructor       ///INSTRUCTOR Attribute only
 
-  @Prop({ required: true })
-  studentScore: number; //student score in number                      //STUDENT Attribute only
-  
-  @Prop({ required: true, enum: ['easy', 'medium', 'hard'] })
-  studentLevel: string;                                               //STUDENT Attribute only
+  @Prop({
+    type: Map,
+    of: Number,
+    required: true,
+  })
+  studentScore: Map<mongoose.Types.ObjectId, number>; // Map of ObjectId to number
+
+  @Prop({
+    type: Map,
+    of: String,
+    enum: ['easy', 'medium', 'hard'], // Enforce enum values
+    required: true,
+  })
+  studentLevel: Map<mongoose.Types.ObjectId, string>; // Map of ObjectId to string (enum)
 }
 
 export const UsersSchema = SchemaFactory.createForClass(Users);
