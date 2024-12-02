@@ -25,6 +25,7 @@
     "@nestjs/mapped-types": "^2.0.6",
     "@nestjs/mongoose": "^10.1.0",
     "@nestjs/platform-express": "^10.4.8",
+    "@nestjs/platform-socket.io": "^10.4.12",
     "@nestjs/websockets": "^10.4.12",
     "mongoose": "^8.8.3",
     "reflect-metadata": "^0.2.0",

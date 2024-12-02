@@ -9,10 +9,23 @@ import { ResponsesModule } from './responses/responses.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { QuizzesModule } from './quizzes/quizzes.module';
 import { QuestionsModule } from './questions/questions.module';
-import {NotesModule} from './notes/notes.module'
+import { NotesModule } from './notes/notes.module';
+import { ChatModule } from './chat/chat/chat.module';
+  // Import ChatModule here
 
 @Module({
-  imports: [ProgressModule, UsersModule, CoursesModule, ModulesModule, ResponsesModule, QuizzesModule, QuestionsModule,NotesModule,MongooseModule.forRoot('mongodb://localhost:27017/E-Learning')],
+  imports: [
+    ProgressModule,
+    UsersModule,
+    CoursesModule,
+    ModulesModule,
+    ResponsesModule,
+    QuizzesModule,
+    QuestionsModule,
+    NotesModule,
+    ChatModule,  // Add ChatModule here
+    MongooseModule.forRoot('mongodb://localhost:27017/E-Learning')  // MongoDB connection
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

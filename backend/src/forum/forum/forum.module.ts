@@ -1,9 +1,15 @@
+// src/communication/forum/forum.module.ts
 import { Module } from '@nestjs/common';
-import { ForumService } from './forum.service';
+import { MongooseModule } from '@nestjs/mongoose';
 import { ForumController } from './forum.controller';
+import { ForumService } from './forum.service';
+import { ForumSchema } from './forum.schema';
 
 @Module({
-  providers: [ForumService],
-  controllers: [ForumController]
+  imports: [
+    MongooseModule.forFeature([{ name: 'Forum', schema: ForumSchema }]),  
+  ],
+  controllers: [ForumController],
+  providers: [ForumService], 
 })
 export class ForumModule {}
