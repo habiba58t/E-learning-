@@ -19,9 +19,6 @@ export class CoursesService {
   constructor(
     @InjectModel(Courses.name) private readonly courseModel: Model<courseDocument>,
     @InjectModel(Module.name) private readonly moduleModel: Model<moduleDocument>,
-
-
-
     @InjectModel(Users.name) private readonly userModel: Model<userDocument>,
       @Inject(forwardRef(() => ModulesService)) private readonly modulesService: ModulesService, // Inject ModulesService with forwardRef
     ) {}
@@ -409,6 +406,12 @@ async setRating(ObjectId: mongoose.Types.ObjectId,score:number): Promise<void> {
   course.averageRating = course.totalRating/course.totalStudents;
 }
 
+//GET COURSE FOR SPECIFIC MODULE TITLE
+async getCourseForModule (moduleTitle:string): Promise<Courses>{
+ const module=await this.modulesService.findByTitle(moduleTitle)as moduleDocument;;
 
+ return await this.courseModel.findOne({ modules: module._id }).exec();
+
+}
 
 }

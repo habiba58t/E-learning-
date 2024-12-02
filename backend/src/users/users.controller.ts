@@ -3,6 +3,7 @@ import { UsersService } from './users.service';
 import * as mongoose from 'mongoose';
 import { Courses } from 'src/courses/courses.schema';
 import { Users, UsersSchema } from './users.schema';
+import { userDocument } from './users.schema';
 @Controller('users')
 export class UsersController {
     constructor(private readonly usersService: UsersService) {}
@@ -14,7 +15,7 @@ export class UsersController {
 
   //GET USER BY username
   @Get(':username')
-  async findUserByUsername(@Param('username') username: string): Promise<Users> {
+  async findUserByUsername(@Param('username') username: string): Promise<userDocument> {
     return this.usersService.findUserByUsername(username);
   }
  //GETT ALL USERS ENROLLED IN A COURSE

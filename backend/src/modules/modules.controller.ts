@@ -12,11 +12,11 @@ import { Quiz } from '../quizzes/quizzes.schema';
 import { CreateModuleDto } from './dto/CreateModule.dto';
 import { UpdateModuleDto } from './dto/UpdateModule.dto';
 import {Question} from '../questions/questions.schema'
-import { Note } from 'src/notes/notes.schema';
+import { Notes } from 'src/notes/notes.schema';
 import { moduleDocument } from './modules.schema';
 import { Content } from './content/content.schema';
 import { contentDocument } from './content/content.schema';
-
+import { notesDocument } from 'src/notes/notes.schema';
 
 
 @Controller('modules')
@@ -39,7 +39,7 @@ constructor(private readonly modulesService: ModulesService) {}
 
 //GET: get one module by title
 @Get('title/:title')
-async findByTitle(@Param('title') title: string): Promise<Module> {
+async findByTitle(@Param('title') title: string): Promise<moduleDocument> {
   return this.modulesService.findByTitle(title);
 } 
 
@@ -231,10 +231,29 @@ async setRating(@Param('ObjectId') ObjectId: mongoose.Types.ObjectId, @Param('sc
  await this.modulesService.setRating(ObjectId,score);
 }
 
+//GET NOTES FOR SPECIFIC USER AND SPECIFIC NOTES
+@Get()
+  async getNotesForUserAndNote(@Param('username') username: string,@Param('title')title:string): Promise<notesDocument[]>{
+   return await this.modulesService.getNotesForUserAndNote(username,title);
+  }
 
+  //Delete NOTE FOR A SPECIFIC NOTE
+  @Delete()
+  async deleteNote(@Param('title')title:string, @Param('username')username:string,@Param('lastUpdated')lastUpdated:Date): Promise<void>{
+      await this.modulesService.deleteNote(title,username,lastUpdated);
+    }
 
+ //CREATE NOTE FOR A SPECIFIC NOTE
+@Post()
+async createNote(@Param('title')title:string, @Param('username')username:string,@Param('content')content:string): Promise<notesDocument>{
+   return await this.modulesService.createNote(title,username,content);
+  }
 
+  //UPDATE NOTE FOR A SPECIFIC NOTE
+@Put()
+async UpdateNote(@Param('title')title:string, @Param('username')username:string,@Param('lastUpdated')lastUpdated:Date,@Param('contentNew')contentNew:string): Promise<notesDocument>{
+   return await this.modulesService.UpdateNote(title,username,lastUpdated,contentNew);
+  }
 
-  
 }
 

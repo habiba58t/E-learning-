@@ -177,9 +177,14 @@ async setStudentLevel(username: string, objectId: mongoose.Types.ObjectId, updat
   student.studentLevel.set(objectId,Newlevel);
   }
 
-
   await student.save();
-
 }
+
+//GET ALL NOTES OBJECT ID FOR A SPECIFIC MODULE
+   async getAllNotesForModule(moduleId: mongoose.Types.ObjectId, username:string): Promise<mongoose.Types.ObjectId[] | null> {
+     const student = await this.userModel.findOne({username: username});
+     return student.notes.get(moduleId);
+   }
+
 
 }

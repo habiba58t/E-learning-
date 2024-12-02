@@ -10,7 +10,7 @@ import { UpdateModuleDto } from './dto/UpdateModule.dto';
 import { QuizzesService } from '../quizzes/quizzes.service';
 import {Question} from '../questions/questions.schema'
 import { QuestionsService } from 'src/questions/questions.service';
-import { Note } from 'src/notes/notes.schema';
+import { Notes } from 'src/notes/notes.schema';
 import { NotesService } from 'src/notes/notes.service';
 import { moduleDocument } from './modules.schema';
 import { Content } from './content/content.schema';
@@ -18,8 +18,15 @@ import { contentDocument } from './content/content.schema';
 import { ContentService } from './content/content.service';
 //import {quizDocument} from 'src/quizzes/quizzes.service'
 //import { QqestionsDocument } from 'src/questions/questions.schema';
-
-
+import { CoursesService } from 'src/courses/courses.service';
+import { UsersService } from 'src/users/users.service';
+import { Users } from 'src/users/users.schema';
+import { userDocument} from 'src/users/users.schema';
+import { notesDocument } from 'src/notes/notes.schema';
+import { StudentService} from 'src/users/student/student.service';
+import { Document } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class ModulesService {
@@ -29,10 +36,15 @@ export class ModulesService {
     @InjectModel(Content.name) private readonly contentModel: Model<contentDocument>,
     @InjectModel(Quiz.name) private readonly quizModel: Model<Quiz>,
     @InjectModel(Question.name) private readonly questionModel: Model<Question>,
+    @InjectModel(Users.name) private readonly usersModel: Model<userDocument>,
+    @InjectModel(Notes.name) private readonly notesModel: Model<notesDocument>,
     @Inject(forwardRef(() => QuizzesService)) private readonly quizzesService: QuizzesService,
     @Inject(forwardRef(() => QuestionsService)) private readonly questionsService: QuestionsService,
     @Inject(forwardRef(() => NotesService)) private readonly notesService: NotesService, // Inject ModulesService with forwardRef
     @Inject(forwardRef(() => ContentService)) private readonly contentService: ContentService, 
+    @Inject(forwardRef(() => CoursesService)) private readonly coursesService: CoursesService, 
+    @Inject(forwardRef(() => UsersService)) private readonly usersService: UsersService, 
+    @Inject(forwardRef(() => StudentService)) private readonly studentService: StudentService, 
   ) {}
 
     async findAll(): Promise<Module[]> {
@@ -48,7 +60,7 @@ export class ModulesService {
         return module;
       }
  //get module by title 
-      async findByTitle(title: string): Promise<Module> {
+      async findByTitle(title: string): Promise<moduleDocument> {
         const module = await this.moduleModel.findOne({title}).exec();
         if (!module) {
           throw new NotFoundException(`Module with title ${title} not found`);
@@ -334,5 +346,75 @@ async getTotalRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
    module.averageRating = module.totalRating/module.totalStudents;
  }
 
+ //GET NOTES FOR A SPECIFIC USER
+ async getNotesForUserAndNote(username: string, title: string): Promise<notesDocument[]> {
+  const module = await this.findByTitle(title) as moduleDocument;
+  if (!module || !module._id) {
+    throw new NotFoundException(`Module with title "${title}" not found`);
+  }
+
+  const notesId = await this.studentService.getAllNotesForModule(module._id, username);
+  if (!notesId || notesId.length === 0) {
+    return []; 
+  }
+
+  const notes: notesDocument[] = [];
+  for (const noteId of notesId) {
+    const note = await this.notesService.findByIdNote(noteId);
+    notes.push(note); // Add the note to the array
+  }
+
+  return notes;
+}
+//Delete NOTE FOR A SPECIFIC NOTE
+async deleteNote(@Param('title')title:string, @Param('username')username:string,@Param('lastUpdated')lastUpdated:Date): Promise<void>{
+  const course = await this.coursesService.getCourseForModule(title);
+  const module = await this.findByTitle(title) as moduleDocument;
+  if (!module || !module._id) {
+    throw new NotFoundException(`Module with title "${title}" not found`);
+  }
+  const note= await this.notesService.findNote(username,course.course_code,lastUpdated);
+  const student = await this.usersService.findUserByUsername(username);
+
+  if (student.notes.has(module._id)) {
+    const noteIds = student.notes.get(module._id);  // Get the array of note IDs for the specified module ID
+    if (noteIds) {
+      const updatedNoteIds = noteIds.filter(id => !id.equals(note._id)); // Using filter to create a new array without the note ID
+      student.notes.set(module._id, updatedNoteIds);  // Set the updated array back to the Map
+    }
+  }
+  await student.save(); 
+
+  await this.notesService.deleteNote(username,course.course_code,lastUpdated);
+
+}
+
+
+ //CREATE NOTE FOR A SPECIFIC NOTE
+ async createNote(title:string,username:string,content:string): Promise<notesDocument>{
+  const course = await this.coursesService.getCourseForModule(title);
+  const module= await this.findByTitle(title) as moduleDocument;
+
+  const notesDto = {
+    username: username, 
+    course_code: course.course_code,
+    content: content
+  };
+  const note = await this.notesService.createNote(notesDto) as notesDocument;
+  const user = await this.usersService.findUserByUsername(username);
+  user.notes.get(module._id)?.push(note._id);
+  await user.save();
+  return note;
+ }
+
+ //UPDATE NOTE FOR A SPECIFIC NOTE
+async UpdateNote(title:string,username:string,lastUpdated:Date,contentNew:string): Promise<notesDocument>{
+  const course = await this.coursesService.getCourseForModule(title);
+  const notesDto = {
+    content:contentNew,
+  };
+ const note= await this.notesService.updateNote(username,course.course_code,lastUpdated, notesDto);
+  return note;
+}
 
 }

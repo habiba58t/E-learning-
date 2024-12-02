@@ -3,6 +3,7 @@ import { Document } from 'mongoose';
 import * as mongoose from 'mongoose';
 import { Courses } from '../courses/courses.schema'; // Adjust path as necessary
 import { HydratedDocument } from 'mongoose';
+import { Notes } from 'src/notes/notes.schema';
 
 export type userDocument = HydratedDocument<Users>
 @Schema()
@@ -33,6 +34,9 @@ export class Users {
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Courses' }] })
   courses: mongoose.Types.ObjectId[]; // An array of courses the user is associated with
 
+  @Prop({ type: Map, of: [mongoose.Schema.Types.ObjectId] })
+  notes: Map<mongoose.Types.ObjectId, mongoose.Types.ObjectId[]>;  ///STUDENT Attribute only
+  
   @Prop({ required: true })
   totalRating: number; //sum of ratings for intructor                  //INSTRUCTOR Attribute only
   
@@ -45,12 +49,7 @@ export class Users {
   @Prop({ type: Map, of: Number, required: true })
   studentScore: Map<mongoose.Types.ObjectId, number>;
   
-  @Prop({
-    type: Map,
-    of: String,
-    enum: ['easy', 'medium', 'hard'], // Enforce enum values
-    required: true,
-  })
+  @Prop({type: Map,of: String,enum: ['easy', 'medium', 'hard'],})
   studentLevel: Map<mongoose.Types.ObjectId, string>; // Map of ObjectId to string (enum)
 }
 

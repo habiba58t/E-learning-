@@ -13,20 +13,20 @@ import { courseDocument } from './courses.schema';
 export class CoursesController {
     constructor(private readonly coursesService: CoursesService) {}
 
-    //GET ALL COURSES   //PUBLIC 
+  //GET ALL COURSES   //PUBLIC 
 @Get()
   async findAll(): Promise<{ title: string; description: string }[]> {
     return this.coursesService.findAll();
   
   }
 
-  // GET /Course/:course code: Retrieve a specific product by its ID
+  // GET /Course/:course code: Retrieve a specific course by its course_code
   @Get(':course_code')
   async findOne(@Param('course_code') course_code: string): Promise<Courses> {
     return this.coursesService.findOne(course_code);
   }
 
-  // GET /Course/:course code: Retrieve a specific product by its ID
+  // GET /Course/:course code: Retrieve a specific course by its title
   @Get(':title')
   async findCourseByTitle(@Param('title') title: string): Promise<Courses> {
     return this.coursesService.findCourseByTitle(title);
@@ -151,7 +151,10 @@ async setRating(@Param('ObjectId') ObjectId: mongoose.Types.ObjectId, @Param('sc
   await this.coursesService.setRating(ObjectId,score);
 }
 
+//GET COURSE FOR SPECIFIC MODULE TITLE
+@Get()
+async getCourseForModule (@Param('moduleTitle')moduleTitle:string): Promise<Courses>{
+return await this.coursesService.getCourseForModule(moduleTitle);
 
-
-
+}
 }

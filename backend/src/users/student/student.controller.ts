@@ -38,5 +38,10 @@ export class StudentController {
      this.studentService.setStudentLevel(username,objectId,updatedScore);
    }
 
+//GET ALL NOTES OBJECT ID FOR A SPECIFIC MODULE
+@Get()
+   async getAllNotesForModule(@Param('moduleId') moduleId: mongoose.Types.ObjectId,@Param('username')username:string): Promise<mongoose.Types.ObjectId[] | null> {
+    return this.studentService.getAllNotesForModule(moduleId,username);
+   }
 
 }

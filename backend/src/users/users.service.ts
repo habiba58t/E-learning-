@@ -28,7 +28,7 @@ export class UsersService {
     // }
 
 //GET USER BY username
-async findUserByUsername( username: string): Promise<Users> {
+async findUserByUsername( username: string): Promise<userDocument> {
   return await this.userModel.findOne({username});
 }
 
