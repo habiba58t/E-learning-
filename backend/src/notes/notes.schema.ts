@@ -4,10 +4,10 @@ import { Document } from 'mongoose';
 @Schema()
 export class Note  {
   @Prop({ required: true })
-  userId: string;
+  Username: string;
 
-  @Prop({ required: true })
-  course_Code: string;
+  @Prop()
+  course_code?: string;
 
   @Prop({ required: true })
   content: string;

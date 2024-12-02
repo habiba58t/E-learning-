@@ -7,7 +7,7 @@ export class Recommendation {
   recommendationid: string; 
 
   @Prop({ required: true })
-  userid: string; 
+  Username: string; 
 
   @Prop({ type: [String], required: true })
   recommendeditems: string[]; 

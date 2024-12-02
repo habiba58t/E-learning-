@@ -1,41 +1,14 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete,NotFoundException  } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { AuthGuard } from '../auth/guards/authentication.guard';
-import { AuthorizationGuard } from '../auth/guards/authorization.guard';
-import { createDto } from './dto/createuser.dto';
-import { UserDocument, Users } from './users.schema';
-import { Role, Roles } from 'src/auth/decorators/role.decorator';
-
-
+import { Courses } from 'src/courses/courses.schema';
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+    constructor(private readonly usersService: UsersService) {}
+     //GET: get array of courses for a speicifc user
+  //   @Get(':username')
+  // async findCoursesArray(@Param('username') username: string): Promise<Courses[]> {
+  //   return this.usersService.findCoursesArray(username);
+  // }
 
-  @Get('by-username/:username')
-  @UseGuards(AuthGuard, AuthorizationGuard)
-  async findOne(@Param('username') username: string): Promise<UserDocument | null> {
-    return this.usersService.findOneByUsername(username);
-  }
 
-  @Get('by-email')
-  @UseGuards(AuthGuard, AuthorizationGuard)
-  async findOneEmail(@Query('email') email: string): Promise<UserDocument | null> {
-    return this.usersService.findOneByEmail(email);
-  }
-
-  @Post()
-  async createStudent(@Body() userData: createDto): Promise<UserDocument> {
-    try {
-      return await this.usersService.create(userData);
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  @Get('/')
-  @Roles(Role.Admin)
-  @UseGuards(AuthGuard, AuthorizationGuard) // Only admin can view all users
-  async findAll(): Promise<Users[]> {
-    return this.usersService.findAll();
-  }
 }

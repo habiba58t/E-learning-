@@ -1,14 +1,25 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Request, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Request, NotFoundException, BadRequestException, UseGuards } from '@nestjs/common';
 import { QuizzesService } from './quizzes.service';
 import { CreateQuizDto } from './dto/create-quiz.dto';
 import mongoose, {Types} from 'mongoose';
 import { QuizzesDocument } from './quizzes.schema';
+import { Role, Roles } from 'src/auth/decorators/role.decorator';
+import { AuthGuard } from 'src/auth/guards/authentication.guard';
+import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
 //import { Types } from 'mongoose';
+
+
+@UseGuards(AuthGuard) // Apply AuthGuard globally to all methods
+
 
 @Controller('quizzes')
 export class QuizzesController {
+
   constructor(private readonly quizzesService: QuizzesService) {}
 
+
+  @UseGuards(AuthorizationGuard) // Additional guard for authorization
+  @Roles(Role.Admin, Role.Instructor) // Restrict roles to admin and instructor
   @Post('generate/:moduleId')
   async generateQuiz( //instructor creates quiz
     @Param('moduleId') moduleId: string,
@@ -64,6 +75,8 @@ export class QuizzesController {
     }
   
 
+@UseGuards(AuthorizationGuard) // Additional guard for authorization
+@Roles(Role.Admin, Role.Instructor) // Restrict roles to admin and instructor
     @Get(':instructorId')
     async getQuizzesByInstructorId(@Param('instructorId') instructorId: string) {
       try {
@@ -108,7 +121,8 @@ export class QuizzesController {
   }
 
   //skipped toggle outdated
-  
+  @UseGuards(AuthorizationGuard) // Additional guard for authorization
+@Roles(Role.Admin, Role.Instructor) // Restrict roles to admin and instructor
   @Get('responses/:quizId')
   async getResponsesByQuizId(@Param('quizId') quizId: string) {
     try {
@@ -188,7 +202,8 @@ async submitQuiz(
   }
 }
 
-
+@UseGuards(AuthorizationGuard) // Additional guard for authorization
+@Roles(Role.Admin, Role.Instructor) // Restrict roles to admin and instructor
    // Delete a quiz by its ID
    @Delete(':quizId')
    async deleteQuiz(@Param('quizId') quizId: string) {
@@ -209,24 +224,3 @@ async submitQuiz(
 
 }
   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

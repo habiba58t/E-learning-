@@ -78,21 +78,30 @@ async generateQuiz(
   //can also add 2nd parameter t specify projectioin field names like ..,type created_by
 
   // Fetch all questions object ids related to the module
-  const moduleQuestions = await this.moduleService.findQuestionsByModuleId(moduleId).populate('questions');
+  const moduleQuestions = await this.moduleService.findQuestionsByModuleId(moduleId)
 
   // //populate q,since get method of questions returns object ids 
   //of all questions in the module, can just call populate questions
   // let questions = await this.questionModel
   //   .find({ _id: { $in: moduleQuestions } }) // Fetch all questions by their ObjectIds
   //   .exec();
+// Fetch all questions based on the module's questions ObjectIds
+const popQuestions: QuestionsDocument[] = await this.questionModel
+.find({ _id: { $in: moduleQuestions } })
+.exec();
 
-  let questions: QuestionsDocument[]; //array of populated questions
+// Ensure we have questions
+if (!popQuestions.length) {
+  throw new Error('No questions found for the module');
+}
+
+let questions: QuestionsDocument[]; //array of populated questions
 
   // Filter questions based on types, now questions has the fully populated quesitons document
   if (types_of_questions! === 'both') {
-    questions = moduleQuestions; // Use all questions if both types are selected
+    questions = popQuestions; // Use all questions if both types are selected
   } else {
-    questions = moduleQuestions.filter(q => q.types_of_questions === types_of_questions); // Filter by type
+    questions = popQuestions.filter(q=> q.type === types_of_questions); // Filter by type
   }
 
   // Check if there are enough questions for the quiz
@@ -105,7 +114,7 @@ async generateQuiz(
     no_of_questions,
     types_of_questions,
     questions: questions.map(q => q._id), // Store only the question IDs
-    created_by: moduleQuestions[0].created_by, // Assuming the instructor is the same for the questions
+    created_by: popQuestions[0].created_by, // Assuming the instructor is the same for the questions
     isOutdated: false, // Default value for outdated flag
   });
 
@@ -117,35 +126,63 @@ async generateQuiz(
 }
 
  // Student prepares to take the quiz: Select questions randomly based on their score
-async prepareQuizForStudent(quizId: mongoose.Types.ObjectId, username: string): Promise<QuestionsDocument[]> {
-  // Fetch the quiz by ID, populated
-  const quiz = await this.getQuizByQuizId(quizId);
-  if (!quiz) {
-    throw new Error('Quiz not found'); // Error if quiz doesn't exist
-  }
-
-  // Get the student record using their username
-  const student = await this.studentModel.findOne({ username: username }).exec(); // Fetch the student record
-  if (!student) {
-    throw new Error('Student not found'); // Error if student doesn't exist
-  }
-
-  const studentLevel = student.studentLevel; // Extract the student's level
-
-  
-  // Filter questions based on student's score (difficulty)
-  const filteredQuestions = await this.filterQuestionsByDifficulty(quiz.questions, studentLevel);
-
-  // Randomly select questions based on the required number specified in the quiz
-  // If the number of available questions is less than quiz.no_of_questions, return all available questions
-  const selectedQuestions = this.randomizeQuestions(filteredQuestions, quiz.no_of_questions);
-
-  // Return the selected questions for the student to take
-  return selectedQuestions; 
   // IN FRONT END WHEN STUDENT CLICKS ON TAKE QUIZ: render selectedQuestions
   // and calc score using length of answers array as it changes dynamically if length of this < no of questions
   // specified by the instructor*
+async prepareQuizForStudent(
+  quizId: mongoose.Types.ObjectId,
+  username: string,
+): Promise<QuestionsDocument[]> {
+  // Step 1: Fetch the student record
+  const student = await this.studentModel.findOne({ username: username }).exec();
+  if (!student) {
+    throw new Error('Student not found');
+  }
+
+  // Step 2: Locate the course containing the quiz via its modules
+  const course = await this.courseModel.findOne({
+    'modules.quizzes': quizId,
+  })
+  .populate('modules.quizzes')
+  .exec();
+
+  if (!course) {
+    throw new Error('Course or module not found for this quiz');
+  }
+
+  // Step 3: Fetch the quiz
+  const quiz = await this.quizModel.findById(quizId).exec();
+  if (!quiz) {
+    throw new Error('Quiz not found');
+  }
+
+  // Step 4: Find the student's level for the course
+  const studentLevel = student.studentLevel[course._id.toString()];
+  if (!studentLevel) {
+    throw new Error('Student level not found for this course');
+  }
+
+  // Step 5: Filter questions based on the student's level
+  const filteredQuestions = await this.filterQuestionsByDifficulty(
+    quiz.questions,
+    studentLevel,
+  );
+
+  // Step 6: Ensure there are enough filtered questions
+  if (filteredQuestions.length < quiz.no_of_questions) {
+    throw new Error('Not enough questions available for the quiz after filtering by difficulty');
+  }
+
+  // Step 7: Randomly select the required number of questions
+  const selectedQuestions = this.randomizeQuestions(
+    filteredQuestions,
+    quiz.no_of_questions,
+  );
+
+  return selectedQuestions; // Return selected questions to the frontend
 }
+
+  
 
 
 
@@ -214,7 +251,7 @@ private randomizeQuestions(questions: QuestionsDocument[], numberOfQuestions: nu
 }
 
 
-
+//not useful..
   async getQuizByQuizId(quizId: mongoose.Types.ObjectId): Promise<QuizzesDocument> {
     const quiz = await this.quizModel.findById(quizId).populate('questions');
     if (!quiz) {
@@ -233,7 +270,10 @@ private randomizeQuestions(questions: QuestionsDocument[], numberOfQuestions: nu
   @Roles(Role.Admin, Role.Instructor) // Restrict roles to admin and instructor
  async getQuizzesByInstructorId(instructorId: mongoose.Types.ObjectId): Promise<QuizzesDocument[]> {
   return await this.quizModel.find({ created_by: instructorId }).populate('questions');
-}
+}//this returns for frontend side bar part where instructor can see a list of quizzes
+//i want to add an option where instructor can know this quiz belongs to which module in which course so
+//i can take each quiz then in module implement findModuleByQuizId and call it for each quiz
+//then findCourseByModuleId
 
 //button see reponses 
  //get the quiz by id
@@ -536,15 +576,3 @@ async deleteQuiz(quizId: mongoose.Types.ObjectId): Promise<{ message: string }> 
 //quiz should have button see details which calls correctQuiz method
 //if not it should call take quiz which shows him the quiz and was already implemented 
 //
-
-
-
-
-
-
-
-
-
-
-
-
