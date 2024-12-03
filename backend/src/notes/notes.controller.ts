@@ -22,12 +22,12 @@ export class NotesController {
   }
 
   //GET NOTES by usernmae,coursecode,last updated
-  @Get()
-  async findNote(@Param('username') username: string, @Param('course_code')course_code:string, @Param('lastUpdated')lastUpdated:Date): Promise<notesDocument> {
-    return this.notesService.findNote(username,course_code,lastUpdated);
-  }
+  // @Get()
+  // async findNote(@Param('username') username: string, @Param('course_code')course_code:string, @Param('lastUpdated')lastUpdated:Date): Promise<notesDocument> {
+  //   return this.notesService.findNote(username,course_code,lastUpdated);
+  // }
 
-  //CREATE NOTE
+  // CREATE NOTE
   @Post()
   async createNote(@Body() createNoteDto: CreateNoteDto): Promise<Notes> {
     return await this.notesService.createNote(createNoteDto);
@@ -35,13 +35,13 @@ export class NotesController {
 
   //DELETE NOTE
   @Delete()
-  async deleteNote(@Param('username') username: string, @Param('course_code')course_code:string, @Param('lastUpdated')lastUpdated:Date): Promise<notesDocument> {
-    return await this.notesService.deleteNote(username,course_code,lastUpdated);
+  async deleteNote(@Param('noteId') noteId: mongoose.Types.ObjectId): Promise<notesDocument> {
+    return await this.notesService.deleteNote(noteId);
   }
 
 //UPDATE NOTE
   @Put()
-  async updateNote(@Param('username') username: string, @Param('course_code')course_code:string, @Param('lastUpdated')lastUpdated:Date,@Body() updateNoteDto: UpdateNoteDto,): Promise<notesDocument> {
-    return await this.notesService.updateNote(username,course_code,lastUpdated, updateNoteDto);
+  async updateNote(@Param('noteId') noteId: mongoose.Types.ObjectId,@Body() updateNoteDto: UpdateNoteDto,): Promise<notesDocument> {
+    return await this.notesService.updateNote(noteId, updateNoteDto);
   }
 }

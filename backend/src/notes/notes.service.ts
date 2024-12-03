@@ -31,11 +31,11 @@ async findAll(): Promise<Notes[]> {
     }
     return note;
   }
-  //GET NOTES by usernmae,coursecode,last updated
-  async findNote(username: string,course_code:string,lastUpdated:Date): Promise<notesDocument> {
-    return await this.noteModel.findOne({username,course_code,lastUpdated});
+  // //GET NOTES by usernmae,coursecode,last updated
+  // async findNote(username: string,course_code:string,lastUpdated:Date): Promise<notesDocument> {
+  //   return await this.noteModel.findOne({username,course_code,lastUpdated});
 
-  }
+  // }
 
   // Create a new note
   async createNote(createNoteDto: CreateNoteDto): Promise<notesDocument> {
@@ -46,13 +46,13 @@ async findAll(): Promise<Notes[]> {
   }
 
   //DELETE a note by username,coursecode,last updated
-  async deleteNote(username: string, course_code: string, lastUpdated:Date): Promise<notesDocument> {
-    return await this.noteModel.findOneAndDelete({username,course_code,lastUpdated}).exec();
+  async deleteNote(noteId: mongoose.Types.ObjectId): Promise<notesDocument> {
+    return await this.noteModel.findOneAndDelete({noteId}).exec();
   }
 
   // Update an existing note
-  async updateNote(username: string, course_code: string, lastUpdated:Date, updateNoteDto: UpdateNoteDto): Promise<notesDocument> {
-    const note= await this.noteModel.findOneAndUpdate({username,course_code,lastUpdated}, updateNoteDto, { new: true }).exec();
+  async updateNote(noteId: mongoose.Types.ObjectId, updateNoteDto: UpdateNoteDto): Promise<notesDocument> {
+    const note= await this.noteModel.findOneAndUpdate({noteId}, updateNoteDto, { new: true }).exec();
     note.lastUpdated = new Date();
     await note.save();
     return note;
