@@ -2,14 +2,18 @@ import { ConflictException, Injectable, NotFoundException, UnauthorizedException
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import { RegisterDto } from './dto/registerDto';
-import { createDto } from 'src/users/dto/createuser.dto'; // Adjust import based on your project structure
+import { CreateUserDto } from 'src/users/dto/CreateUser.dto'; // Adjust import based on your project structure
 import * as bcrypt from 'bcrypt';
-import { Types } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { SignInDto } from './dto/signInDto';
+import { userDocument, Users } from 'src/users/users.schema';
+import { InjectModel } from '@nestjs/mongoose';
 
 @Injectable()
 export class AuthService {
   constructor(
+    @InjectModel(Users.name) private readonly userModel: Model<userDocument>,
+
     private usersService: UsersService,
     private jwtService: JwtService,
   ) {}
@@ -24,13 +28,13 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(user.password, 10);
 
     // Create a new user object for saving
-    const newUser: createDto = {
+    const newUser = {
       ...user,
-      passwordHash: hashedPassword, // Correct field name
+     // password_hash: hashedPassword, // Correct field name
     };
 
     // Save the new user to the database
-    await this.usersService.create(newUser);
+    await this.usersService.create(newUser, hashedPassword);
 
     return 'Registered successfully';
   }
@@ -42,7 +46,7 @@ export class AuthService {
     console.log(`Attempting login for username: ${username}`);
   
     // Find user by username
-    const user = await this.usersService.findOneByUsername(username);
+    const user = await this.usersService.findUserByUsername(username);
     if (!user) {
       console.error(`User not found for username: ${username}`);
       throw new NotFoundException('User not found');

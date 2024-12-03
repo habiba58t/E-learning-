@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { QuestionsService } from './questions.service';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { UpdateQuestionDto } from './dto/update-question.dto';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { Role, Roles } from 'src/auth/decorators/role.decorator';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/auth/guards/authentication.guard';
@@ -17,8 +17,9 @@ export class QuestionsController {
   constructor(private readonly questionsService: QuestionsService) {}
 
   @Post()
-  async create(@Param('moduleId') moduleId: mongoose.Types.ObjectId, @Body() createQuestionDto: CreateQuestionDto) {
-    return await this.questionsService.create(createQuestionDto, moduleId);
+  async create(@Param('moduleId') moduleId: string, @Body() createQuestionDto: CreateQuestionDto) {
+    const mid = new Types.ObjectId(moduleId);
+    return await this.questionsService.create(createQuestionDto, mid);
   }
 
 //for search purpose, instructor can find a question by difficulty or 
@@ -34,13 +35,15 @@ export class QuestionsController {
 
   
   @Patch(':id')
-  async update(@Param('id') id: mongoose.Types.ObjectId, @Body() updateQuestionDto: UpdateQuestionDto) {
-    let updateq = await this.questionsService.update(id, updateQuestionDto);
+  async update(@Param('id') id: string, @Body() updateQuestionDto: UpdateQuestionDto) {
+    const qid = new Types.ObjectId(id);
+    let updateq = await this.questionsService.update(qid, updateQuestionDto);
     return updateq;
   }
 
   @Delete(':id')
-  async delete(@Param('id') id: mongoose.Types.ObjectId) {
-    return this.questionsService.delete(id);
+  async delete(@Param('id') id: string) {
+    const qid = new Types.ObjectId(id);
+    return this.questionsService.delete(qid);
   }
 }
