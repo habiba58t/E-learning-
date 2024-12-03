@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import mongoose, { Document, Types } from 'mongoose';
 import { Courses } from '../courses/courses.schema'; // Adjust path as necessary
 import { HydratedDocument } from 'mongoose';
 
