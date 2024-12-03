@@ -1,9 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import * as mongoose from 'mongoose'; // Import mongoose to use ObjectId
-import { Module } from '../modules/modules.schema'; // Correct import for the Module schema
+import * as mongoose from 'mongoose';
+import { Module } from '../modules/modules.schema';
+import { ForumThread } from '/Users/ialiaaah/Desktop/swwwww/E-learning-/backend/src/forum/forum/forum.schema';
 
-// Defining the CoursesDocument type
 export type CoursesDocument = Courses & Document;
 
 @Schema()
@@ -12,26 +12,28 @@ export class Courses {
   course_code: string;
 
   @Prop({ required: true })
-  title: string; 
+  title: string;
 
   @Prop({ required: true })
   description: string;
 
   @Prop({ required: true })
-  category: string; 
+  category: string;
 
   @Prop({ required: true, enum: ['Beginner', 'Intermediate', 'Advanced'] })
-  level: string; 
+  level: string;
 
   @Prop({ required: true })
   created_by: string;
 
   @Prop({ required: true })
-  created_at: Date; 
+  created_at: Date;
 
-  // Reference to Module documents using ObjectId
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Module' }] })
   modules: mongoose.Schema.Types.ObjectId[];
+
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ForumThread' }] })
+  threads: mongoose.Schema.Types.ObjectId[];
 }
 
 export const CoursesSchema = SchemaFactory.createForClass(Courses);

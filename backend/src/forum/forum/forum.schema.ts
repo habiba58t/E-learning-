@@ -2,21 +2,21 @@
 import { Schema, Document } from 'mongoose';
 
 export interface ForumThread extends Document {
-  courseId: string;         // Course ID that the forum belongs to
-  courseName: string;       // The name of the course
-  title: string;            // The title of the forum thread
-  creatorId: string;       // The user who created the thread
-  replies: {                // List of replies to the thread
-    userId: string;         // ID of the user who made the reply
-    message: string;        // Reply message
-    timestamp: Date;        // Timestamp of the reply
+  courseId: string;
+  courseName: string;
+  title: string;
+  creatorId: string;
+  replies: {
+    userId: string;
+    message: string;
+    timestamp: Date;
   }[];
-  timestamp: Date;         // Timestamp of when the thread was created
+  timestamp: Date;
 }
 
 export const ForumSchema = new Schema({
   courseId: { type: String, required: true },
-  courseName: { type: String, required: true }, 
+  courseName: { type: String, required: true },
   title: { type: String, required: true },
   creatorId: { type: String, required: true },
   replies: [
