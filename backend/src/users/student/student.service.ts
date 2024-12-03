@@ -11,6 +11,13 @@ import { UsersService } from '../users.service';
 import { ProgressService } from 'src/progress/progress.service';
 import { Progress } from 'src/progress/progress.schema';
 import { HydratedDocument } from 'mongoose';
+import { UpdateUserDto } from '../dto/UpdateUser.dto';
+import { CreateUserDto } from '../dto/CreateUser.dto';
+import { userDocument } from '../users.schema';
+import {Responses} from 'src/responses/responses.schema';
+import { ResponsesService } from 'src/responses/responses.service';
+
+
 @Injectable()
 export class StudentService {
 
@@ -18,9 +25,11 @@ export class StudentService {
         @InjectModel(Users.name) private readonly userModel: Model<Users>, //msh motakeda
         @InjectModel(Courses.name) private readonly courseModel: Model<Courses>,
         @InjectModel(Progress.name) private readonly progressModel: Model<Progress>,
+        @InjectModel(Responses.name) private readonly responsesModel: Model<Responses>,
         @Inject(forwardRef(() => CoursesService)) private readonly coursesService: CoursesService,
         @Inject(forwardRef(() => UsersService)) private readonly usersService: UsersService,
         @Inject(forwardRef(() => ProgressService)) private readonly progressService: ProgressService,
+        @Inject(forwardRef(() => ResponsesService)) private readonly responsesService: UsersService,
     ){}
 
     //GET: all courses student enrolled in and not outdated                 DONE EXCEPT USERNAME NEED TO GET FROM TOKEN
@@ -186,5 +195,77 @@ async setStudentLevel(username: string, objectId: mongoose.Types.ObjectId, updat
      return student.notes.get(moduleId);
    }
 
+//UPDATE STUDENT PROFILE
+async updateProfile(username: string, updateUserDto: UpdateUserDto): Promise<userDocument> {
+  // Find the student by username
+  const student = await this.userModel.findOne({ username }).exec();
+  if (!student) {
+    throw new NotFoundException(`Student with username "${username}" not found.`);
+  }
+
+  // Update the student profile
+  Object.assign(student, updateUserDto);
+
+  // Save the updated student
+  await student.save();
+
+  return student;
+}
+
+// CREATE NEW STUDENT FOR REGISTER
+async createStudent(createStudentDto:CreateUserDto): Promise<userDocument> {
+  const newStudent = new this.userModel({
+    ...createStudentDto,
+    password_hash: createStudentDto.password, // Hash the password if needed
+    created_at: new Date(),
+    courses: [],
+    notes: new Map(),
+    studentScore: new Map(),
+    studentLevel: new Map(),
+  });
+
+  return await newStudent.save();
+}
+
+//Delete Student, their progress,responses and notes 
+// async deleteStudentAndRelatedData(username: string): Promise<void> {
+//   // Check if the student exists
+//   const student = await this.userModel.findOne({ username });
+//   if (!student) {
+//     throw new Error(`Student with username ${username} not found`);
+//   }
+
+//   // Delete all responses using the existing method
+//   try {
+//     await this.deleteResponseByUsername(username);
+//   } catch (error) {
+//     console.error(`Failed to delete responses for username: ${username}`, error);
+//     throw new Error('Failed to delete responses.');
+//   }
+
+//   // Delete all progress using the existing method
+//   try {
+//     await this.deleteProgressByUsername(username);
+//   } catch (error) {
+//     console.error(`Failed to delete progress for username: ${username}`, error);
+//     throw new Error('Failed to delete progress.');
+//   }
+
+//   // Delete all notes using the existing method
+//   try {
+//     await this.deleteNotesByUsername(username);
+//   } catch (error) {
+//     console.error(`Failed to delete notes for username: ${username}`, error);
+//     throw new Error('Failed to delete notes.');
+//   }
+
+//   // Finally, delete the student from the user table
+//   try {
+//     await this.userModel.deleteOne({ username });
+//   } catch (error) {
+//     console.error(`Failed to delete student with username: ${username}`, error);
+//     throw new Error('Failed to delete student.');
+//   }
+// }
 
 }
