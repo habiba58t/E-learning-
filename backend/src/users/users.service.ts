@@ -22,7 +22,7 @@ export class UsersService {
     async findUsers(username?: string, role?: Role): Promise<Users[]> {
         const query: any = {};
         if (username) {
-            query.username = { $regex: new RegExp(username, 'i') }; // Case-insensitive match
+            query.username = { $regex: new RegExp(username, 'i') }; 
         }
         if (role) {
             query.role = role;
