@@ -103,12 +103,7 @@ export class CoursesService {
 
   
   
-  //(note: implemented by farah for use in search for quizzes)
-async findCourseByModuleId(moduleId:mongoose.Types.ObjectId):Promise<courseDocument>{
-  const course = await this.courseModel.findOne({ modules: {$in: [moduleId]} })
-  return course;
-}
- 
+
 
   // Delete a course by course_code
   async delete(course_code: string): Promise<courseDocument> {

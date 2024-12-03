@@ -123,11 +123,6 @@ async findQuestionsByModuleId(ObjectId: mongoose.Types.ObjectId): Promise<mongoo
         return module.questions;
 }
 
-//implemented by farah for use in quiz
-async findModuleByQuizId(quizId: mongoose.Types.ObjectId): Promise<moduleDocument>{
-  const module = await this.moduleModel.findOne({quizzes: {$in: [quizId]}})
-  return module;
-}
 
 
 //GET/modules/:title: retrieve all quizzes for specific module 
