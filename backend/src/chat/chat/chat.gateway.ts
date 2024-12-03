@@ -11,21 +11,26 @@ export class ChatGateway {
 
   // Listen for the 'send_message' event from the client
   @SubscribeMessage('send_message')
-  async handleMessage(@MessageBody() message: { message: string; userId: string; recipientId: string }, @ConnectedSocket() client: Socket): Promise<void> {
+  async handleMessage(@MessageBody() message: { message: string; userId: string; chatType: 'one-to-one' | 'group'; recipientId?: string; groupId?: string }, @ConnectedSocket() client: Socket): Promise<void> {
     // Save the message to the database
-    const savedMessage = await this.chatService.saveMessage(message.message, message.userId, message.recipientId);
+    const savedMessage = await this.chatService.saveMessage(message.message, message.userId, message.chatType, message.recipientId, message.groupId);
 
-    // Send the message to the recipient only
-    const recipientSocketId = this.getRecipientSocketId(message.recipientId);
-    if (recipientSocketId) {
-      this.server.to(recipientSocketId).emit('receive_message', savedMessage);
+    if (message.chatType === 'one-to-one') {
+      // Send the message to the recipient only
+      const recipientSocketId = this.getRecipientSocketId(message.recipientId);
+      if (recipientSocketId) {
+        this.server.to(recipientSocketId).emit('receive_message', savedMessage);
+      }
+    } else {
+      // Send the message to all group members
+      this.server.to(message.groupId).emit('receive_message', savedMessage);
     }
   }
 
-  // Get all messages between two users
+  // Get messages based on chat type
   @SubscribeMessage('get_messages')
-  async getMessages(@MessageBody() data: { userId: string; recipientId: string }): Promise<void> {
-    const messages = await this.chatService.getMessages(data.userId, data.recipientId);
+  async getMessages(@MessageBody() data: { userId: string; chatType: 'one-to-one' | 'group'; recipientId?: string; groupId?: string }): Promise<void> {
+    const messages = await this.chatService.getMessages(data.userId, data.chatType, data.recipientId, data.groupId);
     const clientSocketId = this.getRecipientSocketId(data.userId);
     this.server.to(clientSocketId).emit('receive_messages', messages);
   }
