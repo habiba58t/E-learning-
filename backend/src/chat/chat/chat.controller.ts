@@ -1,21 +1,21 @@
 // src/communication/chat/chat.controller.ts
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query } from '@nestjs/common';
 import { ChatService } from './chat.service';
 
 @Controller('chat')
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
-  //get all messages
+  // Get all messages between two users
   @Get()
-  getMessages() {
-    return this.chatService.getMessages();
+  getMessages(@Query('userId') userId: string, @Query('recipientId') recipientId: string) {
+    return this.chatService.getMessages(userId, recipientId);
   }
 
-  // add a message 
+  // Add a message
   @Post()
-  async addMessage(@Body() body: { message: string; userId: string }) {
-    const newMessage = await this.chatService.saveMessage(body.message, body.userId);
+  async addMessage(@Body() body: { message: string; userId: string; recipientId: string }) {
+    const newMessage = await this.chatService.saveMessage(body.message, body.userId, body.recipientId);
     return { message: 'Message added successfully', data: newMessage };
   }
 }

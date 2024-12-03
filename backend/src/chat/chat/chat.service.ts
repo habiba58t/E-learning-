@@ -11,16 +11,22 @@ export class ChatService {
   ) {}
 
   // Save a message to the database
-  async saveMessage(message: string, userId: string): Promise<ChatMessage> {
+  async saveMessage(message: string, userId: string, recipientId: string): Promise<ChatMessage> {
     const newMessage = new this.chatModel({
       message,
       userId,
+      recipientId,
     });
     return newMessage.save();  
   }
 
-  // Get all messages from the database
-  async getMessages(): Promise<ChatMessage[]> {
-    return this.chatModel.find().sort({ timestamp: 1 }).exec();  // Sort by timestamp ascending
+  // Get all messages for a user
+  async getMessages(userId: string, recipientId: string): Promise<ChatMessage[]> {
+    return this.chatModel.find({
+      $or: [
+        { userId, recipientId },
+        { userId: recipientId, recipientId: userId },
+      ],
+    }).sort({ timestamp: 1 }).exec();  // Sort by timestamp ascending
   }
 }
