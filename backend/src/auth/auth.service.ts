@@ -4,15 +4,17 @@ import { UsersService } from 'src/users/users.service';
 import { RegisterDto } from './dto/registerDto';
 import { CreateUserDto } from 'src/users/dto/CreateUser.dto'; // Adjust import based on your project structure
 import * as bcrypt from 'bcrypt';
-import { Model, Types } from 'mongoose';
+import mongoose, { Model, Types } from 'mongoose';
 import { SignInDto } from './dto/signInDto';
 import { userDocument, Users } from 'src/users/users.schema';
 import { InjectModel } from '@nestjs/mongoose';
+import { Log } from 'src/log/log.schema';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectModel(Users.name) private readonly userModel: Model<userDocument>,
+    @InjectModel(Users.name) private  userModel: Model<Users>,
+    @InjectModel(Log.name) private  logModel: mongoose.Model<Log>,
 
     private usersService: UsersService,
     private jwtService: JwtService,
@@ -41,43 +43,53 @@ export class AuthService {
 
   async login(signInDto: SignInDto) {
     const { username, password } = signInDto;
-  
-    // Log username for debugging
-    console.log(`Attempting login for username: ${username}`);
-  
+
     // Find user by username
     const user = await this.usersService.findUserByUsername(username);
     if (!user) {
-      console.error(`User not found for username: ${username}`);
-      throw new NotFoundException('User not found');
+        throw new NotFoundException('User not found');
     }
-  
-    // Compare hashed passwords
+
+    // Check if the user has exceeded 5 failed attempts within the last 15 minutes
+    const failedAttempts = await this.logModel.countDocuments({
+        username: user._id,
+        success: false,
+        timestamp: { $gte: new Date(Date.now() - 15 * 60 * 1000) }, // 15 minutes window
+    });
+
+    if (failedAttempts >= 5) {
+        throw new UnauthorizedException('Too many failed login attempts. Please try again later.');
+    }
+
+    // Compare password
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordValid) {
-      console.error(`Invalid password for user: ${username}`);
-      throw new UnauthorizedException('Invalid credentials');
+        // Log the failed login attempt
+        await this.logModel.create({
+            username: user._id,
+            action: 'Login Failed',
+            success: false,
+            timestamp: new Date(),
+        });
+        throw new UnauthorizedException('Invalid credentials');
     }
-  
-    console.log(`User authenticated: ${username}, generating token...`);
-  
-    // JWT payload
+
+    // Log successful login
+    await this.logModel.create({
+        username: user._id,
+        action: 'Login Successful',
+        success: true,
+        timestamp: new Date(),
+    });
+
+    // JWT token generation
     const payload = { username: user.username, role: user.role };
-    console.log("payload met");
-    // Debugging JWT configuration
-    const secret = process.env.JWT_SECRET || 'defaultSecret';
-    const expiresIn = process.env.JWT_EXPIRES_IN || '1h';
-    console.log('JWT Configuration:', { secret, expiresIn });
-  
-    // Generate token
-    const token = await this.jwtService.signAsync(payload, { expiresIn });
-    console.log('Generated token:', token);
-  
+    const token = await this.jwtService.signAsync(payload);
+
     return {
-      access_token: token,
-      payload,
+        access_token: token,
+        payload,
     };
-  }
-  
+}
   
 }

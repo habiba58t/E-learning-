@@ -10,6 +10,7 @@ import { courseDocument } from 'src/courses/courses.schema';
 import { ProgressService } from 'src/progress/progress.service';
 import { SearchUserDto } from './dto/SearchUser.dto';
 import { CreateUserDto } from './dto/CreateUser.dto';
+import { Role } from 'src/auth/decorators/role.decorator';
 @Injectable()
 export class UsersService {
     constructor(
@@ -97,6 +98,17 @@ async searchUsers(loggedInUserId: string | null, searchUserDto: SearchUserDto): 
     query['role'] = 'instructor';
   }
 
+  return this.userModel.find(query).exec();
+}
+//for admin (Hagar)
+async findUsers(username?: string, role?: Role): Promise<Users[]> {
+  const query: any = {};
+  if (username) {
+      query.username = { $regex: new RegExp(username, 'i') }; 
+  }
+  if (role) {
+      query.role = role;
+  }
   return this.userModel.find(query).exec();
 }
 }
