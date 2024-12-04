@@ -1,11 +1,13 @@
 /* eslint-disable prettier/prettier */
-import { Body, Controller, Get, Post, Param, Delete, Patch } from '@nestjs/common';
+import { Body, Controller, Get, Post, Param, Delete, Patch, UseGuards } from '@nestjs/common';
 import { NotesService } from './notes.service';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
-import { Note } from './notes.schema'; 
+import { Note } from './notes.schema';
+import { AuthGuard } from './auth.guard';
 
 @Controller('notes')
+@UseGuards(AuthGuard)
 export class NotesController {
   constructor(private readonly notesService: NotesService) {}
 
@@ -20,9 +22,7 @@ export class NotesController {
   }
 
   @Delete(':id')
-  async deleteNote(
-    @Param('id') id: string,
-  ): Promise<Note> {
+  async deleteNote(@Param('id') id: string): Promise<Note> {
     return await this.notesService.remove(id);
   }
 
