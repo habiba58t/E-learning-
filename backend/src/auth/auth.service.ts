@@ -13,9 +13,11 @@ import { InjectModel } from '@nestjs/mongoose';
 export class AuthService {
   constructor(
     @InjectModel(Users.name) private readonly userModel: Model<userDocument>,
+    private readonly jwtService: JwtService,
+
 
     private usersService: UsersService,
-    private jwtService: JwtService,
+  //  private jwtService: JwtService,
   ) {}
 
   async register(user: RegisterDto): Promise<string> {

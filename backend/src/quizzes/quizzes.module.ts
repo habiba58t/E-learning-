@@ -23,7 +23,7 @@ import { ContentService } from 'src/modules/content/content.service';
     MongooseModule.forFeature([{ name: Users.name, schema: UsersSchema }]),
   ],
   controllers: [QuizzesController],
-  providers: [CoursesService,ModulesService,QuizzesService,QuestionsService,NotesService,StudentService,InstructorService,UsersService,ContentService],
-  exports: [QuizzesService, QuizzesController], // Exporting for potential use in other modules
+  providers: [StudentService, CoursesService,ModulesService,QuizzesService,QuestionsService,NotesService,StudentService,InstructorService,UsersService,ContentService],
+  exports: [StudentService, QuizzesService, QuizzesController], // Exporting for potential use in other modules
 })
 export class QuizzesModule {}

@@ -1,4 +1,4 @@
-import { Injectable, UseGuards } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, UseGuards } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Question, QuestionsDocument } from './questions.schema';
 import mongoose, { mongo } from 'mongoose';
@@ -27,8 +27,9 @@ export class QuestionsService {
     @InjectModel(Question.name) private questionModel: mongoose.Model<QuestionsDocument>,
     @InjectModel(Module.name) private moduleModel: mongoose.Model<moduleDocument>,
     @InjectModel (Quiz.name) private quizModel :mongoose.Model<QuizzesDocument>,
-    private readonly moduleService: ModulesService, // Inject ModulesService
-    private readonly quizService: QuizzesService
+    @Inject(forwardRef(() => ModulesService)) private readonly moduleService: ModulesService, // Use forwardRef to avoid circular dependency
+    @Inject(forwardRef(() => QuizzesService)) private readonly quizService: QuizzesService // Use forwardRef to avoid circular dependency
+
   ) {}
 
   // Create a question and add it to a module's quiz array (only for instructors)

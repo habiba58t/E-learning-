@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { CoursesService } from './courses.service';
 import { CoursesController } from './courses.controller';
 import { ModulesService } from 'src/modules/modules.service';
@@ -19,21 +19,29 @@ import { StudentService } from 'src/users/student/student.service';
 import { InstructorService } from 'src/users/instructor/instructor.service';
 import { ContentService } from 'src/modules/content/content.service';
 import { ContentSchema } from 'src/modules/content/content.schema';
+import { Responses, ResponsesSchema } from 'src/responses/responses.schema';
+import { ResponsesService } from 'src/responses/responses.service';
+import { Progress, ProgressSchema } from 'src/progress/progress.schema';
+import { ProgressService } from 'src/progress/progress.service';
+import { AuthModule } from 'src/auth/auth.module';
+import { UsersModule } from 'src/users/users.module';
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: 'Courses', schema: CoursesSchema }]),
     MongooseModule.forFeature([{ name: 'Module', schema: ModuleSchema }]),
     MongooseModule.forFeature([{ name: 'Quiz', schema: QuizzesSchema }]),
     MongooseModule.forFeature([{ name: 'Question', schema: QuestionsSchema }]),
-    MongooseModule.forFeature([{ name: 'Note', schema: NoteSchema }]),
+    MongooseModule.forFeature([{ name: 'Notes', schema: NoteSchema }]),
     MongooseModule.forFeature([{ name: 'Users', schema: UsersSchema }]),
     MongooseModule.forFeature([{ name: 'Content', schema: ContentSchema }]),
-
-     // Ensure this is imported here too
+    MongooseModule.forFeature([{ name: Responses.name, schema: ResponsesSchema }]),
+    MongooseModule.forFeature([{ name: Progress.name, schema: ProgressSchema }]),
+    forwardRef(() => AuthModule), // Resolve circular dependency
+    forwardRef(() => UsersModule), // Resolve circular dependency
   ],
 
-  providers: [CoursesService,ModulesService,QuizzesService,QuestionsService,NotesService,StudentService,InstructorService,UsersService,ContentService],
+  providers: [ProgressService, NotesService, ResponsesService, ModulesService, CoursesService,ModulesService,QuizzesService,QuestionsService,NotesService,StudentService,InstructorService,UsersService,ContentService],
   controllers: [CoursesController],
-  exports:[CoursesService,ModulesService,QuizzesService,QuestionsService,NotesService,StudentService,InstructorService,UsersService,ContentService]
+  exports:[ProgressService, NotesService, CoursesService,ModulesService,QuizzesService,QuestionsService,NotesService,StudentService,InstructorService,UsersService,ContentService]
 })
 export class CoursesModule {}
