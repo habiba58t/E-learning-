@@ -1,99 +1,79 @@
-import { WebSocketGateway, SubscribeMessage, MessageBody, WebSocketServer, ConnectedSocket } from '@nestjs/websockets';
+// src/communication/chat/chat.gateway.ts
+import {
+  WebSocketGateway,
+  SubscribeMessage,
+  MessageBody,
+  WebSocketServer,
+  ConnectedSocket,
+} from '@nestjs/websockets';
 import { ChatService } from './chat.service';
-import { NotificationService } from '/Users/ialiaaah/Documents/swwwww/swww/E-learning-/backend/src/notification/notification/notification.service'; // Import NotificationService
+import { NotificationService } from '/Users/ialiaaah/Documents/swwwww/swww/E-learning-/backend/src/notification/notification/notification.service';
 import { Server, Socket } from 'socket.io';
 
 @WebSocketGateway()
 export class ChatGateway {
   constructor(
     private readonly chatService: ChatService,
-    private readonly notificationService: NotificationService, // Inject NotificationService
+    private readonly notificationService: NotificationService,
   ) {}
 
   @WebSocketServer() server: Server;
-
   private activeUsers = new Map<string, string>(); // Maps usernames to socket IDs
 
-  // Listen for the 'send_message' event from the client
+  handleConnection(client: Socket) {
+    const userName = client.handshake.query.userName as string;
+    if (userName) {
+      this.activeUsers.set(userName, client.id); // Map username to socket ID
+      console.log(`${userName} connected`);
+    }
+  }
+
+  handleDisconnect(client: Socket) {
+    const userName = [...this.activeUsers.entries()].find(
+      ([_, socketId]) => socketId === client.id,
+    )?.[0];
+    if (userName) {
+      this.activeUsers.delete(userName); // Remove user from active users
+      console.log(`${userName} disconnected`);
+    }
+  }
+
+  // Send message event
   @SubscribeMessage('send_message')
   async handleMessage(
-    @MessageBody() message: {
+    @MessageBody()
+    message: {
       message: string;
-      userName: string; // Changed from userId to userName
+      userName: string;
       chatType: 'one-to-one' | 'group';
-      recipientUsername?: string; // Changed from recipientId to recipientUsername
-      groupName?: string; // Changed from groupId to groupName
+      recipientUsername?: string;
+      groupName?: string;
     },
-    @ConnectedSocket() client: Socket
+    @ConnectedSocket() client: Socket,
   ): Promise<void> {
-    // Save the message to the database
     const savedMessage = await this.chatService.saveMessage(
       message.message,
       message.userName,
       message.chatType,
       message.recipientUsername,
-      message.groupName
+      message.groupName,
     );
 
-    if (message.chatType === 'one-to-one') {
-      // Send the message to the recipient only
-      const recipientSocketId = this.getRecipientSocketId(message.recipientUsername);
-      if (recipientSocketId) {
-        this.server.to(recipientSocketId).emit('receive_message', savedMessage);
-
-        // Send a notification to the recipient
-        await this.notificationService.createNotification(
-          `${message.userName} sent you a message.`,
-          message.recipientUsername,
-        );
-      }
-    } else if (message.chatType === 'group') {
-      // Get the list of group members (usernames)
+    if (message.chatType === 'group') {
       const groupMembers = await this.chatService.getGroupMessages(message.groupName);
-
-      // Send the message to all group members
       groupMembers.forEach(async (memberUsername) => {
-        const socketId = this.getRecipientSocketId(memberUsername);
-        if (socketId) {
-          this.server.to(socketId).emit('receive_message', savedMessage);
-        }
-
-        // Send notification to each group member
         if (memberUsername !== message.userName) {
-          await this.notificationService.createNotification(
-            `${message.userName} sent a message in the group "${message.groupName}".`,
-            memberUsername,
-          );
+          const socketId = this.activeUsers.get(memberUsername);
+          if (socketId) {
+            this.server.to(socketId).emit('receive_message', savedMessage);
+          }
         }
       });
+    } else {
+      const recipientSocketId = this.activeUsers.get(message.recipientUsername);
+      if (recipientSocketId) {
+        this.server.to(recipientSocketId).emit('receive_message', savedMessage);
+      }
     }
-  }
-
-  // Get messages based on chat type
-  @SubscribeMessage('get_messages')
-  async getMessages(
-    @MessageBody() data: {
-      userName: string; // Changed from userId to userName
-      chatType: 'one-to-one' | 'group';
-      recipientUsername?: string; // Changed from recipientId to recipientUsername
-      groupName?: string; // Changed from groupId to groupName
-    }
-  ): Promise<void> {
-    const messages = await this.chatService.getMessages(
-      data.userName,
-      data.chatType,
-      data.recipientUsername,
-      data.groupName
-    );
-    const clientSocketId = this.getRecipientSocketId(data.userName);
-    if (clientSocketId) {
-      this.server.to(clientSocketId).emit('receive_messages', messages);
-    }
-  }
-
-  // Helper function to get the recipient's socket ID based on username
-  getRecipientSocketId(userName: string): string | undefined {
-    const socketId = this.activeUsers.get(userName); // Get socket ID based on userName
-    return socketId; // If the user is connected, return their socket ID
   }
 }

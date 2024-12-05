@@ -9,7 +9,7 @@ import { Group } from './group.schema';
 export class ChatService {
   constructor(
     @InjectModel('Chat') private readonly chatModel: Model<ChatMessage>,
-    @InjectModel('Group') private readonly groupModel: Model<Group>, // Inject Group model
+    @InjectModel('Group') private readonly groupModel: Model<Group>,
   ) {}
 
   // Save a message to the database for both one-to-one and group chats
@@ -21,6 +21,7 @@ export class ChatService {
     groupName?: string,
   ): Promise<ChatMessage> {
     let groupId: string | undefined;
+
     if (chatType === 'group') {
       const group = await this.groupModel.findOne({ name: groupName });
       if (!group) throw new Error('Group not found');
@@ -79,11 +80,26 @@ export class ChatService {
     return newGroup.save(); // Save group to the database
   }
 
-  // Add a member to an existing group
+  // Add a member to an existing group (allow anyone to join open groups)
+  async joinGroup(groupName: string, userName: string): Promise<Group> {
+    const group = await this.groupModel.findOne({ name: groupName });
+    if (!group) throw new Error('Group not found');
+    if (!group.isOpen) throw new Error('This group is restricted');
+
+    // Add user to the group members if not already present
+    if (!group.memberUsernames.includes(userName)) {
+      group.memberUsernames.push(userName);
+      await group.save();
+    }
+
+    return group;
+  }
+
+  // Add a member to a group
   async addMember(groupName: string, username: string): Promise<Group> {
     return this.groupModel.findOneAndUpdate(
       { name: groupName },
-      { $addToSet: { memberUsernames: username } }, // Add username to member list (no duplicates)
+      { $addToSet: { memberUsernames: username } },
       { new: true },
     );
   }
@@ -92,7 +108,7 @@ export class ChatService {
   async removeMember(groupName: string, username: string): Promise<Group> {
     return this.groupModel.findOneAndUpdate(
       { name: groupName },
-      { $pull: { memberUsernames: username } }, // Remove username from member list
+      { $pull: { memberUsernames: username } },
       { new: true },
     );
   }
