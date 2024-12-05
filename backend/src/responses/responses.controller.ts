@@ -22,18 +22,13 @@ export class ResponsesController {
   }
 
   @Get('find/:username') 
-  async findResponsesByUsername(
-    @Param('username') username: string,
-  ): Promise<any> {  // Return type can be adjusted as needed
+  async findResponsesByUsername(@Param('username') username: string,): Promise<any> {  // Return type can be adjusted as needed
     return this.responsesService.findResponsesByUsername(username);
   }
 
  // Endpoint to get responses by username and course code
  @Get('find/:username/:course_code')
- async findResponsesByUsernameAndCourseCode(
-   @Param('username') username: string,
-   @Param('course_code') course_code: Types.ObjectId,
- ): Promise<any> { // You can adjust the return type to suit your needs
+ async findResponsesByUsernameAndCourseCode(@Param('username') username: string,@Param('course_code') course_code: Types.ObjectId,): Promise<any> { 
    return this.responsesService.findResponsesByUsernameAndCourseCode(username, course_code);
  }
 

@@ -1,5 +1,5 @@
 
-import { Injectable, NotFoundException, Inject, forwardRef ,InternalServerErrorException,BadRequestException} from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, forwardRef ,InternalServerErrorException,BadRequestException,UseGuards} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { courseDocument, Courses } from './courses.schema';
 import { Module } from '../modules/modules.schema';
@@ -14,6 +14,11 @@ import { userDocument } from 'src/users/users.schema';
 import { Users } from 'src/users/users.schema';
 import { HydratedDocument } from 'mongoose';
 import { ProgressService } from 'src/progress/progress.service';
+import { Role, Roles } from 'src/auth/decorators/role.decorator';
+import { AuthGuard } from 'src/auth/guards/authentication.guard';
+import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
+import { Public } from 'src/auth/decorators/public.decorator';
+
 
 @Injectable()
 export class CoursesService {
@@ -27,6 +32,7 @@ export class CoursesService {
     ) {}
     
   //GET ALL COURSES //PUBLIC  
+  @Public()
   async findAll(): Promise<{ title: string; description: string }[]> {
     return this.courseModel
       .find({ Unavailable: false }) // Filter to get only available courses
@@ -36,11 +42,10 @@ export class CoursesService {
     
 
  //FIND COURSE BY COURSE_CODE 
+ @UseGuards(AuthGuard, AuthorizationGuard)
+ @Roles(Role.Admin, Role.Instructor,Role.User)
   async findOne(course_code: string): Promise<courseDocument> {
-    const course = await this.courseModel
-      .findOne({ course_code, Unavailable: false }) // Add filter for availability
-      .exec();
-  
+    const course = await this.courseModel.findOne({ course_code, Unavailable: false }).exec();
     if (!course) {
       throw new NotFoundException(`Course with course code ${course_code} not found or unavailable`);
     }
@@ -49,6 +54,8 @@ export class CoursesService {
   }
 
   //GET: find course by course code
+  @UseGuards(AuthGuard, AuthorizationGuard)
+  @Roles(Role.Admin, Role.Instructor,Role.User)
   async findCourseByTitle(title: string): Promise<courseDocument> {
     const course = await this.courseModel.findOne({title,Unavailable: false}).exec();
     if (!course) {
@@ -58,6 +65,8 @@ export class CoursesService {
   }
 
   //get course by objectId
+  @UseGuards(AuthGuard, AuthorizationGuard)
+  @Roles(Role.Admin, Role.Instructor,Role.User)
   async getcoursebyid(ObjectId: mongoose.Types.ObjectId): Promise<courseDocument> {
     const course = await this.courseModel.findById({ObjectId,Unavailable: false}).exec();
     if (!course) {
@@ -68,6 +77,8 @@ export class CoursesService {
 
 
   //CREATE: intructor create course
+  @UseGuards(AuthGuard, AuthorizationGuard)
+  @Roles(Role.Admin, Role.Instructor)
   async create( username: string,createCourseDto: CreateCourseDto): Promise<courseDocument> {
     const newCourse = new this.courseModel(createCourseDto); // Step 1: Create the new course
     newCourse.created_at = new Date();
@@ -90,6 +101,8 @@ export class CoursesService {
   }
 
  // Update an existing course by ID
+ @UseGuards(AuthGuard, AuthorizationGuard)
+ @Roles(Role.Admin, Role.Instructor)
   async update(course_code: string, updateCourseDto: UpdateCourseDto): Promise<courseDocument> {
     const updatedCourse = await this.courseModel
       .findOneAndUpdate({ course_code,Unavailable: false}, updateCourseDto, { new: true })
@@ -108,6 +121,8 @@ async findCourseByModuleId(moduleId:mongoose.Types.ObjectId):Promise<courseDocum
 }
 
 //GET: modules for a course for a student
+@UseGuards(AuthGuard, AuthorizationGuard)
+@Roles(Role.Admin, Role.User)
 async getModulesForCourseStudent(course_code: string, username: string): Promise<moduleDocument[]> {
   // Step 1: Fetch the student by their username
   const student = await this.userModel.findOne({ username }).exec();
@@ -142,6 +157,8 @@ async getModulesForCourseStudent(course_code: string, username: string): Promise
 
 
 //GET: modules for a course for an instructor
+@UseGuards(AuthGuard, AuthorizationGuard)
+@Roles(Role.Admin, Role.Instructor)
 async getModulesForCourseInstructor(course_code: string): Promise<moduleDocument[]> {
   const course = await this.findOne(course_code);
 
@@ -158,6 +175,8 @@ async getModulesForCourseInstructor(course_code: string): Promise<moduleDocument
 }
 
 //PUT: add module to a course
+@UseGuards(AuthGuard, AuthorizationGuard)
+@Roles(Role.Admin, Role.Instructor)
 async addModuleToCourse(courseCode: string, createModuleDto: CreateModuleDto): Promise<courseDocument> {
   // Create new module and save it to the database
   const newModule = await this.modulesService.create(createModuleDto);
@@ -181,6 +200,8 @@ async addModuleToCourse(courseCode: string, createModuleDto: CreateModuleDto): P
 }
 
 //PUT: remove module from array of modules in specific course
+@UseGuards(AuthGuard, AuthorizationGuard)
+@Roles(Role.Admin, Role.Instructor)
 async DeleteModuleFromCourse(courseCode: string, title:string): Promise<courseDocument> {
   const deletedModule= await this.modulesService.delete(title);
   // Use $pull to remove the moduleId from the modules array atomically
@@ -214,6 +235,8 @@ async toggleOutdated(course_code: string): Promise<courseDocument> {
 
 
 // Get Average score of a specific module 
+@UseGuards(AuthGuard, AuthorizationGuard)
+@Roles(Role.Admin, Role.Instructor)
 async getAverageScoreForCourse(course_code: string): Promise<number> {
   // Step 1: Find the course and deeply populate nested fields
   const course = await this.courseModel
@@ -257,12 +280,15 @@ async getAverageScoreForCourse(course_code: string): Promise<number> {
 }
 
 //GET AVERAGE RATING
-async getTotalRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
+@Public()
+async getAverageRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
   const course = await this.courseModel.findById({ObjectId, Unavailable: false});
-  return course.totalRating;
+  return course.averageRating;
  }
  
  //SET RATING,TOTAL,AVERAGE
+ @UseGuards(AuthGuard, AuthorizationGuard)
+ @Roles(Role.Admin, Role.Instructor,Role.User)
  async setRating(ObjectId: mongoose.Types.ObjectId,score:number): Promise<void> {
    const course = await this.courseModel.findById({ObjectId, Unavailable: false});
    course.totalRating = course.totalRating + score;
@@ -270,7 +296,9 @@ async getTotalRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
    course.averageRating = course.totalRating/course.totalStudents;
  }
 
- 
+ //GET courses for student
+ @UseGuards(AuthGuard, AuthorizationGuard)
+ @Roles(Role.Admin,Role.User)
 async getNonOutdatedCoursesForStudent(username: string): Promise<Courses[]> {
   // Find the student by username
   const student = await this.userModel.findOne({ username }).exec();
@@ -290,6 +318,8 @@ async getNonOutdatedCoursesForStudent(username: string): Promise<Courses[]> {
   return courses;
 }
 //GET COURSE FOR SPECIFIC MODULE TITLE
+@UseGuards(AuthGuard, AuthorizationGuard)
+@Roles(Role.Admin, Role.Instructor,Role.User)
 async getCourseForModule (moduleTitle:string): Promise<courseDocument>{
  const module=await this.modulesService.findByTitle(moduleTitle)as moduleDocument;;
 
@@ -298,7 +328,8 @@ async getCourseForModule (moduleTitle:string): Promise<courseDocument>{
 }
 
 //DELETE COURSE (MAKE IT UNAVAILABLE)
-
+@UseGuards(AuthGuard, AuthorizationGuard)
+@Roles(Role.Admin, Role.Instructor)
 async deleteCourse(course_code: string): Promise<{ message: string }> {
   // Fetch all progress records for the course
   const progressRecords = await this.progressService.findAllByCourse(course_code);

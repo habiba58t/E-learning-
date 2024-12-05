@@ -13,7 +13,7 @@ import { courseDocument } from './courses.schema';
 export class CoursesController {
     constructor(private readonly coursesService: CoursesService) {}
 
-  //GET ALL COURSES   //PUBLIC 
+  //GET ALL COURSES //PUBLIC 
 @Get()
   async findAll(): Promise<{ title: string; description: string }[]> {
     return this.coursesService.findAll();
@@ -38,23 +38,13 @@ export class CoursesController {
     return this.coursesService.getcoursebyid(objectId);
   }
 
-  // POST /courses: Create a new product
-  @Post()
-  async create(@Body() createCourseDto: CreateCourseDto): Promise<Courses> {
-    const newCourse=  await this.coursesService.create(createCourseDto);
-    return newCourse;
 
+//Create: course created by instructor
+   @Post(':username')
+  async create(@Param('username') username: string, @Body() createCourseDto: CreateCourseDto ): Promise<Courses> {
+    // Pass the username and course data to the service to create the course and associate it with the instructor
+    return this.coursesService.create(username,createCourseDto);
   }
-
-
-  // @Post(':username')
-  // async create(
-  //   @Param('username') username: string,  // Get instructor username from URL
-  //   @Body() createCourseDto: CreateCourseDto  // Get course data from the body
-  // ): Promise<Courses> {
-  //   // Pass the username and course data to the service to create the course and associate it with the instructor
-  //   return this.coursesService.create(createCourseDto,username);
-  // }
 
   // PUT /products/:id: Update an existing product by its ID
   @Put(':course_code')
@@ -63,31 +53,16 @@ export class CoursesController {
   }
 
 
+  //GET: GET cousrse by module id
  @Get(':moduleId')
-//(note: implemented by farah for use in search for quizzes)
 async findCourseByModuleId(@Param('moduleId') moduleId: string):Promise<courseDocument>{
   const mid = new mongoose.Types.ObjectId(moduleId);
   return this.coursesService.findCourseByModuleId(mid)
 }
 
-  // DELETE /courses/:course_code: Delete a product by its ID
-  // @Delete(':course_code')
-  // async delete(@Param('course_code') course_code: string): Promise<Courses> {
-  //   return this.coursesService.delete(course_code);
-  // }
-//GET/courses/:course_code: retrieve all modules of a speicifc course
-  // @Get(':course_code/modules')
-  // async getModulesForCourse(@Param('course_code') course_code: string): Promise<moduleDocument[]> {
-  //   return this.coursesService.getModulesForCourse(course_code);
-  // }
-
-
   // Get modules for a student in a specific course
   @Get(':course_code/modules/:username')
-  async getModulesForCourseStudent(
-    @Param('course_code') course_code: string,
-    @Param('username') username: string
-  ): Promise<moduleDocument[]> {
+  async getModulesForCourseStudent(@Param('course_code') course_code: string,@Param('username') username: string): Promise<moduleDocument[]> {
     try {
       // Call the service method to get the filtered modules for the student
       return await this.coursesService.getModulesForCourseStudent(course_code, username);
@@ -96,9 +71,9 @@ async findCourseByModuleId(@Param('moduleId') moduleId: string):Promise<courseDo
     }
   }
 
+  // Get modules for a instructor in a specific course
   @Get(':course_code/modules')
-  async getModulesForInstructor(
-    @Param('course_code') course_code: string,): Promise<moduleDocument[]> {
+  async getModulesForInstructor(@Param('course_code') course_code: string,): Promise<moduleDocument[]> {
     // Call the service method to get the modules for the course
     const modules = await this.coursesService.getModulesForCourseInstructor(course_code);
     
@@ -108,7 +83,6 @@ async findCourseByModuleId(@Param('moduleId') moduleId: string):Promise<courseDo
 
     return modules;
   }
-
 
 
   @Put(':courseCode/modules')
@@ -145,21 +119,20 @@ async getAverageScore(@Param('course_code') course_code: string): Promise<{ aver
 
 // //Get AverageRating  of Instructor
    @Get(':courseId')
-   async getTotalRating(@Param('ObjectId') ObjectId: string): Promise<number> {
+   async getAverageRating(@Param('ObjectId') ObjectId: string): Promise<number> {
     const objectId = new mongoose.Types.ObjectId(ObjectId);
-    return await this.coursesService.getTotalRating(objectId);
+    return await this.coursesService.getAverageRating(objectId);
    }
 
 //SET TOTALRATING TOTALSTUDENTS AVERAGE RATING
-
-@Get()
+@Put(':courseId/:score')
 async setRating(@Param('ObjectId') ObjectId: string, @Param('score')score:number): Promise<void> {
   const objectId = new mongoose.Types.ObjectId(ObjectId);
   await this.coursesService.setRating(objectId,score);
 }
 
 //GET COURSE FOR SPECIFIC MODULE TITLE
-@Get()
+@Get(':title')
 async getCourseForModule (@Param('moduleTitle')moduleTitle:string): Promise<Courses>{
 return await this.coursesService.getCourseForModule(moduleTitle);
 
@@ -168,7 +141,7 @@ return await this.coursesService.getCourseForModule(moduleTitle);
 
 //@UseGuards(JwtAuthGuard) // Ensures the user is authenticated
 @Get(':username/courses')
-async getStudentCourses(@Param('username') username: string) {
+async getNonOutdatedCoursesForStudent(@Param('username') username: string) {
   return await this.coursesService.getNonOutdatedCoursesForStudent(username);
 }
 

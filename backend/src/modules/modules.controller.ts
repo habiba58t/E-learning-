@@ -45,7 +45,7 @@ async findByTitle(@Param('title') title: string): Promise<moduleDocument> {
 } 
 
  // POST /module: Create a new module
- @Post()
+ @Post('/create')
  async create(@Body() createModuleDto: CreateModuleDto): Promise<moduleDocument> {
   return await this.modulesService.create(createModuleDto);
  }
@@ -61,23 +61,14 @@ async delete(@Param('title') title: string): Promise<moduleDocument> {
   return this.modulesService.delete(title);
 }
 
-//GET retrieve all quizzes of a module
-//@Get(':title/quizzes')
-//async getQuizForModule(@Param('title') title: string): Promise<Quiz[]> {
-  //return this.modulesService.getQuizForModule(title);
-//}
 
 
-//GET retrieve all quizzes of a module
-// @Get(':title/questions')
-// async getQuizForModule(@Param('title') title: string): Promise<Question[]> {
-//   return this.modulesService.getQuestionsForModule(title);
-//  }
-//GET retrieve all quizzes of a module
-// @Get(':title/questions')
-// async getQuestionsForModule(@Param('title') title: string): Promise<Question[]> {
-//   return this.modulesService.getQuestionsForModule(title);
-//  }
+@Get(':quizId')
+//implemented by farah for use in quiz
+async findModuleByQuizId(@Param('quizId') quizId: string): Promise<moduleDocument>{
+  const qid = new mongoose.Types.ObjectId(quizId);
+  return this.modulesService.findModuleByQuizId(qid)
+}
 
 //GET: find array of questions by moduleId
 @Get('id/:ObjectId')             
@@ -128,24 +119,7 @@ async addQuestionToModule(
     module: updatedModule,
   };
 }
-
-
-
-@Get(':quizId')
-//implemented by farah for use in quiz
-async findModuleByQuizId(@Param('quizId') quizId: string): Promise<moduleDocument>{
-  const qid = new mongoose.Types.ObjectId(quizId);
-  return this.modulesService.findModuleByQuizId(qid)
-}
   
-
-
- //GET retrieve all notes of a module
-// @Get(':title/notes')
-// async getNotesForModule(@Param('title') title: string): Promise<Note[]> {
-//   return this.modulesService.getNotesForModule(title);
-//  }
-
 //GET: find outdated attributed of specific module
 @Get(':title')
   async findOutdated(@Param('title') title: string): Promise<boolean> {
@@ -157,14 +131,6 @@ async findModuleByQuizId(@Param('quizId') quizId: string): Promise<moduleDocumen
   async toggleOutdated(@Param('title') title: string): Promise<moduleDocument> {
     return this.modulesService.toggleOutdated(title);
   } 
-
-
-
-
-
-
-
-
 
 // Upload files to resourses array
 
@@ -181,7 +147,7 @@ async findModuleByQuizId(@Param('quizId') quizId: string): Promise<moduleDocumen
       }),
     }),
   )
-  async uploadFile(
+  async addFileToModule(
     @Param('moduleId') moduleId: string, @Param('contentTitle') contentTitle: string,
     @UploadedFile() file: Express.Multer.File,
   ) {
@@ -225,43 +191,49 @@ async findModuleByQuizId(@Param('quizId') quizId: string): Promise<moduleDocumen
     }
   }
 
-  // //Get AverageRating  of Instructor
+  // //Get AverageRating  of module
   @Get(':moduleId')
-  async getTotalRating(@Param('ObjectId') ObjectId: string): Promise<number> {
+  async getAverageRating(@Param('ObjectId') ObjectId: string): Promise<number> {
     const objectId = new mongoose.Types.ObjectId(ObjectId);
-   return await this.modulesService.getTotalRating(objectId);
+   return await this.modulesService.getAverageRating(objectId);
   }
 
 //SET TOTALRATING TOTALSTUDENTS AVERAGE RATING
 
-@Get()
+@Put(':objectid/score')
 async setRating(@Param('ObjectId') ObjectId: string, @Param('score')score:number): Promise<void> {
   const objectId = new mongoose.Types.ObjectId(ObjectId);
   await this.modulesService.setRating(objectId,score);
 }
 
-//GET NOTES FOR SPECIFIC USER AND SPECIFIC NOTES
-@Get()
+//GET NOTES FOR SPECIFIC USER 
+@Get(':username/title')
   async getNotesForUserAndNote(@Param('username') username: string,@Param('title')title:string): Promise<notesDocument[]>{
    return await this.modulesService.getNotesForUserAndNote(username,title);
   }
 
+  //GET A SPECIFIC NOTE FOR A SPEICIFC MODULE
+  @Get(':objectid')
+  async getNoteForUser(@Param('notetId') notetId: mongoose.Types.ObjectId): Promise<notesDocument>{
+   return await this.modulesService.getNoteForUser(notetId);
+  }
+
   //Delete NOTE FOR A SPECIFIC NOTE
-  @Delete()
-  async deleteNote(@Param('title')title:string, @Param('username')username:string,@Param('lastUpdated')lastUpdated:Date): Promise<void>{
-      await this.modulesService.deleteNote(title,username,lastUpdated);
+  @Delete(':title/username/notid')
+  async deleteNote(@Param('title')title:string, @Param('username')username:string,@Param('notetId') notetId: mongoose.Types.ObjectId): Promise<void>{
+      await this.modulesService.deleteNote(title,username,notetId);
     }
 
  //CREATE NOTE FOR A SPECIFIC NOTE
-@Post()
-async createNote(@Param('title')title:string, @Param('username')username:string,@Param('content')content:string): Promise<notesDocument>{
+@Post(':username')
+async createNote(@Param('username')username:string,@Body('title')title:string,@Body('content')content:string): Promise<notesDocument>{
    return await this.modulesService.createNote(title,username,content);
   }
 
   //UPDATE NOTE FOR A SPECIFIC NOTE
-@Put()
-async UpdateNote(@Param('title')title:string, @Param('username')username:string,@Param('lastUpdated')lastUpdated:Date,@Param('contentNew')contentNew:string): Promise<notesDocument>{
-   return await this.modulesService.UpdateNote(title,username,lastUpdated,contentNew);
+@Put(':noteid')
+async UpdateNote(@Param('notetId') notetId: mongoose.Types.ObjectId,@Body('contentNew')contentNew:string): Promise<notesDocument>{
+   return await this.modulesService.UpdateNote(notetId,contentNew);
   }
 
 }

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, forwardRef,UseGuards } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Users } from './users.schema';
 import { Model } from 'mongoose';
@@ -10,8 +10,12 @@ import { courseDocument } from 'src/courses/courses.schema';
 import { ProgressService } from 'src/progress/progress.service';
 import { SearchUserDto } from './dto/SearchUser.dto';
 import { CreateUserDto } from './dto/CreateUser.dto';
-import { Role } from 'src/auth/decorators/role.decorator';
 import { UpdateUserDto } from './dto/UpdateUser.dto';
+import { Role, Roles } from 'src/auth/decorators/role.decorator';
+import { AuthGuard } from 'src/auth/guards/authentication.guard';
+import { Public } from 'src/auth/decorators/public.decorator';
+import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
+
 
 @Injectable()
 export class UsersService {
@@ -30,6 +34,8 @@ async findUserByUsername( username: string): Promise<userDocument> {
 }
 
 // //GET ENROLLED STUDENTS in a specific course 
+@UseGuards(AuthorizationGuard)
+@Roles(Role.User, Role.Admin, Role.Instructor)
 async getEnrolledStudents(objectId:mongoose.Types.ObjectId): Promise<string[]>{
 const course= await this.coursesService.getcoursebyid(objectId);
 return await this.progressService.findAllStudentsEnrolled(course.course_code);
@@ -37,7 +43,8 @@ return await this.progressService.findAllStudentsEnrolled(course.course_code);
 
 
 // CREATE NEW User FOR REGISTER
-async create(createUserDto: CreateUserDto, password_hash: string): Promise<userDocument> {
+
+ async create(createUserDto: CreateUserDto, password_hash: string): Promise<userDocument> {
   const newUser = new this.userModel({
     ...createUserDto, // Spread properties from CreateUserDto
     password_hash, // Add the hashed password
@@ -53,6 +60,7 @@ async create(createUserDto: CreateUserDto, password_hash: string): Promise<userD
 }
 
 //GET: search for intstructor
+@Public()
 async searchUsers(loggedInUserId: string | null, searchUserDto: SearchUserDto): Promise<userDocument[]> {
   const query: any = {};
 
@@ -100,6 +108,8 @@ async findUsers(username?: string, role?: Role): Promise<Users[]> {
 }
 
 //UPDATE STUDENT PROFILE
+@UseGuards(AuthorizationGuard)
+@Roles(Role.User, Role.Admin, Role.Instructor)
 async updateProfile(username: string, updateUserDto: UpdateUserDto): Promise<userDocument> {
   // Find the student by username
   const user = await this.userModel.findOne({ username }).exec();

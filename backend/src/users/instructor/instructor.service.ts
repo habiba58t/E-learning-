@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Inject, forwardRef ,InternalServerErrorException,BadRequestException} from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, forwardRef ,InternalServerErrorException,BadRequestException, UseGuards} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import * as mongoose from 'mongoose';
 import { Model } from 'mongoose';
@@ -11,8 +11,13 @@ import { UsersService } from '../users.service';
 import { Module } from 'src/modules/modules.schema';
 import {moduleDocument } from 'src/modules/modules.schema';
 import { ProgressService } from 'src/progress/progress.service';
+import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
+import { Role, Roles } from 'src/auth/decorators/role.decorator';
+import { AuthGuard } from 'src/auth/guards/authentication.guard';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @Injectable()
+@UseGuards(AuthGuard)
 export class InstructorService {
     constructor(
         @InjectModel(Users.name) private readonly userModel: Model<Users>, //msh motakeda
@@ -22,34 +27,17 @@ export class InstructorService {
         @Inject(forwardRef(() => UsersService)) private readonly usersService: UsersService,
         @Inject(forwardRef(() => ProgressService)) private readonly progressService: ProgressService,
     ){}
+ 
 
-
-
-
-     //GET: all courses student enrolled in and not outdated           DONE EXCEPT USERNAME NEED TO GET FROM TOKEN
-  //     async getCoursesForStudent(): Promise<Courses[]> {
-        // Step 1: Get the courses array for the user
-     //     const coursesArray = await this.usersService.findCoursesArray(this.userModel.username);
-      
-        // Step 2: Fetch all courses by their ObjectIds
-     //     const courses = await this.courseModel.find({
-   //         _id: { $in: coursesArray }, // Match ObjectIds from coursesArray
-     //     }).exec();
-      
-      
-   //     return courses;
-    //  }
-
-//mehtaga agyb modules of a course
-    async getModulesForStudent(): Promise<moduleDocument[]> {
-        return 
-    }
     //GET AVERAGE RATING
-async getTotalRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
+  @Public()
+async getAvgRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
     const instructor = await this.userModel.findById(ObjectId);
-    return instructor.totalRating;
+    return instructor.averageRating;
    }
    
+@UseGuards(AuthorizationGuard)
+@Roles(Role.User)
    //SET RATING,TOTAL,AVERAGE
    async setRating(ObjectId: mongoose.Types.ObjectId,score:number): Promise<void> {
      const instructor = await this.userModel.findById(ObjectId);
@@ -58,6 +46,8 @@ async getTotalRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
      instructor.averageRating = instructor.totalRating/instructor.totalStudents;
    }
 
+   @UseGuards(AuthorizationGuard)
+   @Roles(Role.Instructor, Role.Admin)
    async deleteInstructor(username: string): Promise<{ message: string }> {
     // Fetch the instructor by username
     const instructor = await this.userModel.findOne({ username, role: 'instructor' }).exec();
