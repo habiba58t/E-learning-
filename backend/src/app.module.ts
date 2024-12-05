@@ -11,7 +11,7 @@ import { QuizzesModule } from './quizzes/quizzes.module';
 import { QuestionsModule } from './questions/questions.module';
 import { NotesModule } from './notes/notes.module';
 import { ChatModule } from './chat/chat/chat.module';
-  // Import ChatModule here
+import { NotificationModule } from './notification/notification/notification.module'; 
 
 @Module({
   imports: [
@@ -23,8 +23,9 @@ import { ChatModule } from './chat/chat/chat.module';
     QuizzesModule,
     QuestionsModule,
     NotesModule,
-    ChatModule,  // Add ChatModule here
-    MongooseModule.forRoot('mongodb://localhost:27017/E-Learning')  // MongoDB connection
+    ChatModule,  
+    NotificationModule,  
+    MongooseModule.forRoot('mongodb://localhost:27017/E-Learning'),  // MongoDB connection
   ],
   controllers: [AppController],
   providers: [AppService],
