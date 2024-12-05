@@ -250,6 +250,10 @@ async DeleteModuleFromCourse(courseCode: string, title:string): Promise<courseDo
 }
 
 
+
+
+
+
 //GET: find course outdated attribute by course code
 async findOutdated(course_code: string): Promise<boolean> {
   const course = await this.courseModel.findOne({ course_code }, { isOutdated: 1, _id: 0 }) 

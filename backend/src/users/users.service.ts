@@ -10,10 +10,14 @@ import { courseDocument } from 'src/courses/courses.schema';
 import { ProgressService } from 'src/progress/progress.service';
 import { SearchUserDto } from './dto/SearchUser.dto';
 import { CreateUserDto } from './dto/CreateUser.dto';
+import { Role } from 'src/auth/decorators/role.decorator';
+import { StudentService } from './student/student.service';
+import { Module, moduleDocument } from 'src/modules/modules.schema';
+import { ModulesService } from 'src/modules/modules.service';
 @Injectable()
 export class UsersService {
     constructor(
-        // @InjectModel(Module.name) private moduleModel: Model<Module>,
+        @InjectModel(Module.name) private readonly moduleModel: Model<moduleDocument>, private readonly modulesServive: ModulesService,
          @InjectModel(Users.name) private readonly userModel: Model<userDocument>,
          @InjectModel(Courses.name) private readonly courseModel: Model<courseDocument>,
          @Inject(forwardRef(() => CoursesService)) private readonly coursesService: CoursesService,
@@ -99,5 +103,80 @@ async searchUsers(loggedInUserId: string | null, searchUserDto: SearchUserDto): 
 
   return this.userModel.find(query).exec();
 }
+//for admin (Hagar)
+async findUsers(username?: string, role?: Role): Promise<Users[]> {
+  const query: any = {};
+  if (username) {
+      query.username = { $regex: new RegExp(username, 'i') }; 
+  }
+  if (role) {
+      query.role = role;
+  }
+  return this.userModel.find(query).exec();
+}
+
+
+// methods for adminn (farida)
+async deleteStudent(username: string): Promise<void> {
+  // Find the student by username and populate the courses field
+  const student = await this.userModel.findOne({ username }).populate('courses').exec();
+
+  if (!student) {
+    throw new Error("Invalid Username");
+  }
+
+
+  // Get the populated courses array (assuming courses is populated with full course documents)
+  const courses = student.courses;
+
+  for (const course of courses) {
+    // Populate and delete each module in the course
+    const populatedCourse = await this.courseModel.findOne({ _id: course._id }).populate('modules').exec();
+
+    if (populatedCourse && populatedCourse.modules) {
+      for (const module of populatedCourse.modules) {
+        await this.moduleModel.findOneAndDelete({ _id: module._id });
+      }
+    }
+
+    // Delete the course after deleting all modules
+    await this.courseModel.findOneAndDelete({ _id: course._id });
+  }
+
+  // Finally, delete the student
+  await this.userModel.findOneAndDelete({ username });
+}
+
+/*async deleteInstucterORAdmin(username: string):Promise<void>{
+  const instructer= await this.userModel.findOne({username});
+  if (! instructer){
+    throw new Error("username not found");
+  }
+  await this.userModel.findOneAndDelete({username});
+}*/
+//for adminn
+/*async deleteStudent(username: string): Promise<void> {
+  // Find the student by username
+  const student = await this.findUserByUsername(username);
+  if (!student) {
+      throw new Error("Invalid Username");
+  }
+
+  const courses = student.courses; // Assuming courses is an array of ObjectIds
+  for(const course of courses){
+    const modules= await this.moduleModel.find({_id:{ $in:course.modules}}).exec();
+    for(const module in modules){
+      await this.moduleModel.findOneAndDelete({module});
+    }
+    }
+  // Finally, delete the student
+  await this.userModel.findOneAndDelete({ username });
+}
+*/
+
+
+
+
+
 }
 
