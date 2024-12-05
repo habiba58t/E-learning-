@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 
 export type ChatMessageDocument = ChatMessage & Document;
 
@@ -8,14 +8,14 @@ export class ChatMessage {
   @Prop({ required: true })
   message: string; // The message content
 
-  @Prop({ required: true })
-  userName: string; // The sender's username
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
+  userName: MongooseSchema.Types.ObjectId; // Reference to the User model for the sender
 
-  @Prop()
-  recipientUsername?: string; // Optional: recipient username for one-to-one chat
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User' })
+  recipientUsername?: MongooseSchema.Types.ObjectId; // Optional: reference to the User model for one-to-one chat recipient
 
-  @Prop()
-  groupName?: string; // Optional: group name for group chat
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Group' })
+  groupName?: MongooseSchema.Types.ObjectId; // Optional: reference to the Group model for group chat
 
   @Prop({ required: true, enum: ['one-to-one', 'group'] })
   chatType: 'one-to-one' | 'group'; // Indicates the type of chat
