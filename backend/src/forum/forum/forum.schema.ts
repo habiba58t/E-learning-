@@ -1,30 +1,38 @@
-// src/communication/forum/forum.schema.ts
-import { Schema, Document } from 'mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
 
-export interface ForumThread extends Document {
-  courseId: string;
-  courseName: string;
-  title: string;
-  creatorId: string;
-  replies: {
-    userId: string;
-    message: string;
-    timestamp: Date;
-  }[];
+export type ForumThreadDocument = ForumThread & Document;
+
+class Reply {
+  @Prop({ required: true })
+  userId: string;
+
+  @Prop({ required: true })
+  message: string;
+
+  @Prop({ default: Date.now })
   timestamp: Date;
 }
 
-export const ForumSchema = new Schema({
-  courseId: { type: String, required: true },
-  courseName: { type: String, required: true },
-  title: { type: String, required: true },
-  creatorId: { type: String, required: true },
-  replies: [
-    {
-      userId: { type: String, required: true },
-      message: { type: String, required: true },
-      timestamp: { type: Date, default: Date.now },
-    },
-  ],
-  timestamp: { type: Date, default: Date.now },
-});
+@Schema()
+export class ForumThread {
+  @Prop({ required: true })
+  courseId: string;
+
+  @Prop({ required: true })
+  courseName: string;
+
+  @Prop({ required: true })
+  title: string;
+
+  @Prop({ required: true })
+  creatorId: string;
+
+  @Prop({ type: [Reply], default: [] }) // Array of replies
+  replies: Reply[];
+
+  @Prop({ default: Date.now }) // Timestamp for thread creation
+  timestamp: Date;
+}
+
+export const ForumSchema = SchemaFactory.createForClass(ForumThread);

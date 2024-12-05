@@ -1,16 +1,21 @@
-// src/communication/chat/group.schema.ts
-import { Schema, Document } from 'mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
 
-export interface Group extends Document {
-  name: string;
-  adminUsername: string;
-  memberUsernames: string[];
-  isOpen: boolean; // Added property to indicate if the group is open
+export type GroupDocument = Group & Document;
+
+@Schema()
+export class Group {
+  @Prop({ required: true })
+  name: string; // Group name
+
+  @Prop({ required: true })
+  adminUsername: string; // Username of the group admin
+
+  @Prop({ type: [String], default: [] })
+  memberUsernames: string[]; // Array of usernames for group members
+
+  @Prop({ default: true })
+  isOpen: boolean; // Whether the group is open for anyone to join
 }
 
-export const GroupSchema = new Schema({
-  name: { type: String, required: true },
-  adminUsername: { type: String, required: true },
-  memberUsernames: { type: [String], default: [] },
-  isOpen: { type: Boolean, default: true }, // Open groups by default
-});
+export const GroupSchema = SchemaFactory.createForClass(Group);

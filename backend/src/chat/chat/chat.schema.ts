@@ -1,20 +1,27 @@
-// src/communication/chat/chat.schema.ts
-import { Schema, Document } from 'mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
 
-export interface ChatMessage extends Document {
-  message: string;
-  userName: string;
-  recipientUsername?: string;
-  groupId?: string;
-  chatType: 'one-to-one' | 'group';
-  timestamp: Date;
+export type ChatMessageDocument = ChatMessage & Document;
+
+@Schema()
+export class ChatMessage {
+  @Prop({ required: true })
+  message: string; // The message content
+
+  @Prop({ required: true })
+  userName: string; // The sender's username
+
+  @Prop()
+  recipientUsername?: string; // Optional: recipient username for one-to-one chat
+
+  @Prop()
+  groupName?: string; // Optional: group name for group chat
+
+  @Prop({ required: true, enum: ['one-to-one', 'group'] })
+  chatType: 'one-to-one' | 'group'; // Indicates the type of chat
+
+  @Prop({ default: Date.now })
+  timestamp: Date; // Timestamp of when the message was sent
 }
 
-export const ChatSchema = new Schema({
-  message: { type: String, required: true },
-  userName: { type: String, required: true },
-  recipientUsername: { type: String },
-  groupId: { type: String },
-  chatType: { type: String, required: true },
-  timestamp: { type: Date, default: Date.now },
-});
+export const ChatMessageSchema = SchemaFactory.createForClass(ChatMessage);

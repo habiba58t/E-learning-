@@ -1,15 +1,21 @@
-import { Schema, Document } from 'mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
 
-export interface Notification extends Document {
-  message: string;
-  userName: string;
-  createdAt: Date;
-  isRead: boolean;
+export type NotificationDocument = Notification & Document;
+
+@Schema()
+export class Notification {
+  @Prop({ required: true })
+  message: string; // The notification message
+
+  @Prop({ required: true })
+  userName: string; // Username of the recipient
+
+  @Prop({ default: Date.now })
+  createdAt: Date; // When the notification was created
+
+  @Prop({ default: false })
+  isRead: boolean; // Whether the notification has been read
 }
 
-export const NotificationSchema = new Schema({
-  message: { type: String, required: true },
-  userName: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now },
-  isRead: { type: Boolean, default: false },
-});
+export const NotificationSchema = SchemaFactory.createForClass(Notification);
