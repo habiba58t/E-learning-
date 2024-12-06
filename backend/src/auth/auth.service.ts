@@ -15,7 +15,6 @@ import { Role } from './decorators/role.decorator';
 export class AuthService {
   constructor(
     @InjectModel(Users.name) private readonly userModel: Model<userDocument>,
-
     private usersService: UsersService,
     private jwtService: JwtService,
     private logsService: LogsService

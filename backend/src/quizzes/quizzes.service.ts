@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UseGuards } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException, UseGuards } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { Quiz, QuizzesDocument } from './quizzes.schema';  // Assuming your Quiz schema is defined
@@ -51,20 +51,18 @@ export class QuizzesService {
   constructor(
     @InjectModel(Quiz.name) private readonly quizModel: Model<QuizzesDocument>,
     @InjectModel(Question.name) private questionModel: Model<QuestionsDocument>,
-    @InjectModel(Users.name) private studentModel: Model<userDocument>, // Inject Student model
     @InjectModel(Responses.name) private responseModel: Model<ResponsesDocument>, // Inject Student model
     @InjectModel(Courses.name) private courseModel: Model<courseDocument>, // Inject Student model
     @InjectModel(Module.name) private moduleModel: Model<moduleDocument>, // Inject Student model
     @InjectModel(Users.name) private userModel: Model<userDocument>, // Inject Student model
   
 
-    private readonly moduleService: ModulesService,
-    private readonly questionService: QuestionsService,
-    private readonly studentService: StudentService,  // Injecting the user service
-    private readonly responseService: ResponsesService,
-    private readonly courseService: CoursesService,
-
-    ) { }
+    @Inject(forwardRef(() => ModulesService)) private readonly moduleService: ModulesService,
+    @Inject(forwardRef(() => QuestionsService)) private readonly questionService: QuestionsService,
+    @Inject(forwardRef(() => StudentService)) private readonly studentService: StudentService,  // Using forwardRef
+    @Inject(forwardRef(() => ResponsesService)) private readonly responseService: ResponsesService,
+    @Inject(forwardRef(() => CoursesService)) private readonly courseService: CoursesService
+  ) {}
 
 // Instructor generates the "imaginary" quiz
 //the quiz should be added to the module arrya of quizzes
