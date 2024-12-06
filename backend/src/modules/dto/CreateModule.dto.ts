@@ -4,11 +4,11 @@ export class CreateModuleDto {
     readonly title: string;
     readonly content:mongoose.Schema.Types.ObjectId[];
     readonly level: string;
-    readonly status: number;
+    //readonly status: number;
     readonly  Question: mongoose.Schema.Types.ObjectId[];
     readonly  Quiz: mongoose.Schema.Types.ObjectId[]=[];
     readonly  Note: mongoose.Schema.Types.ObjectId[]=[];
-    readonly  totalRating:number=0;
-    readonly  totalStudents:number=0;
-    readonly  isOutdated: boolean=false;
+    // readonly  totalRating:number=0;
+    // readonly  totalStudents:number=0;
+    // readonly  isOutdated: boolean=false;
   }

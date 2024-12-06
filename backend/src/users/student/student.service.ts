@@ -41,8 +41,8 @@ export class StudentService {
     ){}
 
 
-@UseGuards(AuthorizationGuard)
-@Roles(Role.User)
+// @UseGuards(AuthorizationGuard)
+// @Roles(Role.User)
     // Method to enroll a student in a course
 async enrollStudentInCourse(username: string, courseId: string): Promise<userDocument> {
         // Find the student by username

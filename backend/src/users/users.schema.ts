@@ -3,6 +3,7 @@ import mongoose, { Document, Types } from 'mongoose';
 import { Courses } from '../courses/courses.schema'; // Adjust path as necessary
 import { HydratedDocument } from 'mongoose';
 import { Notes } from 'src/notes/notes.schema';
+import { Role } from 'src/auth/decorators/role.decorator';
 
 export type userDocument = HydratedDocument<Users>
 @Schema()
@@ -20,8 +21,9 @@ export class Users {
   @Prop({ required: true })
   passwordHash: string; // Changed to camelCase
 
-  @Prop({ required: true, enum: ['student', 'instructor', 'admin'] })
-  role: string;
+   @Prop({ required: true, enum: ['student', 'instructor', 'admin'] })
+   role: string;
+  
 
   @Prop()
   pictureUrl?: string; // Changed to camelCase and made optional

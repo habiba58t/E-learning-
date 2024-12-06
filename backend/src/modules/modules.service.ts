@@ -55,8 +55,8 @@ export class ModulesService {
   //find all modules is for admin only? since student only sees for enrolled
   //courses and intructor sees for the courses they teach
   
-@UseGuards(AuthorizationGuard)
-@Roles(Role.Admin, Role.Instructor)
+// @UseGuards(AuthorizationGuard)
+// @Roles(Role.Admin, Role.Instructor)
     async findAll(): Promise<moduleDocument[]> {
         return this.moduleModel.find().exec();
       }
@@ -81,16 +81,16 @@ export class ModulesService {
 
 
 // Create a new Module
-@UseGuards(AuthorizationGuard)
-@Roles(Role.Admin, Role.Instructor)
+// @UseGuards(AuthorizationGuard)
+// @Roles(Role.Admin, Role.Instructor)
 async create(createModuleDto: CreateModuleDto): Promise<moduleDocument> {
   const newModule = new this.moduleModel(createModuleDto);
   newModule.created_at= new Date(); 
   return await newModule.save();
 }
 // Update an existing module by title
-@UseGuards(AuthorizationGuard)
-@Roles(Role.Admin,Role.Instructor)
+// @UseGuards(AuthorizationGuard)
+// @Roles(Role.Admin,Role.Instructor)
 async update(title: string, updateModuleDto: UpdateModuleDto): Promise<moduleDocument> {
   const updatedModule = await this.moduleModel.findOneAndUpdate({title, updateModuleDto}, { new: true });
   if (!updatedModule) {
@@ -100,10 +100,8 @@ async update(title: string, updateModuleDto: UpdateModuleDto): Promise<moduleDoc
 }
 
 // Delete a module by title
-@UseGuards(AuthorizationGuard)
-@Roles(Role.Admin,Role.Instructor)
-@UseGuards(AuthorizationGuard)
-@Roles(Role.Admin, Role.Instructor)
+// @UseGuards(AuthorizationGuard)
+// @Roles(Role.Admin, Role.Instructor)
 async delete(title: string): Promise<moduleDocument> {
   const deletedModule = await this.moduleModel.findOneAndDelete({title}).exec();
   if (!deletedModule) {
@@ -113,8 +111,8 @@ async delete(title: string): Promise<moduleDocument> {
 }
 
 //implemented by farah for use in quiz
-@UseGuards(AuthorizationGuard)
-@Roles(Role.Admin,Role.Instructor)
+// @UseGuards(AuthorizationGuard)
+// @Roles(Role.Admin,Role.Instructor)
 async findModuleByQuizId(quizId: mongoose.Types.ObjectId): Promise<moduleDocument>{
   const module = await this.moduleModel.findOne({quizzes: {$in: [quizId]}})
   return module;
@@ -122,8 +120,8 @@ async findModuleByQuizId(quizId: mongoose.Types.ObjectId): Promise<moduleDocumen
 
 
 // Add question to modules array
-@UseGuards(AuthorizationGuard)
-@Roles(Role.Admin,Role.Instructor)
+// @UseGuards(AuthorizationGuard)
+// @Roles(Role.Admin,Role.Instructor)
 async addQuestionToModule(moduleId: mongoose.Types.ObjectId, questionId: mongoose.Types.ObjectId): Promise<moduleDocument> {
   // Find the module by ID
   const module = await this.moduleModel.findById(moduleId).exec();
@@ -146,8 +144,8 @@ async addQuestionToModule(moduleId: mongoose.Types.ObjectId, questionId: mongoos
 }
 
 //get all quizzes of module by module objectid
-@UseGuards(AuthorizationGuard)
-@Roles(Role.Admin,Role.Instructor)
+// @UseGuards(AuthorizationGuard)
+// @Roles(Role.Admin,Role.Instructor)
 async getQuizzesForModule(ObjectId: mongoose.Types.ObjectId): Promise<QuizzesDocument[]> {
   const module = await this.findById(ObjectId);
 
@@ -164,8 +162,8 @@ async getQuizzesForModule(ObjectId: mongoose.Types.ObjectId): Promise<QuizzesDoc
 }
 
 //get all questions of module by module objectid
-@UseGuards(AuthorizationGuard)
-@Roles(Role.Admin,Role.Instructor)
+//@UseGuards(AuthorizationGuard)
+// @Roles(Role.Admin,Role.Instructor)
 async getQuestionsForModule(ObjectId: mongoose.Types.ObjectId): Promise<QuestionsDocument[]> {
   const module = await this.findById(ObjectId);
 
@@ -183,8 +181,8 @@ async getQuestionsForModule(ObjectId: mongoose.Types.ObjectId): Promise<Question
 
 
 // Add quiz to modules array
-@UseGuards(AuthorizationGuard)
-@Roles(Role.Admin,Role.Instructor)
+// @UseGuards(AuthorizationGuard)
+// @Roles(Role.Admin,Role.Instructor)
 async addQuizToModule(moduleId: mongoose.Types.ObjectId, quizId: mongoose.Types.ObjectId): Promise<moduleDocument> {
   // Find the module by ID
   const module = await this.moduleModel.findById(moduleId).exec();
@@ -207,8 +205,8 @@ async addQuizToModule(moduleId: mongoose.Types.ObjectId, quizId: mongoose.Types.
 }
 
 //GET: find course outdated attribute by course code
-@UseGuards(AuthorizationGuard)
-@Roles(Role.Admin,Role.Instructor)
+// @UseGuards(AuthorizationGuard)
+// @Roles(Role.Admin,Role.Instructor)
 async findOutdated(title: string): Promise<boolean> {
   const module = await this.moduleModel.findOne({ title }, { isOutdated: 1, _id: 0 }) 
   if (!module) {
@@ -219,8 +217,8 @@ async findOutdated(title: string): Promise<boolean> {
 }
 
 //PUT: change outdated of module
-@UseGuards(AuthorizationGuard)
-@Roles(Role.Admin,Role.Instructor)
+// @UseGuards(AuthorizationGuard)
+// @Roles(Role.Admin,Role.Instructor)
 async toggleOutdated(title: string): Promise<moduleDocument> {
   const module = await this.moduleModel.findOne({ title }).exec();
   if (!module) {
@@ -231,8 +229,8 @@ async toggleOutdated(title: string): Promise<moduleDocument> {
 }
 
 // Method to add file metadata to a Module's resources
-@UseGuards(AuthorizationGuard)
-@Roles(Role.Admin,Role.Instructor)
+// @UseGuards(AuthorizationGuard)
+// @Roles(Role.Admin,Role.Instructor)
 async addFileToModule(moduleId: string, fileUrl: string, originalName: string, fileType: string,contentTitle:string): Promise<moduleDocument> {
   const module = await this.moduleModel.findById(moduleId).exec();
   if (!module) {
@@ -263,8 +261,8 @@ const contents = await this.contentService.createContent(contentDto);
 }
 
 // delete module and all related quizzes and questions 
-@UseGuards(AuthorizationGuard)
-@Roles(Role.Admin,Role.Instructor)
+// @UseGuards(AuthorizationGuard)
+// @Roles(Role.Admin,Role.Instructor)
 async deleteModule(moduleId: mongoose.Types.ObjectId): Promise<any> {
   // Step 1: Find the module to delete
   const module = await this.moduleModel.findById(moduleId).exec();
@@ -310,16 +308,16 @@ async deleteModule(moduleId: mongoose.Types.ObjectId): Promise<any> {
 }
 
 //GET AVERAGE RATING
-@UseGuards(AuthorizationGuard)
-@Roles(Role.Admin,Role.Instructor,Role.User)
+// @UseGuards(AuthorizationGuard)
+// @Roles(Role.Admin,Role.Instructor,Role.User)
 async getAverageRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
   const course = await this.moduleModel.findById(ObjectId);
   return course.averageRating;
  }
  
  //SET RATING,TOTAL,AVERAGE
- @UseGuards(AuthorizationGuard)
- @Roles(Role.User)
+//  @UseGuards(AuthorizationGuard)
+//  @Roles(Role.User)
  async setRating(ObjectId: mongoose.Types.ObjectId,score:number): Promise<void> {
    const module = await this.moduleModel.findById(ObjectId);
    module.totalRating = module.totalRating + score;
@@ -328,8 +326,8 @@ async getAverageRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
  }
 
  //GET NOTES FOR A SPECIFIC USER
- @UseGuards(AuthorizationGuard)
- @Roles(Role.User)
+//  @UseGuards(AuthorizationGuard)
+//  @Roles(Role.User)
  async getNotesForUserAndNote(username: string, title: string): Promise<notesDocument[]> {
   const module = await this.findByTitle(title) as moduleDocument;
   if (!module || !module._id) {
@@ -351,15 +349,15 @@ async getAverageRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
 }
 
 //GET A SPECIFIC NOTE FOR A SPEICIFC MODULE
-@UseGuards(AuthorizationGuard)
-@Roles(Role.User)
+// @UseGuards(AuthorizationGuard)
+// @Roles(Role.User)
 async getNoteForUser(notetId: mongoose.Types.ObjectId): Promise<notesDocument>{
  return await this.notesService.findByIdNote(notetId);
 }
 
 //Delete NOTE FOR A SPECIFIC NOTE
-@UseGuards(AuthorizationGuard)
-@Roles(Role.User)
+// @UseGuards(AuthorizationGuard)
+// @Roles(Role.User)
 async deleteNote(title:string,username:string,notetId: mongoose.Types.ObjectId): Promise<void>{
   const module = await this.findByTitle(title) as moduleDocument;
   if (!module || !module._id) {
@@ -383,8 +381,8 @@ async deleteNote(title:string,username:string,notetId: mongoose.Types.ObjectId):
 
 
  //CREATE NOTE FOR A SPECIFIC NOTE
- @UseGuards(AuthorizationGuard)
- @Roles(Role.User)
+//  @UseGuards(AuthorizationGuard)
+//  @Roles(Role.User)
  async createNote(title:string,username:string,content: string): Promise<notesDocument>{
   const course = await this.coursesService.getCourseForModule(title);
   const module= await this.findByTitle(title) as moduleDocument;
@@ -402,8 +400,8 @@ async deleteNote(title:string,username:string,notetId: mongoose.Types.ObjectId):
  }
 
  //UPDATE NOTE FOR A SPECIFIC NOTE
- @UseGuards(AuthorizationGuard)
- @Roles(Role.User)
+//  @UseGuards(AuthorizationGuard)
+//  @Roles(Role.User)
 async UpdateNote(notetId: mongoose.Types.ObjectId,contentNew:string): Promise<notesDocument>{
   const notesDto = {
     content:contentNew,

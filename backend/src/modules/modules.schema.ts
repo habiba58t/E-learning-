@@ -15,7 +15,7 @@ export class Module {
   @Prop({ required: true, enum: ['easy', 'medium', 'hard'] })
   level: string;
 
-  @Prop({ required: true })
+  @Prop()
   status: number ;
 
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Content' }] })
@@ -36,17 +36,17 @@ export class Module {
   @Prop({ required: true, default: Date.now })
   created_at: Date;
 
-  @Prop({ required: true })
+  @Prop()
   totalRating: number; //sum of ratings for module
   
-  @Prop({ required: true })
+  @Prop()
   totalStudents: number; //number of students who voted for module
 
   @Prop()
    averageRating: number; 
 
-  @Prop({required: true })
-  isOutdated: boolean;
+  @Prop()
+  isOutdated: boolean=false;
 }
 export const ModuleSchema = SchemaFactory.createForClass(Module);
 

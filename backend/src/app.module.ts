@@ -12,9 +12,10 @@ import { QuizzesModule } from './quizzes/quizzes.module';
 import { QuestionsModule } from './questions/questions.module';
 import {NotesModule} from './notes/notes.module'
 import { LogModule } from './log/log.module';
+import { StudentModule } from './users/student/student.module';
 
 @Module({
-  imports: [ProgressModule, UsersModule, CoursesModule, ModulesModule, ResponsesModule, QuizzesModule, QuestionsModule,NotesModule,LogModule,MongooseModule.forRoot('mongodb://localhost:27017/E-Learning')],
+  imports: [ProgressModule, UsersModule, CoursesModule, ModulesModule, ResponsesModule, QuizzesModule, QuestionsModule,StudentModule,NotesModule,LogModule,MongooseModule.forRoot('mongodb://localhost:27017/E-Learning')],
   controllers: [AppController],
   providers: [AppService],
 })
