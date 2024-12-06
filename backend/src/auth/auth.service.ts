@@ -16,9 +16,9 @@ export class AuthService {
       ) {}
 
       async register(user: RegisterDto): Promise<string> {
-        const existingUser = await this.usersService.findUserByUsername(user.email);
+        const existingUser = await this.usersService.findUserByUsername(user.username);
         if (existingUser) {
-          throw new ConflictException('Email already exists');
+          throw new ConflictException('username already exists');
         }
     
         // Hash password before saving
@@ -27,7 +27,7 @@ export class AuthService {
         // Create a new user object for saving
         const newUser: CreateUserDto = {
           ...user,
-          password: hashedPassword, // Correct field name
+          passwordHash: hashedPassword, // Correct field name
         };
     
         // Save the new user to the database

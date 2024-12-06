@@ -28,7 +28,7 @@ export class Courses  {
   @Prop()
   created_at: Date; 
 
-  @Prop()
+  @Prop({required: true})
   Unavailable: boolean;
 
 

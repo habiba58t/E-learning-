@@ -74,7 +74,7 @@ export class AuthController {
         }
     }
 
-    @Post('register')
+    @Post('/register')
     async register(@Body() registerRequestDto: RegisterDto) {
         try {
             // Call the AuthService to handle registration

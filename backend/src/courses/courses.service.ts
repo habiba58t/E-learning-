@@ -81,6 +81,7 @@ export class CoursesService {
   @Roles(Role.Admin, Role.Instructor)
   async create( username: string,createCourseDto: CreateCourseDto): Promise<courseDocument> {
     const newCourse = new this.courseModel(createCourseDto); // Step 1: Create the new course
+    newCourse.Unavailable=false;
     newCourse.created_at = new Date();
     const savedCourse = await newCourse.save();
 

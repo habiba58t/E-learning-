@@ -26,7 +26,7 @@ export class Users {
   @Prop()
   pictureUrl?: string; // Changed to camelCase and made optional
 
-  @Prop({ required: true, default: Date.now }) // Set default to the current date
+  @Prop({ default: Date.now }) // Set default to the current date
   createdAt: Date; // Changed to camelCase
 
   // Reference to Courses by ObjectId
@@ -36,16 +36,16 @@ export class Users {
   @Prop({ type: Map, of: [mongoose.Schema.Types.ObjectId] })
   notes: Map<mongoose.Types.ObjectId, mongoose.Types.ObjectId[]>;  ///STUDENT Attribute only
   
-  @Prop({ required: true })
+  @Prop()
   totalRating: number; //sum of ratings for intructor                  //INSTRUCTOR Attribute only
   
-  @Prop({ required: true })
+  @Prop()
   totalStudents: number; //number of students who voted for intructor       ///INSTRUCTOR Attribute only
 
   @Prop()                                                                 ///INSTRUCTOR Attribute only
    averageRating: number; 
 
-  @Prop({ type: Map, of: Number, required: true })
+  @Prop({ type: Map, of: Number })
   studentScore: Map<mongoose.Types.ObjectId, number>;
   
   @Prop({type: Map,of: String,enum: ['easy', 'medium', 'hard'],})

@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
+
 export type ProgressDocument = HydratedDocument<Progress>;
 @Schema()
 export class Progress {  

@@ -22,7 +22,7 @@ export class CoursesController {
 
   // GET /Course/:course code: Retrieve a specific course by its course_code
   @Get(':course_code')
-  async findOne(@Param('course_code') course_code: string): Promise<Courses> {
+  async findOne(@Param('course_code') course_code: string): Promise<courseDocument> {
     return this.coursesService.findOne(course_code);
   }
 
