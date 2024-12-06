@@ -15,6 +15,7 @@ import {Module, moduleDocument} from '../modules/modules.schema';
 import { Role, Roles } from 'src/auth/decorators/role.decorator';
 import { AuthGuard } from 'src/auth/guards/authentication.guard';
 import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
+import { CoursesService } from 'src/courses/courses.service';
 //findQuestionsByModuleId(moduleId) in modules?*
 //addQuestionToModule(moduleId, newQuestion._id) in modules?*
 //addQuizToModule(moduleId, quiz._id) in modules?*
@@ -54,11 +55,15 @@ export class QuizzesService {
     @InjectModel(Responses.name) private responseModel: Model<ResponsesDocument>, // Inject Student model
     @InjectModel(Courses.name) private courseModel: Model<courseDocument>, // Inject Student model
     @InjectModel(Module.name) private moduleModel: Model<moduleDocument>, // Inject Student model
+    @InjectModel(Users.name) private userModel: Model<userDocument>, // Inject Student model
+  
 
     private readonly moduleService: ModulesService,
     private readonly questionService: QuestionsService,
     private readonly studentService: StudentService,  // Injecting the user service
-    private readonly responseService: ResponsesService
+    private readonly responseService: ResponsesService,
+    private readonly courseService: CoursesService,
+
     ) { }
 
 // Instructor generates the "imaginary" quiz
@@ -78,7 +83,7 @@ async generateQuiz(
   //can also add 2nd parameter t specify projectioin field names like ..,type created_by
 
   // Fetch all questions object ids related to the module
-  const moduleQuestions = await this.moduleService.findQuestionsByModuleId(moduleId)
+  const moduleQuestions = await this.moduleService.getQuestionsForModule(moduleId)
 
   // //populate q,since get method of questions returns object ids 
   //of all questions in the module, can just call populate questions
@@ -134,7 +139,7 @@ async prepareQuizForStudent(
   username: string,
 ): Promise<QuestionsDocument[]> {
   // Step 1: Fetch the student record
-  const student = await this.studentModel.findOne({ username: username }).exec();
+  const student = await this.userModel.findOne({ username: username }).exec();
   if (!student) {
     throw new Error('Student not found');
   }
@@ -157,7 +162,7 @@ async prepareQuizForStudent(
   }
 
   // Step 4: Find the student's level for the course
-  const studentLevel = student.studentLevel[course._id.toString()];
+  const studentLevel = await this.studentService.getStudentLevel(username, course._id);
   if (!studentLevel) {
     throw new Error('Student level not found for this course');
   }
@@ -282,28 +287,43 @@ private randomizeQuestions(questions: QuestionsDocument[], numberOfQuestions: nu
     // Get quizzes available for students (non-outdated quizzes) according to the modules of the course
     //they take that do have active quizzes
 
-    async getQuizzesForStudents(username: string): Promise<QuizzesDocument[]> {
+async getQuizzesForStudents(username: string): Promise<QuizzesDocument[]> {
       // Step 1: Get all courses the student is enrolled in
-      const student = await this.studentModel.findOne({ username }).populate('courses.module.quizzes'); // courses will be populated
-      //get student will all attributes and array of fully populated courses not just _ids
+      const student: userDocument = await this.userModel
+  .findOne({ username })
+  .populate({
+    path: 'courses', // Populate courses
+    model: 'Courses',
+    populate: {
+      path: 'modules', // Populate modules inside each course
+      populate: {
+        path: 'quizzes', // Populate quizzes inside each module
+      },
+    },
+  }); 
+          //get student will all attributes and array of fully populated courses not just _ids
       if (!student) throw new Error('Student not found');
-    
-      const courses = student.courses;
+
+
+      const courses = student.courses; //then find course by courseid
+
+
       if (!courses || courses.length === 0) return []; // No courses, no quizzes
     
       // Step 2: Initialize an array to hold quizzes
       let quizzes: QuizzesDocument[] = [];
-    
+
       // Step 3: For each course, find all modules with quizzes
       for (const course of courses) {
-        const modules = course.modules; //return module ids
+        const c = await this.courseService.getcoursebyid(course)
+        const modules = c.modules; //return module ids
         if (!modules || modules.length === 0) continue;
     
         for (const module of modules) {
-          if (!module.quizzes || module.quizzes.length === 0) continue;
-    
+          let quizzes = await this.moduleService.getQuizzesForModule(module)
+
           // Step 4: Filter quizzes that are not outdated
-          const validQuizzes = module.quizzes.filter((quiz: QuizzesDocument) => !quiz.isOutdated);
+          const validQuizzes = quizzes.filter((quiz: QuizzesDocument) => !quiz.isOutdated);
           quizzes = [...quizzes, ...validQuizzes]; //if validQuizzes are found, append
           //it to quizzes array
           //since modules have 1 quiz, validQuizzes won't return an array
@@ -311,9 +331,11 @@ private randomizeQuestions(questions: QuestionsDocument[], numberOfQuestions: nu
           //we kept it as an array of quiz in case future enhancements are needed
         }
       }
-    
       return quizzes;
-    }
+      }
+    
+      
+
     // ... ->spread operator to unpack arrayobject elements and insert to another
     //array/object 
     //unpack quizzes and valid quizzes into separate array elements
@@ -486,26 +508,31 @@ if (!quiz.responses.includes(response._id)) {
 }
 
   // Step 4: Update the student's score for the course
-  const student = await this.studentModel.findOne({ username: studentUsername });
+  const student = await this.userModel.findOne({ username: studentUsername });
   if (student) {
     // Find the course by populating the modules to access quizzes
     const course = await this.courseModel.findOne({ 'modules.quizzes._id': quizId }).populate('modules.quizzes');
 
     if (course) {
       // Find the existing course score entry for the student
-      const courseStudentScore = student.studentScores.find(score => score.course_id.equals(course._id));
+      //const courseStudentScore = student.studentScores.find(score => score.course_id.equals(course._id));
+      let courseStudentScore = await this.studentService.getStudentScore(studentUsername, course._id)
+
 
       // If the course exists in the student's scores array, update the score directly
+      //it should exist since we are adding it on enroll, but just in case
       if (courseStudentScore) {
         // Apply penalty for failing (score < 0.5) or add the score for passing
-        courseStudentScore.value += (penalty ? penalty : scorePercentage);
+        courseStudentScore += (penalty ? penalty : scorePercentage);
       } else {
         // If the course doesn't exist in the student's scores, create a new entry
-        student.studentScores.push({ course_id: course._id, value: courseStudentScore.value });
+        // enroll already adds an entry so this is probably not useful, but i added it to avoid errors
+        student.studentScore.set( course._id, courseStudentScore );
       }
 
       await student.save();
-      await this.studentService.setUserLevel(studentUsername, course._id, student.studentScores); //CHECK IF IMPLEMENTED LIKE THIS
+      await this.studentService.setStudentScore(studentUsername, course._id, courseStudentScore); //this calls
+      //setStudentLevel
     }
     
   }

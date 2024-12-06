@@ -1,12 +1,10 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
 import { UsersController } from './users.controller';
 import { InstructorModule } from './instructor/instructor.module';
 import { StudentModule } from './student/student.module';
 import { UsersSchema } from './users.schema';
+import { MongooseModule } from '@nestjs/mongoose';
 import { UsersService } from './users.service';
-
-
 
 @Module({
   imports:[

@@ -42,6 +42,9 @@ export class Module {
   @Prop({ required: true })
   totalStudents: number; //number of students who voted for module
 
+  @Prop()
+   averageRating: number; 
+
   @Prop({required: true })
   isOutdated: boolean;
 }

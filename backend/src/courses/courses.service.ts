@@ -1,25 +1,25 @@
 
-import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, forwardRef ,InternalServerErrorException} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { courseDocument, Courses } from './courses.schema';
-import { Module, moduleDocument } from '../modules/modules.schema';
+import { Module } from '../modules/modules.schema';
 import { Model } from 'mongoose';
 import { CreateCourseDto } from './dto/CreateCourse.dto';
 import { UpdateCourseDto } from './dto/UpdateCourse.dto';
 import { ModulesService } from '../modules/modules.service';
 import { CreateModuleDto } from 'src/modules/dto/CreateModule.dto';
 import * as mongoose from 'mongoose'; // Import mongoose to use ObjectId
+import { moduleDocument } from '../modules/modules.schema';
 import { userDocument } from 'src/users/users.schema';
 import { Users } from 'src/users/users.schema';
 import { HydratedDocument } from 'mongoose';
-import { CONFIGURABLE_MODULE_ID } from '@nestjs/common/module-utils/constants';
+
 @Injectable()
 export class CoursesService {
   constructor(
     @InjectModel(Courses.name) private readonly courseModel: Model<courseDocument>,
     @InjectModel(Module.name) private readonly moduleModel: Model<moduleDocument>,
-
-    @InjectModel(Users.name) private readonly userModel: Model<Users>,
+    @InjectModel(Users.name) private readonly userModel: Model<userDocument>,
       @Inject(forwardRef(() => ModulesService)) private readonly modulesService: ModulesService, // Inject ModulesService with forwardRef
     ) {}
     
@@ -48,7 +48,7 @@ export class CoursesService {
   }
 
   //get course by objectId
-  async findById(ObjectId: mongoose.Schema.Types.ObjectId): Promise<courseDocument> {
+  async getcoursebyid(ObjectId: mongoose.Types.ObjectId): Promise<courseDocument> {
     const course = await this.courseModel.findById(ObjectId).exec();
     if (!course) {
       throw new NotFoundException(`course with Object id ${ObjectId} not found`);
@@ -103,21 +103,22 @@ export class CoursesService {
 
   
   
-  //(note: implemented by farah for use in search for quizzes)
+  
+
+ //(note: implemented by farah for use in search for quizzes)
 async findCourseByModuleId(moduleId:mongoose.Types.ObjectId):Promise<courseDocument>{
   const course = await this.courseModel.findOne({ modules: {$in: [moduleId]} })
   return course;
 }
- 
 
   // Delete a course by course_code
-  async delete(course_code: string): Promise<courseDocument> {
-    const deletedCourse = await this.courseModel.findOneAndDelete({course_code}).exec();
-    if (!deletedCourse) {
-      throw new NotFoundException(`Course code with course_code ${course_code} not found`);
-    }
-    return deletedCourse;
-  }
+  // async delete(course_code: string): Promise<courseDocument> {
+  //   const deletedCourse = await this.courseModel.findOneAndDelete({course_code}).exec();
+  //   if (!deletedCourse) {
+  //     throw new NotFoundException(`Course code with course_code ${course_code} not found`);
+  //   }
+  //   return deletedCourse;
+  // }
 //GET/courses/:course_code: retrieve all modules of a speicifc course
 async getModulesForCourse(course_code: string): Promise<moduleDocument[]> {
   const course = await this.findOne(course_code);
@@ -198,8 +199,24 @@ async addModuleToCourse(courseCode: string, createModuleDto: CreateModuleDto): P
 }
 
 
+async getNonOutdatedCoursesForStudent(username: string): Promise<Courses[]> {
+  // Find the student by username
+  const student = await this.userModel.findOne({ username }).exec();
+  if (!student) {
+    throw new Error('Student not found');
+  }
 
+  // Retrieve courses based on their ObjectIds
+  const courses: Courses[] = [];
+  for (const courseId of student.courses) {
+    const course = await this.getcoursebyid(courseId); // Use existing method
+    if (course && !course.isOutdated) {
+      courses.push(course);
+    }
+  }
 
+  return courses;
+}
 
 
 
@@ -261,7 +278,8 @@ async getModulesForCourseStudent(course_code: string, username: string): Promise
   }
 
   // Step 2: Fetch the course by its code
-  const course = await this.findOne(course_code);
+  const course = await this.courseModel.findOne({ course_code: course_code }).exec();
+ // await this.findOne(course_code);
   if (!course) {
     throw new NotFoundException(`Course with code ${course_code} not found`);
   }
@@ -273,6 +291,7 @@ async getModulesForCourseStudent(course_code: string, username: string): Promise
 
   // Step 4: Filter the modules based on the student's level and outdated status
   const validModules = modules.filter(module => {
+    
     // Get the student's level for the current course using the course _id
     const studentLevel = student.studentLevel.get(course._id);
 
@@ -353,5 +372,66 @@ async getAverageScoreForCourse(course_code: string): Promise<number> {
 }
 
 
+
+
+async delete(course_code: string): Promise<courseDocument> {
+  // Step 1: Find and delete the course
+  const deletedCourse = await this.courseModel.findOneAndDelete({ course_code }).exec();
+  if (!deletedCourse) {
+    throw new NotFoundException(`Course with course_code ${course_code} not found`);
+  }
+
+  // Step 2: Extract related module IDs
+  const { modules = [], _id: courseId } = deletedCourse;
+
+  // Step 3: Delete related Modules using Modules API
+  try {
+    if (modules.length > 0) {
+      await Promise.all(
+        modules.map(async (moduleId) => {
+          await this.modulesService.deleteModule(new mongoose.Types.ObjectId(moduleId));
+        })
+      );
+    }
+  } catch (error) {
+    console.error("Error deleting modules:", error);
+    throw new InternalServerErrorException("Failed to delete related modules.");
+  }
+
+  // Step 4: Remove the course from instructors' courses array
+  try {
+    await this.userModel.updateMany(
+      { courses: courseId }, // Find instructors with this course ID
+      { $pull: { courses: courseId } } // Remove the course ID from the array
+    );
+  } catch (error) {
+    console.error("Error updating instructors:", error);
+    throw new InternalServerErrorException("Failed to update instructors.");
+  }
+
+  return deletedCourse;
+}
+
+//GET AVERAGE RATING
+async getTotalRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
+ const course = await this.courseModel.findById(ObjectId);
+ return course.totalRating;
+}
+
+//SET RATING,TOTAL,AVERAGE
+async setRating(ObjectId: mongoose.Types.ObjectId,score:number): Promise<void> {
+  const course = await this.courseModel.findById(ObjectId);
+  course.totalRating = course.totalRating + score;
+  course.totalStudents += 1;
+  course.averageRating = course.totalRating/course.totalStudents;
+}
+
+//GET COURSE FOR SPECIFIC MODULE TITLE
+async getCourseForModule (moduleTitle:string): Promise<courseDocument>{
+ const module=await this.modulesService.findByTitle(moduleTitle)as moduleDocument;;
+
+ return await this.courseModel.findOne({ modules: module._id }).exec();
+
+}
 
 }

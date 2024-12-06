@@ -39,6 +39,9 @@ totalRating: number; //sum of ratings for course
 @Prop()
 totalStudents: number; //number of students who voted for course
 
+@Prop()
+averageRating: number; 
+
   @Prop()
   isOutdated: boolean;
 }

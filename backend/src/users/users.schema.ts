@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document, Types } from 'mongoose';
 import { Courses } from '../courses/courses.schema'; // Adjust path as necessary
 import { HydratedDocument } from 'mongoose';
+import { Notes } from 'src/notes/notes.schema';
 
 export type userDocument = HydratedDocument<Users>
 @Schema()
@@ -32,26 +33,27 @@ export class Users {
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Courses' }] })
   courses: mongoose.Types.ObjectId[]; // An array of courses the user is associated with
 
+  @Prop({ type: Map, of: [mongoose.Schema.Types.ObjectId] })
+  notes: Map<mongoose.Types.ObjectId, mongoose.Types.ObjectId[]>;  ///STUDENT Attribute only
+  
   @Prop({ required: true })
   totalRating: number; //sum of ratings for intructor                  //INSTRUCTOR Attribute only
   
   @Prop({ required: true })
   totalStudents: number; //number of students who voted for intructor       ///INSTRUCTOR Attribute only
 
-  @Prop({
-    type: Map,
-    of: Number,
-    required: true,
-  })
-  studentScore: Map<mongoose.Types.ObjectId, number>; // Map of ObjectId to number
+  @Prop()                                                                 ///INSTRUCTOR Attribute only
+   averageRating: number; 
 
-  @Prop({
-    type: Map,
-    of: String,
-    enum: ['easy', 'medium', 'hard'], // Enforce enum values
-    required: true,
-  })
-  studentLevel: Map<mongoose.Types.ObjectId, string>; // Map of ObjectId to string (enum)
+  @Prop({ type: Map, of: Number, required: true })
+  studentScore: Map<mongoose.Types.ObjectId, number>;
+  
+  @Prop({type: Map,of: String,enum: ['easy', 'medium', 'hard'],})
+  studentLevel: Map<mongoose.Types.ObjectId, string>; // Map of course id to string (enum)
+
+  @Prop({ default: 0 })
+  failedAttempts: number;  // Tracks the number of failed login attempts
+
 }
 
 export const UsersSchema = SchemaFactory.createForClass(Users);

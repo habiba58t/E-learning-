@@ -4,7 +4,8 @@ import { Users } from 'src/users/users.schema';
 import { UsersService } from 'src/users/users.service';
 import { AdminService } from './admin.service';
 import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
-import {LogsService} from 'src/users/Admin/logs/logs.service';
+import { LogsService } from 'src/users/logs/logs.service';
+
 @Controller('admin')
 export class AdminController {
 
@@ -25,7 +26,7 @@ export class AdminController {
         const query: any = {};
 
         if (success !== undefined) {
-            query.success = success === true; // Convert string to boolean
+            query.success = success === true; 
         }
 
         if (startDate || endDate) {
