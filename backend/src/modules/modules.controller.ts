@@ -129,8 +129,7 @@ async getQuizzesForModule(@Param('ObjectId') ObjectId: string): Promise<Quiz[]> 
   @UseGuards(AuthorizationGuard)
 @Roles(Role.Admin,Role.Instructor)
 @Put(':moduleId/add-question/:quizId')
-async addQuestionToModule(
-  @Param('moduleId') moduleId: string, // Module ID as string
+async addQuestionToModule( @Param('moduleId') moduleId: string, // Module ID as string
   @Param('questionId') questionId: string, // Quiz ID as string
 ) {
   const updatedModule = await this.modulesService.addQuestionToModule(

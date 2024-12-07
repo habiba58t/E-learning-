@@ -364,6 +364,7 @@ async deleteNote(title:string,username:string,notetId: mongoose.Types.ObjectId):
     throw new NotFoundException(`Module with title "${title}" not found`);
   }
   const note= await this.notesService.findByIdNote(notetId);
+  const note= await this.notesService.findByIdNote(notetId);
   const student = await this.usersService.findUserByUsername(username);
 
   if (student.notes.has(module._id)) {
@@ -375,6 +376,7 @@ async deleteNote(title:string,username:string,notetId: mongoose.Types.ObjectId):
   }
   await student.save(); 
 
+  await this.notesService.deleteNote(notetId);
   await this.notesService.deleteNote(notetId);
 
 }
@@ -391,6 +393,7 @@ async deleteNote(title:string,username:string,notetId: mongoose.Types.ObjectId):
     username: username, 
     course_code: course.course_code,
     content: content,
+    content: content,
   };
   const note = await this.notesService.createNote(notesDto) as notesDocument;
   const user = await this.usersService.findUserByUsername(username);
@@ -406,6 +409,7 @@ async UpdateNote(notetId: mongoose.Types.ObjectId,contentNew:string): Promise<no
   const notesDto = {
     content:contentNew,
   };
+ const note= await this.notesService.updateNote(notetId, notesDto);
  const note= await this.notesService.updateNote(notetId, notesDto);
   return note;
 }

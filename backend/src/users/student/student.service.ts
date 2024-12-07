@@ -33,6 +33,7 @@ export class StudentService {
         @InjectModel(Courses.name) private readonly courseModel: Model<Courses>,
         @InjectModel(Progress.name) private readonly progressModel: Model<Progress>,
         @InjectModel(Responses.name) private readonly responsesModel: Model<Responses>,
+        @InjectModel(Responses.name) private readonly responsesModel: Model<Responses>,
         @Inject(forwardRef(() => CoursesService)) private readonly coursesService: CoursesService,
         @Inject(forwardRef(() => UsersService)) private readonly usersService: UsersService,
         @Inject(forwardRef(() => ProgressService)) private readonly progressService: ProgressService,

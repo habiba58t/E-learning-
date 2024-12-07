@@ -26,7 +26,12 @@ export class NotesController {
   // async findNote(@Param('username') username: string, @Param('course_code')course_code:string, @Param('lastUpdated')lastUpdated:Date): Promise<notesDocument> {
   //   return this.notesService.findNote(username,course_code,lastUpdated);
   // }
+  // @Get()
+  // async findNote(@Param('username') username: string, @Param('course_code')course_code:string, @Param('lastUpdated')lastUpdated:Date): Promise<notesDocument> {
+  //   return this.notesService.findNote(username,course_code,lastUpdated);
+  // }
 
+  // CREATE NOTE
   // CREATE NOTE
   @Post()
   async createNote(@Body() createNoteDto: CreateNoteDto): Promise<Notes> {
@@ -47,6 +52,8 @@ export class NotesController {
 
 //UPDATE NOTE
   @Put()
+  async updateNote(@Param('noteId') noteId: mongoose.Types.ObjectId,@Body() updateNoteDto: UpdateNoteDto,): Promise<notesDocument> {
+    return await this.notesService.updateNote(noteId, updateNoteDto);
   async updateNote(@Param('noteId') noteId: mongoose.Types.ObjectId,@Body() updateNoteDto: UpdateNoteDto,): Promise<notesDocument> {
     return await this.notesService.updateNote(noteId, updateNoteDto);
   }
