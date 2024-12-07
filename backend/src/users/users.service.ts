@@ -39,7 +39,7 @@ async findUserByUsername( username: string): Promise<userDocument> {
 async getEnrolledStudents(objectId:mongoose.Types.ObjectId): Promise<string[]>{
 const course= await this.coursesService.getcoursebyid(objectId);
 return await this.progressService.findAllStudentsEnrolled(course.course_code);
-}
+}///add to find usernames where completion <100
 
 
 // CREATE NEW User FOR REGISTER

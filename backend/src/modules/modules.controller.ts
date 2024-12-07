@@ -28,15 +28,16 @@ export class ModulesController {
 constructor(private readonly modulesService: ModulesService) {}
 
 //GET: get all modules
-// @UseGuards(AuthorizationGuard)
-// @Roles(Role.Admin, Role.Instructor)
+@UseGuards(AuthorizationGuard)
+@Roles(Role.Admin, Role.Instructor)
 @Get()
   async findAll(): Promise<moduleDocument[]> {
     return this.modulesService.findAll();
-  
   }
 
 //GET: get one module by objectId
+@UseGuards(AuthorizationGuard)
+@Roles(Role.Admin,Role.Instructor, Role.User)
   @Get('id/:ObjectId')
   async findById(@Param('ObjectId') ObjectId: string): Promise<moduleDocument> {
     const objectId = new mongoose.Types.ObjectId(ObjectId);
@@ -44,7 +45,9 @@ constructor(private readonly modulesService: ModulesService) {}
   }
 
 //GET: get one module by title
-@Get('title/:title')
+@UseGuards(AuthorizationGuard)
+@Roles(Role.Admin,Role.Instructor, Role.User)
+@Get('mtitle/:title')
 async findByTitle(@Param('title') title: string): Promise<moduleDocument> {
   return this.modulesService.findByTitle(title);
 } 

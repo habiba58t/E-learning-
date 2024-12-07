@@ -52,7 +52,7 @@ async enrollStudentInCourse(username: string, courseId: string): Promise<userDoc
         }
     
         // Find the course by its ID
-        const course = await this.courseModel.findOne({courseId,Unavailable:false}).exec();
+        const course = await this.coursesService.findOne(courseId);
         if (!course) {
           throw new NotFoundException(`Course with ID ${courseId} not found`);
         }

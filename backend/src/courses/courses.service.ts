@@ -1,5 +1,5 @@
 
-import { Injectable, NotFoundException, Inject, forwardRef ,InternalServerErrorException,BadRequestException,UseGuards} from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, forwardRef ,InternalServerErrorException,BadRequestException,Req,UseGuards,UnauthorizedException} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { courseDocument, Courses } from './courses.schema';
 import { Module } from '../modules/modules.schema';
@@ -33,7 +33,7 @@ export class CoursesService {
     ) {}
     
   //GET ALL COURSES //PUBLIC  
-  @Public()
+  
   async findAll(): Promise<{ title: string; description: string }[]> {
     return this.courseModel
       .find({ Unavailable: false }) // Filter to get only available courses
@@ -43,8 +43,6 @@ export class CoursesService {
     
 
  //FIND COURSE BY COURSE_CODE 
-//  @UseGuards(AuthGuard, AuthorizationGuard)
-//  @Roles(Role.Admin, Role.Instructor,Role.User)
   async findOne(course_code: string): Promise<courseDocument> {
     const course = await this.courseModel.findOne({ course_code, Unavailable: false }).exec();
     if (!course) {
@@ -54,11 +52,9 @@ export class CoursesService {
     return course;
   }
 
-  //GET: find course by course title
-  // @UseGuards(AuthGuard, AuthorizationGuard)
-  // @Roles(Role.Admin, Role.Instructor,Role.User)
+  //GET: find course by course titl
   async findCourseByTitle(title: string): Promise<courseDocument> {
-    const course = await this.courseModel.findOne({title,Unavailable: false}).exec();
+    const course = await this.courseModel.findOne({title: { $regex: title, $options: 'i' },Unavailable: false}).exec();
     if (!course) {
       throw new NotFoundException(`Course with title ${title} not found`);
     }
@@ -66,8 +62,6 @@ export class CoursesService {
   }
 
   //get course by objectId
-  // @UseGuards(AuthGuard, AuthorizationGuard)
-  // @Roles(Role.Admin, Role.Instructor,Role.User)
   async getcoursebyid(ObjectId: mongoose.Types.ObjectId): Promise<courseDocument> {
     const course = await this.courseModel.findById({_id:ObjectId,Unavailable: false}).exec();
     if (!course) {
@@ -78,18 +72,18 @@ export class CoursesService {
 
 
   //CREATE: intructor create course
-  // @UseGuards(AuthGuard, AuthorizationGuard)
-  // @Roles(Role.Admin, Role.Instructor)
-  async create( username: string,createCourseDto: CreateCourseDto): Promise<courseDocument> {
+  
+  async create(createCourseDto: CreateCourseDto,user: any): Promise<courseDocument> {
     const newCourse = new this.courseModel(createCourseDto); // Step 1: Create the new course
     newCourse.Unavailable=false;
     newCourse.created_at = new Date();
+    newCourse.created_by = user.username;
     const savedCourse = await newCourse.save();
 
     // Step 2: Find the instructor by their username
-    const instructor = await this.userModel.findOne({ username }).exec();
+    const instructor = await this.userModel.findOne({  username: user.username }).exec();
     if (!instructor) {
-      throw new NotFoundException(`Instructor with username ${username} not found`);
+      throw new NotFoundException(`Instructor with username ${user.username} not found`);
     }
 
     // Step 3: Add the new course's ObjectId to the instructor's courses array
@@ -105,14 +99,22 @@ export class CoursesService {
  // Update an existing course by ID
 //  @UseGuards(AuthGuard, AuthorizationGuard)
 //  @Roles(Role.Admin, Role.Instructor)
-  async update(course_code: string, updateCourseDto: UpdateCourseDto): Promise<courseDocument> {
-    const updatedCourse = await this.courseModel
-      .findOneAndUpdate({ course_code,Unavailable: false}, updateCourseDto, { new: true })
-      .exec();
+  async update(course_code: string, updateCourseDto: UpdateCourseDto,user: any): Promise<courseDocument> {
+    const course = await this.courseModel.findOne({ course_code, Unavailable: false }).exec();
   
-    if (!updatedCourse) {
+    if (!course) {
       throw new NotFoundException(  `Course with Course code${course_code} not found`);
     }
+    if (course .created_by !== user.username) { //  token has username attached
+      throw new UnauthorizedException('You are not authorized to update this course');
+    }
+
+    const updatedCourse = await this.courseModel.findOneAndUpdate({ course_code, Unavailable: false }, updateCourseDto, { new: true }).exec();
+
+    if (!updatedCourse) {
+      throw new NotFoundException(`Course with course code ${course_code} not found`);
+    }
+
     return updatedCourse;
   }
 
@@ -123,8 +125,6 @@ async findCourseByModuleId(moduleId:mongoose.Types.ObjectId):Promise<courseDocum
 }
 
 //GET: modules for a course for a student
-// @UseGuards(AuthGuard, AuthorizationGuard)
-// @Roles(Role.Admin, Role.User)
 async getModulesForCourseStudent(course_code: string, username: string): Promise<moduleDocument[]> {
   // Step 1: Fetch the student by their username
   const student = await this.userModel.findOne({ username }).exec();
@@ -222,7 +222,7 @@ async findOutdated(course_code: string): Promise<boolean> {
     throw new NotFoundException(`Course with course code ${course_code} not found`);
   }
 
-  return course.isOutdated;
+  return course.isOutdated === true;
 }
 
 //PUT: change outdated of course
@@ -284,7 +284,7 @@ async getAverageScoreForCourse(course_code: string): Promise<number> {
 //GET AVERAGE RATING
 @Public()
 async getAverageRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
-  const course = await this.courseModel.findById({ObjectId, Unavailable: false});
+  const course = await this.courseModel.findOne({ObjectId, Unavailable: false});
   return course.averageRating;
  }
  
@@ -292,10 +292,13 @@ async getAverageRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
 //  @UseGuards(AuthGuard, AuthorizationGuard)
 //  @Roles(Role.Admin, Role.Instructor,Role.User)
  async setRating(ObjectId: mongoose.Types.ObjectId,score:number): Promise<void> {
-   const course = await this.courseModel.findById({ObjectId, Unavailable: false});
-   course.totalRating = course.totalRating + score;
-   course.totalStudents += 1;
-   course.averageRating = course.totalRating/course.totalStudents;
+   const course = await this.courseModel.findOne({ObjectId, Unavailable: false});
+   course.totalRating = (course.totalRating || 0) + score; 
+  course.totalStudents = (course.totalStudents || 0) + 1;
+  course.averageRating = course.totalRating / course.totalStudents;
+
+  // Save the updated document
+  await course.save();
  }
 
  //GET courses for student
@@ -319,13 +322,12 @@ async getNonOutdatedCoursesForStudent(username: string): Promise<Courses[]> {
 
   return courses;
 }
-//GET COURSE FOR SPECIFIC MODULE TITLE
-// @UseGuards(AuthGuard, AuthorizationGuard)
-// @Roles(Role.Admin, Role.Instructor,Role.User)
-async getCourseForModule (moduleTitle:string): Promise<courseDocument>{
- const module=await this.modulesService.findByTitle(moduleTitle)as moduleDocument;;
 
- return await this.courseModel.findOne({ modules: module._id }).exec();
+//GET COURSE FOR SPECIFIC MODULE TITLE
+async getCourseForModule (moduleTitle:string): Promise<courseDocument>{
+ const module=await this.modulesService.findByTitle(moduleTitle);
+
+ return await this.findCourseByModuleId(module._id)
 
 }
 
