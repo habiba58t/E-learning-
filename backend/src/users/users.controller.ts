@@ -9,15 +9,11 @@ import { UseGuards } from '@nestjs/common';
 //import { SearchUserDto } from './dto/search-user.dto';
 import {  Query, Req, HttpException, HttpStatus } from '@nestjs/common';
 import { SearchUserDto } from './dto/SearchUser.dto';
+import { UpdateUserDto } from './dto/UpdateUser.dto';
 
 @Controller('users')
 export class UsersController {
     constructor(private readonly usersService: UsersService) {}
-     //GET: get array of courses for a speicifc user
-  //   @Get(':username')
-  // async findCoursesArray(@Param('username') username: string): Promise<Courses[]> {
-  //   return this.usersService.findCoursesArray(username);
-  // }
 
   //GET USER BY username
   @Get(':username')
@@ -25,15 +21,10 @@ export class UsersController {
     return this.usersService.findUserByUsername(username);
   }
  //GETT ALL USERS ENROLLED IN A COURSE
-//  @Get() 
-//    async getEnrolledStudents(@Param('objectId')objectId: string): Promise<userDocument[]>{
-//      const oid = mongoose.Types.ObjectId(objectId);
-//      return this.usersService.getEnrolledStudents(oid);
-//    }
-
-
-//GET API for searching users, with certain 
-      //constraints depending on whether the user is logged in or not
+ @Get() 
+   async getEnrolledStudents(@Param('objectId')objectId: mongoose.Types.ObjectId): Promise<string[]>{
+     return this.usersService.getEnrolledStudents(objectId);
+   }
 
   // GET API to search users
   @Get('search')
@@ -62,4 +53,14 @@ export class UsersController {
     // Perform search for instructors only
     return this.usersService.searchUsers(null, searchUserDto);
   }
+
+  //Update student profile
+@Put(':username')
+async updateProfile(@Param('username') username: string,@Body() updateUserDto: UpdateUserDto, ): Promise<any>{
+  const updatedUser = await this.usersService.updateProfile(username, updateUserDto);
+  return {
+    message: 'User profile updated successfully.',
+    user: updatedUser,
+  };
+}
 }

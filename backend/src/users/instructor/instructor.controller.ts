@@ -1,39 +1,46 @@
-import { Controller, Get, Post, Body, Param, Put, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete, UseGuards } from '@nestjs/common';
 import * as mongoose from 'mongoose';
-import { UsersSchema } from '../users.schema';
+import { Users, UsersSchema } from '../users.schema';
 import { Courses } from 'src/courses/courses.schema';
 import { CoursesService } from 'src/courses/courses.service';
 import { InstructorService } from './instructor.service';
 import { Module, moduleDocument } from 'src/modules/modules.schema';
+import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
+import { Role, Roles } from 'src/auth/decorators/role.decorator';
+import { AuthGuard } from 'src/auth/guards/authentication.guard';
+import { Public } from 'src/auth/decorators/public.decorator';
+
+@UseGuards(AuthGuard)
+
 @Controller('instructor')
 export class InstructorController {
     constructor(private readonly instructorService: InstructorService) {}
-    //@Get()
-    //async getCoursesForStudent(): Promise<Courses[]> {
-     //hanroo7 user ngyb array of courses ,loop put courses in array get course by objectId WHEre is outdated false
-    // return this.instructorService.getCoursesForStudent();
-  //  }
 
-  @Get()
-    async getModulesForStudent(): Promise<moduleDocument[]> {
-     //hanroo7 user ngyb array of courses ,loop put courses in array get course by objectId WHEre is outdated false
-     return this.instructorService.getModulesForStudent();
-   }
-
+  @Public()
    // //Get AverageRating  of Instructor
-  @Get(':moduleId')
-  async getTotalRating(@Param('ObjectId') ObjectId: string): Promise<number> {
+  @Get(':instructorId')
+  async getAvgRating(@Param('ObjectId') ObjectId: string): Promise<number> {
     const objectId = new mongoose.Types.ObjectId(ObjectId)
-   return await this.instructorService.getTotalRating(objectId);
+   return await this.instructorService.getAvgRating(objectId);
   }
 
 //SET TOTALRATING TOTALSTUDENTS AVERAGE RATING
-
-@Get()
+@UseGuards(AuthorizationGuard)
+@Roles(Role.User)
+@Put()
 async setRating(@Param('ObjectId') ObjectId: string, @Param('score')score:number): Promise<void> {
  const objectId = new mongoose.Types.ObjectId(ObjectId)
  await this.instructorService.setRating(objectId,score);
 }
+
+@UseGuards(AuthorizationGuard)
+@Roles(Role.Instructor, Role.Admin)
+@Delete(':username')
+async deleteInstructor(@Param('username') username: string): Promise<{ message: string }> {
+  return await this.instructorService.deleteInstructor(username);
+}
+
+
  
 
 

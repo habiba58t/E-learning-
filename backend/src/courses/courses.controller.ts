@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Put, Delete,NotFoundException, InternalServerErrorException} from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete,NotFoundException, InternalServerErrorException,UseGuards,Req} from '@nestjs/common';
 import { CoursesService } from './courses.service';
 import { Courses} from './courses.schema';
 import { CreateCourseDto } from './dto/CreateCourse.dto';
@@ -8,12 +8,17 @@ import { CreateModuleDto } from '../modules/dto/CreateModule.dto';
 import * as mongoose from 'mongoose'; // Import mongoose to use ObjectId
 import { UpdateModuleDto } from 'src/modules/dto/UpdateModule.dto';
 import { courseDocument } from './courses.schema';
+import { Role, Roles } from 'src/auth/decorators/role.decorator';
+import { AuthGuard } from 'src/auth/guards/authentication.guard';
+import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @Controller('courses')
 export class CoursesController {
     constructor(private readonly coursesService: CoursesService) {}
 
-  //GET ALL COURSES   //PUBLIC 
+  //GET ALL COURSES //PUBLIC 
+  @Public() 
 @Get()
   async findAll(): Promise<{ title: string; description: string }[]> {
     return this.coursesService.findAll();
@@ -21,73 +26,59 @@ export class CoursesController {
   }
 
   // GET /Course/:course code: Retrieve a specific course by its course_code
+  @UseGuards(AuthGuard, AuthorizationGuard)
+  @Roles(Role.Admin, Role.Instructor,Role.User)
   @Get(':course_code')
-  async findOne(@Param('course_code') course_code: string): Promise<Courses> {
+  async findOne(@Param('course_code') course_code: string): Promise<courseDocument> {
     return this.coursesService.findOne(course_code);
   }
 
   // GET /Course/:course code: Retrieve a specific course by its title
-  @Get(':title')
-  async findCourseByTitle(@Param('title') title: string): Promise<Courses> {
+  @Public() 
+  @Get('title/:title')
+  async findCourseByTitle(@Param('title') title: string): Promise<courseDocument> {
     return this.coursesService.findCourseByTitle(title);
   }
 
+  @UseGuards(AuthGuard, AuthorizationGuard)
+  @Roles(Role.Admin, Role.Instructor,Role.User)
   @Get('id/:ObjectId')
   async getcoursebyid(@Param('ObjectId') ObjectId: string): Promise<Courses> {
     const objectId = new mongoose.Types.ObjectId(ObjectId);
     return this.coursesService.getcoursebyid(objectId);
   }
 
-  // POST /courses: Create a new product
-  @Post()
-  async create(@Body() createCourseDto: CreateCourseDto): Promise<Courses> {
-    const newCourse=  await this.coursesService.create(createCourseDto);
-    return newCourse;
 
+//Create: course created by instructor
+@UseGuards(AuthGuard, AuthorizationGuard)
+@Roles(Role.Admin, Role.Instructor)
+   @Post('createCourse ')
+  async create(@Req() {user}, @Body() createCourseDto: CreateCourseDto ): Promise<Courses> {
+    // Pass the username and course data to the service to create the course and associate it with the instructor
+    return this.coursesService.create(createCourseDto,user);
   }
-
-
-  // @Post(':username')
-  // async create(
-  //   @Param('username') username: string,  // Get instructor username from URL
-  //   @Body() createCourseDto: CreateCourseDto  // Get course data from the body
-  // ): Promise<Courses> {
-  //   // Pass the username and course data to the service to create the course and associate it with the instructor
-  //   return this.coursesService.create(createCourseDto,username);
-  // }
 
   // PUT /products/:id: Update an existing product by its ID
+  @UseGuards(AuthGuard, AuthorizationGuard)
+  @Roles(Role.Admin, Role.Instructor)
   @Put(':course_code')
-  async update(@Param('course_code') course_code: string, @Body() updateCourseDto: UpdateCourseDto): Promise<Courses> {
-    return this.coursesService.update(course_code, updateCourseDto);
+  async update(@Req() {user},@Param('course_code') course_code: string, @Body() updateCourseDto: UpdateCourseDto): Promise<Courses> {
+    return this.coursesService.update(course_code, updateCourseDto,user);
   }
 
 
- @Get(':moduleId')
-//(note: implemented by farah for use in search for quizzes)
+  //GET: GET cousrse by module id
+ @Get('module/:moduleId')
 async findCourseByModuleId(@Param('moduleId') moduleId: string):Promise<courseDocument>{
   const mid = new mongoose.Types.ObjectId(moduleId);
   return this.coursesService.findCourseByModuleId(mid)
 }
 
-  // DELETE /courses/:course_code: Delete a product by its ID
-  // @Delete(':course_code')
-  // async delete(@Param('course_code') course_code: string): Promise<Courses> {
-  //   return this.coursesService.delete(course_code);
-  // }
-//GET/courses/:course_code: retrieve all modules of a speicifc course
-  // @Get(':course_code/modules')
-  // async getModulesForCourse(@Param('course_code') course_code: string): Promise<moduleDocument[]> {
-  //   return this.coursesService.getModulesForCourse(course_code);
-  // }
-
-
   // Get modules for a student in a specific course
+  @UseGuards(AuthGuard, AuthorizationGuard)
+ @Roles(Role.Admin, Role.User)
   @Get(':course_code/modules/:username')
-  async getModulesForCourseStudent(
-    @Param('course_code') course_code: string,
-    @Param('username') username: string
-  ): Promise<moduleDocument[]> {
+  async getModulesForCourseStudent(@Param('course_code') course_code: string,@Param('username') username: string): Promise<moduleDocument[]> {
     try {
       // Call the service method to get the filtered modules for the student
       return await this.coursesService.getModulesForCourseStudent(course_code, username);
@@ -96,9 +87,11 @@ async findCourseByModuleId(@Param('moduleId') moduleId: string):Promise<courseDo
     }
   }
 
+  // Get modules for a instructor in a specific course
+  @UseGuards(AuthGuard, AuthorizationGuard)
+  @Roles(Role.Admin, Role.Instructor)
   @Get(':course_code/modules')
-  async getModulesForInstructor(
-    @Param('course_code') course_code: string,): Promise<moduleDocument[]> {
+  async getModulesForInstructor(@Param('course_code') course_code: string,): Promise<moduleDocument[]> {
     // Call the service method to get the modules for the course
     const modules = await this.coursesService.getModulesForCourseInstructor(course_code);
     
@@ -109,27 +102,28 @@ async findCourseByModuleId(@Param('moduleId') moduleId: string):Promise<courseDo
     return modules;
   }
 
-
-
+  @UseGuards(AuthGuard, AuthorizationGuard)
+  @Roles(Role.Admin, Role.Instructor)
   @Put(':courseCode/modules')
   async addModuleToCourse( @Param('courseCode') courseCode: string,@Body() createModuleDto: CreateModuleDto): Promise<Courses> {
     return this.coursesService.addModuleToCourse(courseCode, createModuleDto);
 }
 
 
-
- @Put(':courseCode/modules/title')
+@UseGuards(AuthGuard, AuthorizationGuard)
+@Roles(Role.Admin, Role.Instructor)
+ @Put(':courseCode/modules/:title')
 async DeleteModuleFromCourse( @Param('courseCode') courseCode: string , @Param ('title')title:string): Promise<Courses> {
   return this.coursesService.DeleteModuleFromCourse(courseCode, title);
 }
 
 //GET: find outdated attributed of specific course
-@Get(':course_code')
+@Get('foutdated/:course_code')
   async findOutdated(@Param('course_code') course_code: string): Promise<boolean> {
     return this.coursesService.findOutdated(course_code);
   }
 
-  @Put(':course_code')
+  @Put('upoutdated/:course_code')
   async toggleOutdated(@Param('course_code') course_code: string): Promise<Courses> {
     return this.coursesService.toggleOutdated(course_code);
   } 
@@ -137,29 +131,36 @@ async DeleteModuleFromCourse( @Param('courseCode') courseCode: string , @Param (
 
 
   // Get average score of a specific course 
+  @UseGuards(AuthGuard, AuthorizationGuard)
+@Roles(Role.Admin, Role.Instructor)
   @Get(':course_code/average-score')
 async getAverageScore(@Param('course_code') course_code: string): Promise<{ averageScore: number }> {
   const averageScore = await this.coursesService.getAverageScoreForCourse(course_code);
   return { averageScore };
 }
 
-// //Get AverageRating  of Instructor
-   @Get(':courseId')
-   async getTotalRating(@Param('ObjectId') ObjectId: string): Promise<number> {
+// //Get AverageRating  of course
+@UseGuards(AuthGuard, AuthorizationGuard)
+ @Roles(Role.Admin, Role.Instructor,Role.User)
+   @Get('getavg/:courseId')
+   async getAverageRating(@Param('ObjectId') ObjectId: string): Promise<number> {
     const objectId = new mongoose.Types.ObjectId(ObjectId);
-    return await this.coursesService.getTotalRating(objectId);
+    return await this.coursesService.getAverageRating(objectId);
    }
 
 //SET TOTALRATING TOTALSTUDENTS AVERAGE RATING
-
-@Get()
+@UseGuards(AuthGuard, AuthorizationGuard)
+ @Roles(Role.Admin,Role.User)
+@Put('setrate/:courseId/:score')
 async setRating(@Param('ObjectId') ObjectId: string, @Param('score')score:number): Promise<void> {
   const objectId = new mongoose.Types.ObjectId(ObjectId);
   await this.coursesService.setRating(objectId,score);
 }
 
 //GET COURSE FOR SPECIFIC MODULE TITLE
-@Get()
+@UseGuards(AuthGuard, AuthorizationGuard)
+ @Roles(Role.Admin,Role.User)
+@Get('moduletitle/:title')
 async getCourseForModule (@Param('moduleTitle')moduleTitle:string): Promise<Courses>{
 return await this.coursesService.getCourseForModule(moduleTitle);
 
@@ -167,8 +168,18 @@ return await this.coursesService.getCourseForModule(moduleTitle);
 
 
 //@UseGuards(JwtAuthGuard) // Ensures the user is authenticated
-@Get(':username/courses')
-async getStudentCourses(@Param('username') username: string) {
+@UseGuards(AuthGuard, AuthorizationGuard)
+ @Roles(Role.Admin,Role.User)
+@Get('studcour/:username/courses')
+async getNonOutdatedCoursesForStudent(@Param('username') username: string) {
   return await this.coursesService.getNonOutdatedCoursesForStudent(username);
 }
+
+//DELETE COURSE (MAKE IT UNAVAILABLE)
+@UseGuards(AuthGuard, AuthorizationGuard)
+@Roles(Role.Admin, Role.Instructor)
+@Put(':course_code/delete')
+  async markCourseAsUnavailable(@Param('course_code') courseId: string) {
+    return await this.coursesService.deleteCourse(courseId);
+  }
 }

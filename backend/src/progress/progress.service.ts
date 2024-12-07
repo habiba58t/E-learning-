@@ -48,11 +48,7 @@ export class ProgressService {
     }
 
 
-    async update(
-        course_code: string,
-        Username: string,
-        updateData: { completion_percentage: number; last_accessed: Date }
-      ): Promise<Progress> {
+async update(course_code: string,Username: string,updateData: { completion_percentage: number; last_accessed: Date }): Promise<Progress> {
         return await this.progressModel.findOneAndUpdate(
           { Username, course_code },
           updateData,
@@ -68,11 +64,15 @@ export class ProgressService {
 
 
 
-
-      //deletee mmkn admin 
-      async delete(course_code: string, Username: string): Promise<Progress> {
+//deletee mmkn admin 
+async delete(course_code: string, Username: string): Promise<Progress> {
         return await this.progressModel.findOneAndDelete({ course_code, Username });
-    }
+}
+
+//DELETE Progress by username
+async deleteProgressByUsername(Username: string) {
+  await this.progressModel.findOneAndDelete({ Username });
+}
     
      
 
@@ -107,27 +107,27 @@ export class ProgressService {
       
 
 
-      // get length of modules array mn course code(total number of modules), how many modules completed per user needed . getModulesCompleted
-      async getTotalModules(course_code: string): Promise<number> {
-        const total= await this.coursesService.getModulesForCourse(course_code); 
-        return total.length;// Call the method from CoursesService
-      }
+      // // get length of modules array mn course code(total number of modules), how many modules completed per user needed . getModulesCompleted
+      // async getTotalModules(course_code: string): Promise<number> {
+      //   const total= await this.coursesService.getModulesForCourse(course_code); 
+      //   return total.length;// Call the method from CoursesService
+      // }
 
-      async getTotalModulesCompleted(course_code: string, Username: string):Promise<number>{
-        const studentProgress = await this.progressModel.findOne({ Username, course_code });
+    //   async getTotalModulesCompleted(course_code: string, Username: string):Promise<number>{
+    //     const studentProgress = await this.progressModel.findOne({ Username, course_code });
 
-        if (!studentProgress) {
-          throw new Error('Student progress not found');
-        }
-         // Get the total number of modules for the course
-    const totalModules = await this.getTotalModules(course_code);  // This calls getModulesForCourse from CoursesService
+    //     if (!studentProgress) {
+    //       throw new Error('Student progress not found');
+    //     }
+    //      // Get the total number of modules for the course
+    // const totalModules = await this.getTotalModules(course_code);  // This calls getModulesForCourse from CoursesService
 
-    // Calculate the number of completed modules based on completion_percentage
-    const completedModules = Math.round((studentProgress.completion_percentage / 100) * totalModules);
+    // // Calculate the number of completed modules based on completion_percentage
+    // const completedModules = Math.round((studentProgress.completion_percentage / 100) * totalModules);
 
-    return completedModules;
+    // return completedModules;
   
-      }
+    //   }
 
       async setCompletionPercentage(Username: string): Promise<number[]>{
         let CompPercentage: number[];

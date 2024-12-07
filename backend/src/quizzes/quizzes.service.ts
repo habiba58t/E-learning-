@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UseGuards } from '@nestjs/common';
+import { Injectable, NotFoundException, UseGuards ,forwardRef,Inject} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { Quiz, QuizzesDocument } from './quizzes.schema';  // Assuming your Quiz schema is defined
@@ -16,6 +16,8 @@ import { Role, Roles } from 'src/auth/decorators/role.decorator';
 import { AuthGuard } from 'src/auth/guards/authentication.guard';
 import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
 import { CoursesService } from 'src/courses/courses.service';
+import { UsersService } from 'src/users/users.service';
+import { ProgressService } from 'src/progress/progress.service';
 //findQuestionsByModuleId(moduleId) in modules?*
 //addQuestionToModule(moduleId, newQuestion._id) in modules?*
 //addQuizToModule(moduleId, quiz._id) in modules?*
@@ -55,14 +57,21 @@ export class QuizzesService {
     @InjectModel(Responses.name) private responseModel: Model<ResponsesDocument>, // Inject Student model
     @InjectModel(Courses.name) private courseModel: Model<courseDocument>, // Inject Student model
     @InjectModel(Module.name) private moduleModel: Model<moduleDocument>, // Inject Student model
-    @InjectModel(Users.name) private userModel: Model<userDocument>, // Inject Student model
-  
+     // Inject Student model
+    @Inject(forwardRef(() => ModulesService)) private readonly moduleService: ModulesService,
+    @Inject(forwardRef(() => ProgressService)) private readonly progressService: ProgressService,
+    @Inject(forwardRef(() => StudentService)) private readonly studentService: StudentService,
+    @Inject(forwardRef(() => ResponsesService)) private readonly responseService: ResponsesService,
+    @Inject(forwardRef(() => CoursesService)) private readonly courseService: CoursesService,
+    @Inject(forwardRef(() => UsersService)) private readonly usersService: CoursesService,
+    @Inject(forwardRef(() => QuestionsService)) private readonly questionService: QuestionsService,
 
-    private readonly moduleService: ModulesService,
-    private readonly questionService: QuestionsService,
-    private readonly studentService: StudentService,  // Injecting the user service
-    private readonly responseService: ResponsesService,
-    private readonly courseService: CoursesService,
+    
+    
+      // Injecting the user service
+    
+    
+    
 
     ) { }
 
@@ -139,7 +148,7 @@ async prepareQuizForStudent(
   username: string,
 ): Promise<QuestionsDocument[]> {
   // Step 1: Fetch the student record
-  const student = await this.userModel.findOne({ username: username }).exec();
+  const student = await this.studentModel.findOne({ username: username }).exec();
   if (!student) {
     throw new Error('Student not found');
   }
@@ -218,15 +227,15 @@ async prepareQuizForStudent(
   let hardCount = 0;
 
  // Logic to distribute questions based on the student's score (you can adjust this)
- if (studentLevel === 'below average') {
+ if (studentLevel === 'easy') {
   easyCount = Math.floor(0.7 * questions.length);  // 70% easy
   mediumCount = Math.floor(0.25 * questions.length);  // 25% medium
   hardCount = Math.floor(0.05 * questions.length);  // 5% hard
-} else if (studentLevel === 'above average') {
+} else if (studentLevel === 'medium') {
   easyCount = Math.floor(0.20 * questions.length);  // 50% easy
   mediumCount = Math.floor(0.60 * questions.length);  // 40% medium
   hardCount = Math.floor(0.20 * questions.length);  // 10% hard
-} else if (studentLevel === 'excellent') {
+} else if (studentLevel === 'hard') {
   easyCount = Math.floor(0.1 * questions.length);  // 30% easy
   mediumCount = Math.floor(0.45 * questions.length);  // 40% medium
   hardCount = Math.floor(0.45 * questions.length);  // 30% hard
@@ -289,7 +298,7 @@ private randomizeQuestions(questions: QuestionsDocument[], numberOfQuestions: nu
 
 async getQuizzesForStudents(username: string): Promise<QuizzesDocument[]> {
       // Step 1: Get all courses the student is enrolled in
-      const student: userDocument = await this.userModel
+      const student: userDocument = await this.studentModel
   .findOne({ username })
   .populate({
     path: 'courses', // Populate courses
@@ -508,7 +517,7 @@ if (!quiz.responses.includes(response._id)) {
 }
 
   // Step 4: Update the student's score for the course
-  const student = await this.userModel.findOne({ username: studentUsername });
+  const student = await this.studentModel.findOne({ username: studentUsername });
   if (student) {
     // Find the course by populating the modules to access quizzes
     const course = await this.courseModel.findOne({ 'modules.quizzes._id': quizId }).populate('modules.quizzes');

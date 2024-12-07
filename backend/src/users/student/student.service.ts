@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, forwardRef, UseGuards } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import * as mongoose from 'mongoose';
 import { Model } from 'mongoose';
@@ -16,9 +16,16 @@ import { CreateUserDto } from '../dto/CreateUser.dto';
 import { userDocument } from '../users.schema';
 import {Responses} from 'src/responses/responses.schema';
 import { ResponsesService } from 'src/responses/responses.service';
+import { NotesService } from 'src/notes/notes.service';
+import { Role, Roles } from 'src/auth/decorators/role.decorator';
+import { AuthGuard } from 'src/auth/guards/authentication.guard';
+import { Public } from 'src/auth/decorators/public.decorator';
+import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
 
 
 @Injectable()
+@UseGuards(AuthGuard)
+
 export class StudentService {
 
     constructor(
@@ -29,28 +36,15 @@ export class StudentService {
         @Inject(forwardRef(() => CoursesService)) private readonly coursesService: CoursesService,
         @Inject(forwardRef(() => UsersService)) private readonly usersService: UsersService,
         @Inject(forwardRef(() => ProgressService)) private readonly progressService: ProgressService,
-        @Inject(forwardRef(() => ResponsesService)) private readonly responsesService: UsersService,
+        @Inject(forwardRef(() => ResponsesService)) private readonly responsesService: ResponsesService,
+        @Inject(forwardRef(() => NotesService)) private readonly notesService: NotesService,
     ){}
 
-    //GET: all courses student enrolled in and not outdated                 DONE EXCEPT USERNAME NEED TO GET FROM TOKEN
- //   async getCoursesForStudent(): Promise<Courses[]> {
-        // Step 1: Get the courses array for the user
-  //      const coursesArray = await this.usersService.findCoursesArray(this.userModel.username);
-      
-        // Step 2: Fetch all courses by their ObjectIds
-   //     const courses = await this.courseModel.find({
-    //      _id: { $in: coursesArray }, // Match ObjectIds from coursesArray
-   //     }).exec();
-      
-        // Step 3: Filter non-outdated courses
-    //    const validCourses = courses.filter((course) => !course.isOutdated);
-      
-  //      return validCourses;
-    //  }
 
-
+// @UseGuards(AuthorizationGuard)
+// @Roles(Role.User)
     // Method to enroll a student in a course
-    async enrollStudentInCourse(username: string, courseId: string): Promise<userDocument> {
+async enrollStudentInCourse(username: string, courseId: string): Promise<userDocument> {
         // Find the student by username
         const student = await this.userModel.findOne({ username }).exec();
         if (!student) {
@@ -58,7 +52,7 @@ export class StudentService {
         }
     
         // Find the course by its ID
-        const course = await this.courseModel.findById(courseId).exec();
+        const course = await this.coursesService.findOne(courseId);
         if (!course) {
           throw new NotFoundException(`Course with ID ${courseId} not found`);
         }
@@ -91,8 +85,11 @@ export class StudentService {
         return student;
       }
 
+      
 
 //GET STUDENT SCORE
+@UseGuards(AuthorizationGuard)
+@Roles(Role.User, Role.Admin, Role.Instructor)
 async getStudentScore(username: string, objectId: mongoose.Types.ObjectId): Promise<number | null> {
   // Find the user by username
   const student = await this.usersService.findUserByUsername(username);
@@ -114,6 +111,8 @@ async getStudentScore(username: string, objectId: mongoose.Types.ObjectId): Prom
 }
 
 //GET STUDENT Level
+@UseGuards(AuthorizationGuard)
+@Roles(Role.User, Role.Admin, Role.Instructor)
 async getStudentLevel(username: string, objectId: mongoose.Types.ObjectId): Promise<string | null> {
   // Find the user by username
   const student = await this.usersService.findUserByUsername(username);
@@ -135,7 +134,7 @@ async getStudentLevel(username: string, objectId: mongoose.Types.ObjectId): Prom
 }
 
 //SET STUDENT SCORE
-async setStudentScore(username: string, objectId: mongoose.Types.ObjectId, newScore: number): Promise<void> {
+ async setStudentScore(username: string, objectId: mongoose.Types.ObjectId, newScore: number): Promise<void> {
   // Find the user by username
   const student: HydratedDocument<Users> = await this.userModel.findOne({ username });
 
@@ -159,8 +158,8 @@ async setStudentScore(username: string, objectId: mongoose.Types.ObjectId, newSc
  
 }
 
-//SET STUDENT SCORE
-async setStudentLevel(username: string, objectId: mongoose.Types.ObjectId, updatedScore: number): Promise<void> {
+//SET STUDENT level
+private async setStudentLevel(username: string, objectId: mongoose.Types.ObjectId, updatedScore: number): Promise<void> {
   // Find the user by username
   const student: HydratedDocument<Users> = await this.userModel.findOne({ username });
 
@@ -189,83 +188,55 @@ async setStudentLevel(username: string, objectId: mongoose.Types.ObjectId, updat
   await student.save();
 }
 
-//GET ALL NOTES OBJECT ID FOR A SPECIFIC MODULE
+//GET ALL NOTES OBJECT ID FOR A SPECIFIC MODULE FOR A specific student
+@UseGuards(AuthorizationGuard)
+@Roles(Role.User)
    async getAllNotesForModule(moduleId: mongoose.Types.ObjectId, username:string): Promise<mongoose.Types.ObjectId[] | null> {
      const student = await this.userModel.findOne({username: username});
      return student.notes.get(moduleId);
    }
 
-//UPDATE STUDENT PROFILE
-async updateProfile(username: string, updateUserDto: UpdateUserDto): Promise<userDocument> {
-  // Find the student by username
-  const student = await this.userModel.findOne({ username }).exec();
+@UseGuards(AuthorizationGuard)
+@Roles(Role.User, Role.Admin, Role.Instructor)
+//Delete Student, their progress,responses and notes 
+async deleteStudentAndRelatedData(username: string): Promise<void> {
+  // Check if the student exists
+  const student = await this.userModel.findOne({ username });
   if (!student) {
-    throw new NotFoundException(`Student with username "${username}" not found.`);
+    throw new Error(`Student with username ${username} not found`);
   }
 
-  // Update the student profile
-  Object.assign(student, updateUserDto);
+  // Delete all responses using the existing method
+  try {
+    await this.responsesService.deleteResponseByUsername(username);
+  } catch (error) {
+    console.error(`Failed to delete responses for username: ${username}`, error);
+    throw new Error('Failed to delete responses.');
+  }
 
-  // Save the updated student
-  await student.save();
+  // Delete all progress using the existing method
+  try {
+    await this.progressService.deleteProgressByUsername(username);
+  } catch (error) {
+    console.error(`Failed to delete progress for username: ${username}`, error);
+    throw new Error('Failed to delete progress.');
+  }
 
-  return student;
+  // Delete all notes using the existing method
+  try {
+    await this.notesService.deleteNoteByUsername(username);
+  } catch (error) {
+    console.error(`Failed to delete notes for username: ${username}`, error);
+    throw new Error('Failed to delete notes.');
+  }
+
+  // Finally, delete the student from the user table
+  try {
+    await this.userModel.deleteOne({ username });
+  } catch (error) {
+    console.error(`Failed to delete student with username: ${username}`, error);
+    throw new Error('Failed to delete student.');
+  }
 }
-
-// CREATE NEW STUDENT FOR REGISTER
-async createStudent(createStudentDto:CreateUserDto): Promise<userDocument> {
-  const newStudent = new this.userModel({
-    ...createStudentDto,
-    password_hash: createStudentDto.password, // Hash the password if needed
-    created_at: new Date(),
-    courses: [],
-    notes: new Map(),
-    studentScore: new Map(),
-    studentLevel: new Map(),
-  });
-
-  return await newStudent.save();
-}
-
-//Delete Student, their progress,responses and notes 
-// async deleteStudentAndRelatedData(username: string): Promise<void> {
-//   // Check if the student exists
-//   const student = await this.userModel.findOne({ username });
-//   if (!student) {
-//     throw new Error(`Student with username ${username} not found`);
-//   }
-
-//   // Delete all responses using the existing method
-//   try {
-//     await this.deleteResponseByUsername(username);
-//   } catch (error) {
-//     console.error(`Failed to delete responses for username: ${username}`, error);
-//     throw new Error('Failed to delete responses.');
-//   }
-
-//   // Delete all progress using the existing method
-//   try {
-//     await this.deleteProgressByUsername(username);
-//   } catch (error) {
-//     console.error(`Failed to delete progress for username: ${username}`, error);
-//     throw new Error('Failed to delete progress.');
-//   }
-
-//   // Delete all notes using the existing method
-//   try {
-//     await this.deleteNotesByUsername(username);
-//   } catch (error) {
-//     console.error(`Failed to delete notes for username: ${username}`, error);
-//     throw new Error('Failed to delete notes.');
-//   }
-
-//   // Finally, delete the student from the user table
-//   try {
-//     await this.userModel.deleteOne({ username });
-//   } catch (error) {
-//     console.error(`Failed to delete student with username: ${username}`, error);
-//     throw new Error('Failed to delete student.');
-//   }
-// }
 
 }

@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
+export type ProgressDocument = HydratedDocument<Progress>;
 @Schema()
 export class Progress {  
   @Prop({ required: true })
@@ -17,7 +18,7 @@ export class Progress {
 }
 
 // Define ProgressDocument as a HydratedDocument type for the Progress schema
-export type ProgressDocument = HydratedDocument<Progress>;
+
 
 // Create the Mongoose schema model (avoid duplication with the class name)
 export const ProgressSchema = SchemaFactory.createForClass(Progress);

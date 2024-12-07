@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, NotFoundException, Inject, forwardRef,UseGuards } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Users } from './users.schema';
 import { Model } from 'mongoose';
@@ -10,10 +10,13 @@ import { courseDocument } from 'src/courses/courses.schema';
 import { ProgressService } from 'src/progress/progress.service';
 import { SearchUserDto } from './dto/SearchUser.dto';
 import { CreateUserDto } from './dto/CreateUser.dto';
-import { Role } from 'src/auth/decorators/role.decorator';
-import { StudentService } from './student/student.service';
-import { Module, moduleDocument } from 'src/modules/modules.schema';
-import { ModulesService } from 'src/modules/modules.service';
+import { UpdateUserDto } from './dto/UpdateUser.dto';
+import { Role, Roles } from 'src/auth/decorators/role.decorator';
+import { AuthGuard } from 'src/auth/guards/authentication.guard';
+import { Public } from 'src/auth/decorators/public.decorator';
+import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
+
+
 @Injectable()
 export class UsersService {
     constructor(
@@ -25,29 +28,23 @@ export class UsersService {
 
 //ADD create user for all users that takes create dto
 
-    //GET: get array of courses for a speicifc user
-    // async findCoursesArray(username: string): Promise<Courses[]> {
-    //     const found= await this.userModel.findOne({username });
-    //     if (!found) {
-    //         throw new NotFoundException(`User with username ${username} not found`);
-    //       }
-    //     return found.courses;
-    // }
-
 //GET USER BY username
 async findUserByUsername( username: string): Promise<userDocument> {
   return await this.userModel.findOne({username});
 }
 
-// //GET ENROLLED STUDENTS
-// async getEnrolledStudents(objectId:mongoose.Types.ObjectId): Promise<Users[]>{
-// const course= await this.coursesService.findById(objectId);
-// return await this.progressService.getStudentsEnrolled(course.course_code);
-// }
+// //GET ENROLLED STUDENTS in a specific course 
+@UseGuards(AuthorizationGuard)
+@Roles(Role.User, Role.Admin, Role.Instructor)
+async getEnrolledStudents(objectId:mongoose.Types.ObjectId): Promise<string[]>{
+const course= await this.coursesService.getcoursebyid(objectId);
+return await this.progressService.findAllStudentsEnrolled(course.course_code);
+}///add to find usernames where completion <100
 
 
-// CREATE NEW STUDENT FOR REGISTER
-async create(createUserDto: CreateUserDto, password_hash: string): Promise<userDocument> {
+// CREATE NEW User FOR REGISTER
+
+ async create(createUserDto: CreateUserDto, password_hash: string): Promise<userDocument> {
   const newUser = new this.userModel({
     ...createUserDto, // Spread properties from CreateUserDto
     password_hash, // Add the hashed password
@@ -62,13 +59,8 @@ async create(createUserDto: CreateUserDto, password_hash: string): Promise<userD
   return await newUser.save();
 }
 
-
-
-async findOneByEmail(email: string): Promise<userDocument>{
-  return await this.userModel.findOne({email});
-}
-
-
+//GET: search for intstructor
+@Public()
 async searchUsers(loggedInUserId: string | null, searchUserDto: SearchUserDto): Promise<userDocument[]> {
   const query: any = {};
 
@@ -115,67 +107,24 @@ async findUsers(username?: string, role?: Role): Promise<Users[]> {
   return this.userModel.find(query).exec();
 }
 
-
-// methods for adminn (farida)
-async deleteStudent(username: string): Promise<void> {
-  // Find the student by username and populate the courses field
-  const student = await this.userModel.findOne({ username }).populate('courses').exec();
-
-  if (!student) {
-    throw new Error("Invalid Username");
-  }
-
-
-  // Get the populated courses array (assuming courses is populated with full course documents)
-  const courses = student.courses;
-
-  for (const course of courses) {
-    // Populate and delete each module in the course
-    const populatedCourse = await this.courseModel.findOne({ _id: course._id }).populate('modules').exec();
-
-    if (populatedCourse && populatedCourse.modules) {
-      for (const module of populatedCourse.modules) {
-        await this.moduleModel.findOneAndDelete({ _id: module._id });
-      }
-    }
-
-    // Delete the course after deleting all modules
-    await this.courseModel.findOneAndDelete({ _id: course._id });
-  }
-
-  // Finally, delete the student
-  await this.userModel.findOneAndDelete({ username });
-}
-
-/*async deleteInstucterORAdmin(username: string):Promise<void>{
-  const instructer= await this.userModel.findOne({username});
-  if (! instructer){
-    throw new Error("username not found");
-  }
-  await this.userModel.findOneAndDelete({username});
-}*/
-//for adminn
-/*async deleteStudent(username: string): Promise<void> {
+//UPDATE STUDENT PROFILE
+@UseGuards(AuthorizationGuard)
+@Roles(Role.User, Role.Admin, Role.Instructor)
+async updateProfile(username: string, updateUserDto: UpdateUserDto): Promise<userDocument> {
   // Find the student by username
-  const student = await this.findUserByUsername(username);
-  if (!student) {
-      throw new Error("Invalid Username");
+  const user = await this.userModel.findOne({ username }).exec();
+  if (!user) {
+    throw new NotFoundException(`user with username "${username}" not found.`);
   }
 
-  const courses = student.courses; // Assuming courses is an array of ObjectIds
-  for(const course of courses){
-    const modules= await this.moduleModel.find({_id:{ $in:course.modules}}).exec();
-    for(const module in modules){
-      await this.moduleModel.findOneAndDelete({module});
-    }
-    }
-  // Finally, delete the student
-  await this.userModel.findOneAndDelete({ username });
+  // Update the student profile
+  Object.assign(user, updateUserDto);
+
+  // Save the updated student
+  await user.save();
+
+  return user;
 }
-*/
-
-
-
 
 
 }

@@ -53,11 +53,7 @@ export class ProgressController {
   }
 
   @Put('update/:course_code/:Username') 
-  async updateProgress(
-    @Param('course_code') course_code: string,
-    @Param('Username') Username: string,
-    @Body() progressData: updateProgressDTo,
-  ) {
+async updateProgress(@Param('course_code') course_code: string,@Param('Username') Username: string,@Body() progressData: updateProgressDTo,) {
     const updatedProgress = await this.progressService.update(course_code, Username, progressData);
     return updatedProgress;
   }
@@ -74,6 +70,11 @@ export class ProgressController {
     return deletedProgress;
   }
 
+  @Delete('delete/:Username') //deletee mmkn admin 
+  async deleteProgressByUsername( @Param('Username') Username: string) {
+    await this.progressService.deleteProgressByUsername(Username);
+  }
+
   @Get('enrolled/:course_code') //hasa no guard
   async getAllEnrolled(@Param('course_code') course_code: string): Promise<number> {
     return await this.progressService.findNumberOfStudentsEnrolled(course_code);
@@ -86,18 +87,18 @@ export class ProgressController {
     return await this.progressService.findAllStudentsCompleted(course_code);
   }
 
-  @Get('total-modules/:course_code') // Changed path
-  async getTNModules(@Param('course_code') course_code: string): Promise<number> {
-    return await this.progressService.getTotalModules(course_code);
-  }
+  // @Get('total-modules/:course_code') // Changed path
+  // async getTNModules(@Param('course_code') course_code: string): Promise<number> {
+  //   return await this.progressService.getTotalModules(course_code);
+  // }
 
-  @Get('modules-completed/:course_code/:Username') // Changed path
-  async getModulesCompleted(
-    @Param('course_code') course_code: string,
-    @Param('Username') Username: string,
-  ): Promise<number> {
-    return await this.progressService.getTotalModulesCompleted(course_code, Username);
-  }
+  // @Get('modules-completed/:course_code/:Username') // Changed path
+  // async getModulesCompleted(
+  //   @Param('course_code') course_code: string,
+  //   @Param('Username') Username: string,
+  // ): Promise<number> {
+  //   return await this.progressService.getTotalModulesCompleted(course_code, Username);
+  // }
 
   
   @Get('enrolledStudents/:course_code')
