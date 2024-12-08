@@ -1,39 +1,22 @@
-// import { Module } from '@nestjs/common';
-// import { AuthController } from './auth.controller';
-// import { AuthService } from './auth.service';
-// import { UsersModule } from 'src/users/users.module';
-// import { JwtModule } from '@nestjs/jwt';
-// import * as dotenv from 'dotenv';
-
-// @Module({
-//   controllers: [AuthController],
-//   providers: [AuthService],
-//   imports:[UsersModule, JwtModule.register({
-//     global: true,
-//     secret: process.env.JWT_SECRET || 'yourSuperSecretKey',
-//     signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || '1h' },
-//   })]
-// })
-// export class AuthModule {}
-import { Module, forwardRef } from '@nestjs/common';
-import { AuthService } from './auth.service';
+import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
 import { UsersModule } from 'src/users/users.module';
 import { JwtModule } from '@nestjs/jwt';
-import { PassportModule } from '@nestjs/passport';
+import * as dotenv from 'dotenv';
+import { AuthGuard } from '@nestjs/passport';  // Keep this import
+import { AuthorizationGuard } from './guards/authorization.guard';
 
 @Module({
+  controllers: [AuthController],
+  providers: [AuthorizationGuard, AuthService], // Remove AuthGuard from here
   imports: [
-    forwardRef(() => UsersModule), // Break circular dependency
-    PassportModule,
+    UsersModule,
     JwtModule.register({
       global: true,
-      secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: process.env.JWT_EXPIRES_IN },
+      secret: process.env.JWT_SECRET || 'yourSuperSecretKey',
+      signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || '1h' },
     }),
   ],
-  providers: [AuthService],
-  controllers: [AuthController],
-  exports: [AuthService],
 })
 export class AuthModule {}

@@ -4,10 +4,8 @@ import { UsersService } from 'src/users/users.service';
 import { RegisterDto } from './dto/registerDto';
 import { CreateUserDto } from 'src/users/dto/createuser.dto';
 import * as bcrypt from 'bcrypt';
-import mongoose, { Model, Types } from 'mongoose';
 import { SignInDto } from './dto/signInDto';
 import * as dotenv from 'dotenv';
-import { Log } from 'src/log/log.schema';
 @Injectable()
 export class AuthService {
     constructor(
@@ -18,7 +16,7 @@ export class AuthService {
       async register(user: RegisterDto): Promise<string> {
         const existingUser = await this.usersService.findUserByUsername(user.username);
         if (existingUser) {
-          throw new ConflictException('username already exists');
+          throw new ConflictException('Username already exists');
         }
     
         // Hash password before saving
@@ -31,13 +29,13 @@ export class AuthService {
         };
     
         // Save the new user to the database
-        await this.usersService.create(newUser, hashedPassword);
+        await this.usersService.create(newUser);
     
         return 'Registered successfully';
       }
       
-      async login(loginDto: SignInDto) {
-        const { username, password } = loginDto;
+      async login(signinDto: SignInDto) {
+        const { username, password } = signinDto;
       
         // Log username for debugging
         console.log(`Attempting login for username: ${username}`);
@@ -61,7 +59,7 @@ export class AuthService {
         console.log(`User authenticated: ${username}, generating token...`);
       
         // JWT payload
-        const payload = { username: user.username, role: user.role};
+        const payload = { username: user.username, role: user.role };
         console.log("payload met");
         // Debugging JWT configuration
         const secret = process.env.JWT_SECRET || 'yourSuperSecretKey';

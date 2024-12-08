@@ -43,15 +43,18 @@ return await this.progressService.findAllStudentsEnrolled(course.course_code);
 
 // CREATE NEW User FOR REGISTER
 
- async create(createUserDto: CreateUserDto, password_hash: string): Promise<userDocument> {
+async create(createUserDto: CreateUserDto): Promise<userDocument> {
+  // Hash the password before saving
+ // const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+
   const newUser = new this.userModel({
-    ...createUserDto, // Spread properties from CreateUserDto
-    password_hash, // Add the hashed password
-    created_at: new Date(), // Set creation timestamp
-    courses: [], // Initialize courses as an empty array
-    notes: new Map(), // Initialize notes as an empty Map
-    studentScore: new Map(), // Initialize studentScore as an empty Map
-    studentLevel: new Map(), // Initialize studentLevel as an empty Map
+      ...createUserDto,  // Spread the properties from CreateUserDto
+      password_hash: createUserDto.passwordHash,  // Save the hashed password in password_hash field
+      created_at: new Date(),  // Set creation timestamp
+      courses: [],  // Initialize courses as an empty array
+      notes: new Map(),  // Initialize notes as an empty Map
+      studentScore: new Map(),  // Initialize studentScore as an empty Map
+      studentLevel: new Map(),  // Initialize studentLevel as an empty Map
   });
 
   // Save the new user to the database

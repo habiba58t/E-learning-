@@ -1,8 +1,8 @@
- import { Body, Controller, Get, HttpException, HttpStatus, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignInDto } from './dto/signInDto';
 import { RegisterDto } from './dto/registerDto';
-import { AuthGuard } from './guards/authentication.guard';
+import { AuthGuard } from './guards/authentication.guard'; // Import the custom AuthGuard
 import { Request, Response } from 'express';
 
 @Controller('auth')
@@ -21,39 +21,37 @@ export class AuthController {
         return { userData };
     }
 
- 
-
-
     @Post('login')
-    async login(@Body() signInDto: SignInDto,@Res({ passthrough: true }) res: Response) {
+    // @UseGuards(AuthGuard) // Use the custom AuthGuard here
+    async login(@Body() signInDto: SignInDto, @Res({ passthrough: true }) res: Response) {
         try {
             console.log('Attempting login...');
             // Call the AuthService to handle login
             const result = await this.authService.login(signInDto);
 
-           // Combine data into a single object
-        const combinedData = {
-            token: result.access_token,
-            username: result.payload.username,
-            role: result.payload.role,
-        };
+            // Combine data into a single object
+            const combinedData = {
+                token: result.access_token,
+                username: result.payload.username,
+                role: result.payload.role,
+            };
 
-        // Convert the object to a JSON string
-        const combinedDataString = JSON.stringify(combinedData);
+            // Convert the object to a JSON string
+            const combinedDataString = JSON.stringify(combinedData);
 
-        // Set the single cookie
-        res.cookie('user_data', combinedDataString, {
-            httpOnly: true, // Prevents client-side JavaScript access
-            secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-            maxAge: 3600 * 1000, // Cookie expiration time in milliseconds
-        });
+            // Set the single cookie
+            res.cookie('user_data', result, {
+                httpOnly: true, // Prevents client-side JavaScript access
+                secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+                maxAge: 3600 * 1000, // Cookie expiration time in milliseconds
+            });
 
             // Return success response
             return {
                 statusCode: HttpStatus.OK,
                 message: 'Login successful',
                 user: result.payload,
-                access_token:result.access_token
+                access_token: result.access_token
             };
         } catch (error) {
             console.log(error);
@@ -74,7 +72,7 @@ export class AuthController {
         }
     }
 
-    @Post('/register')
+    @Post('register')
     async register(@Body() registerRequestDto: RegisterDto) {
         try {
             // Call the AuthService to handle registration

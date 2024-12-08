@@ -55,8 +55,19 @@ export class Users {
   studentLevel: Map<mongoose.Types.ObjectId, string>; // Map of course id to string (enum)
 
   // Reference to notification documents using ObjectId
-@Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'notification' }] })
+@Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Notification'}] })
 notification: mongoose.Types.ObjectId[]; 
+
+// @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Chat' }] })
+// chat: mongoose.Types.ObjectId[];
+
+
+@Prop({ 
+  type: Map, 
+  of: Boolean, 
+  ref: 'Chat'  // Adding ref to establish a reference to the Chat schema
+})
+chats: Map<mongoose.Types.ObjectId,boolean>;
 }
 
 export const UsersSchema = SchemaFactory.createForClass(Users);
