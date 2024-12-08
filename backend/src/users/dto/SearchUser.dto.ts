@@ -1,3 +1,4 @@
+
 import { IsOptional, IsEnum } from 'class-validator';
 
 export class SearchUserDto {

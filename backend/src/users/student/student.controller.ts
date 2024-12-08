@@ -1,11 +1,11 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete, UseGuards,Req } from '@nestjs/common';
 import * as mongoose from 'mongoose';
 import { StudentService } from './student.service';
 import { userDocument, UsersSchema } from '../users.schema';
 import { Courses } from 'src/courses/courses.schema';
 import { CoursesService } from 'src/courses/courses.service';
 import { UpdateUserDto } from '../dto/UpdateUser.dto';
-import { CreateUserDto } from '../dto/CreateUser.dto';
+import { CreateUserDto } from '../dto/createuser.dto';
 import { UsePipes } from '@nestjs/common';
 import { ValidationPipe } from '@nestjs/common';
 import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
@@ -23,9 +23,9 @@ export class StudentController {
     // Enroll student in a specific course
   @UseGuards(AuthorizationGuard)
 @Roles(Role.User)
-  @Put(':username/enroll/:courseId')
-  async enrollStudentInCourse(@Param('username') username: string,@Param('courseId') courseId: string):Promise<userDocument> {
-    return this.studentService.enrollStudentInCourse(username, courseId);
+  @Put('/enroll/:courseId')
+  async enrollStudentInCourse(@Req() {user},@Param('courseId') courseId: string):Promise<userDocument> {
+    return this.studentService.enrollStudentInCourse(user, courseId);
   }
 
 

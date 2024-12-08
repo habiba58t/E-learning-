@@ -57,8 +57,6 @@ async findAll(): Promise<Notes[]> {
   // Update an existing note
   async updateNote(noteId: mongoose.Types.ObjectId, updateNoteDto: UpdateNoteDto): Promise<notesDocument> {
     const note= await this.noteModel.findOneAndUpdate({noteId}, updateNoteDto, { new: true }).exec();
-  async updateNote(noteId: mongoose.Types.ObjectId, updateNoteDto: UpdateNoteDto): Promise<notesDocument> {
-    const note= await this.noteModel.findOneAndUpdate({noteId}, updateNoteDto, { new: true }).exec();
     note.lastUpdated = new Date();
     await note.save();
     return note;

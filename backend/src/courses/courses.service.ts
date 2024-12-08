@@ -18,7 +18,8 @@ import { Role, Roles } from 'src/auth/decorators/role.decorator';
 import { AuthGuard } from 'src/auth/guards/authentication.guard';
 import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
 import { Public } from 'src/auth/decorators/public.decorator';
-
+import {NotificationService} from 'src/notification/notification.service';
+import {notificationDocument} from 'src/notification/notification.schema';
 
 
 @Injectable()
@@ -29,7 +30,7 @@ export class CoursesService {
     @InjectModel(Users.name) private readonly userModel: Model<userDocument>,
       @Inject(forwardRef(() => ModulesService)) private readonly modulesService: ModulesService,
       @Inject(forwardRef(() => ProgressService)) private readonly progressService: ProgressService,
-                // Inject ModulesService with forwardRef
+      @Inject(forwardRef(() => NotificationService)) private readonly notificationService: NotificationService,
     ) {}
     
   //GET ALL COURSES //PUBLIC  
@@ -159,8 +160,6 @@ async getModulesForCourseStudent(course_code: string, username: string): Promise
 
 
 //GET: modules for a course for an instructor
-// @UseGuards(AuthGuard, AuthorizationGuard)
-// @Roles(Role.Admin, Role.Instructor)
 async getModulesForCourseInstructor(course_code: string): Promise<moduleDocument[]> {
   const course = await this.findOne(course_code);
 
@@ -177,9 +176,15 @@ async getModulesForCourseInstructor(course_code: string): Promise<moduleDocument
 }
 
 //PUT: add module to a course
-// @UseGuards(AuthGuard, AuthorizationGuard)
-// @Roles(Role.Admin, Role.Instructor)
-async addModuleToCourse(courseCode: string, createModuleDto: CreateModuleDto): Promise<courseDocument> {
+async addModuleToCourse(courseCode: string, createModuleDto: CreateModuleDto,user: any): Promise<notificationDocument> {
+   // Find the course by course code
+   const course = await this.courseModel.findOne({ course_code: courseCode ,Unavailable: false}).exec();
+   if (!course) {
+     throw new NotFoundException(`Course with Course code ${courseCode} not found`);
+   }
+   if (course .created_by !== user.username) { //  token has username attached
+     throw new UnauthorizedException('You are not authorized to update this course');
+   }
   // Create new module and save it to the database
   const newModule = await this.modulesService.create(createModuleDto);
 
@@ -188,23 +193,26 @@ async addModuleToCourse(courseCode: string, createModuleDto: CreateModuleDto): P
     throw new Error('Failed to create the module.');
   }
 
-  // Find the course by course code
-  const course = await this.courseModel.findOne({ course_code: courseCode ,Unavailable: false}).exec();
-  if (!course) {
-    throw new NotFoundException(`Course with Course code ${courseCode} not found`);
-  }
   course.modules.push(newModule._id);
 
-  // Save the updated course document
   const updatedCourse = await course.save();
 
-  return updatedCourse;
+  //Notification creation:
+  const title=`a new module called ${newModule.title} in course ${course.title} has been added`;
+  const NotificationDto = {
+    message: title
+  };
+  const notification= await this.notificationService.createModuleNotification(course.course_code,NotificationDto);
+
+  return notification;
 }
 
 //PUT: remove module from array of modules in specific course
-// @UseGuards(AuthGuard, AuthorizationGuard)
-// @Roles(Role.Admin, Role.Instructor)
-async DeleteModuleFromCourse(courseCode: string, title:string): Promise<courseDocument> {
+async DeleteModuleFromCourse(user: any,courseCode: string, title:string): Promise<courseDocument> {
+  const course= await this.findOne(courseCode);
+  if(user.username !== course.created_by){
+    throw new NotFoundException(`you're not authorized`);
+  }
   const deletedModule= await this.modulesService.delete(title);
   // Use $pull to remove the moduleId from the modules array atomically
   const updatedCourse = await this.courseModel.findOneAndUpdate({ course_code: courseCode,Unavailable: false }, { $pull: { modules: deletedModule._id} },{ new: true } ).exec();

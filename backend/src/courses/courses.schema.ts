@@ -31,7 +31,6 @@ export class Courses  {
   @Prop()
   Unavailable: boolean;
 
-
   // Reference to Module documents using ObjectId
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Module' }] })
 modules: mongoose.Types.ObjectId[]; // Store ObjectId references

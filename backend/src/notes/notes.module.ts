@@ -1,20 +1,3 @@
-// import { Module } from '@nestjs/common';
-// import { NotesService } from './notes.service';
-// import { NotesController } from './notes.controller';
-// import { Notes,NoteSchema } from './notes.schema';
-// import { MongooseModule } from '@nestjs/mongoose';
-
-
-// @Module({
-//   imports: [
-//     MongooseModule.forFeature([{ name: Notes.name, schema: NoteSchema }]),
-//   ],
-  
-//   providers: [NotesService],
-//   controllers: [NotesController],
-//   exports: [NotesService]
-// })
-// export class NotesModule {}
 import { Module } from '@nestjs/common';
 import { NotesService } from './notes.service';
 import { NotesController } from './notes.controller';
@@ -37,6 +20,9 @@ import { ResponsesSchema } from 'src/responses/responses.schema';
 import { ContentSchema } from 'src/modules/content/content.schema';
 import { ContentService } from 'src/modules/content/content.service';
 import { StudentService } from 'src/users/student/student.service';
+import {Notification} from 'src/notification/notification.schema';
+import {NotificationSchema} from 'src/notification/notification.schema';
+import {NotificationService} from 'src/notification/notification.service';
 
 
 @Module({
@@ -50,12 +36,12 @@ import { StudentService } from 'src/users/student/student.service';
     MongooseModule.forFeature([{ name: 'Question', schema: QuestionsSchema }]),
     MongooseModule.forFeature([{ name: 'Responses', schema: ResponsesSchema }]),
     MongooseModule.forFeature([{ name: 'Content', schema: ContentSchema}]),
-
+    MongooseModule.forFeature([{ name: 'Notification', schema: NotificationSchema}]),
 
 
   ],
-  providers: [NotesService, UsersService,CoursesService,ProgressService,ModulesService,QuizzesService,QuestionsService,ResponsesService,ContentService,StudentService ],
+  providers: [NotesService, UsersService,CoursesService,ProgressService,ModulesService,QuizzesService,QuestionsService,ResponsesService,ContentService,StudentService,NotificationService ],
   controllers: [NotesController],
-  exports: [NotesService, UsersService,CoursesService,ProgressService,ModulesService,QuizzesService,QuestionsService,ResponsesService,ContentService,StudentService ]
+  exports: [NotesService, UsersService,CoursesService,ProgressService,ModulesService,QuizzesService,QuestionsService,ResponsesService,ContentService,StudentService,NotificationService ]
 })
 export class NotesModule {}

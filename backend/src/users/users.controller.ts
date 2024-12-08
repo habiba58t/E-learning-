@@ -10,6 +10,10 @@ import { UseGuards } from '@nestjs/common';
 import {  Query, Req, HttpException, HttpStatus } from '@nestjs/common';
 import { SearchUserDto } from './dto/SearchUser.dto';
 import { UpdateUserDto } from './dto/UpdateUser.dto';
+import { Role, Roles } from 'src/auth/decorators/role.decorator';
+import { AuthGuard } from 'src/auth/guards/authentication.guard';
+import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
+import { Public } from 'src/auth/decorators/public.decorator';
 
 @Controller('users')
 export class UsersController {
@@ -21,6 +25,8 @@ export class UsersController {
     return this.usersService.findUserByUsername(username);
   }
  //GETT ALL USERS ENROLLED IN A COURSE
+ @UseGuards(AuthorizationGuard)
+@Roles(Role.User, Role.Admin, Role.Instructor)
  @Get() 
    async getEnrolledStudents(@Param('objectId')objectId: mongoose.Types.ObjectId): Promise<string[]>{
      return this.usersService.getEnrolledStudents(objectId);

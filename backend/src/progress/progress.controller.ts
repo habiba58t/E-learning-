@@ -75,6 +75,8 @@ async updateProgress(@Param('course_code') course_code: string,@Param('Username'
     await this.progressService.deleteProgressByUsername(Username);
   }
 
+  @UseGuards(AuthorizationGuard)
+  @Roles(Role.User, Role.Admin, Role.Instructor)
   @Get('enrolled/:course_code') //hasa no guard
   async getAllEnrolled(@Param('course_code') course_code: string): Promise<number> {
     return await this.progressService.findNumberOfStudentsEnrolled(course_code);

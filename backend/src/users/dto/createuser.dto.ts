@@ -20,4 +20,6 @@ export class CreateUserDto {
   @IsNotEmpty() // Role is required and must match one of the allowed values
   @IsEnum(['student', 'instructor', 'admin'])
   role: string;
+  
+  passwordHash: string;
   }

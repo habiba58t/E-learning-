@@ -17,8 +17,4 @@ export class Progress {
   last_accessed: Date;
 }
 
-// Define ProgressDocument as a HydratedDocument type for the Progress schema
-
-
-// Create the Mongoose schema model (avoid duplication with the class name)
 export const ProgressSchema = SchemaFactory.createForClass(Progress);

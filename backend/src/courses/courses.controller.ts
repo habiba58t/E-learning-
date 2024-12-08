@@ -12,6 +12,7 @@ import { Role, Roles } from 'src/auth/decorators/role.decorator';
 import { AuthGuard } from 'src/auth/guards/authentication.guard';
 import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
 import { Public } from 'src/auth/decorators/public.decorator';
+import {notificationDocument} from 'src/notification/notification.schema';
 
 @Controller('courses')
 export class CoursesController {
@@ -52,7 +53,7 @@ export class CoursesController {
 //Create: course created by instructor
 @UseGuards(AuthGuard, AuthorizationGuard)
 @Roles(Role.Admin, Role.Instructor)
-   @Post('createCourse ')
+   @Post('createCourse')
   async create(@Req() {user}, @Body() createCourseDto: CreateCourseDto ): Promise<Courses> {
     // Pass the username and course data to the service to create the course and associate it with the instructor
     return this.coursesService.create(createCourseDto,user);
@@ -105,16 +106,16 @@ async findCourseByModuleId(@Param('moduleId') moduleId: string):Promise<courseDo
   @UseGuards(AuthGuard, AuthorizationGuard)
   @Roles(Role.Admin, Role.Instructor)
   @Put(':courseCode/modules')
-  async addModuleToCourse( @Param('courseCode') courseCode: string,@Body() createModuleDto: CreateModuleDto): Promise<Courses> {
-    return this.coursesService.addModuleToCourse(courseCode, createModuleDto);
+  async addModuleToCourse(@Req() {user}, @Param('courseCode') courseCode: string,@Body() createModuleDto: CreateModuleDto): Promise<notificationDocument> {
+    return this.coursesService.addModuleToCourse(courseCode, createModuleDto,user);
 }
 
 
 @UseGuards(AuthGuard, AuthorizationGuard)
 @Roles(Role.Admin, Role.Instructor)
  @Put(':courseCode/modules/:title')
-async DeleteModuleFromCourse( @Param('courseCode') courseCode: string , @Param ('title')title:string): Promise<Courses> {
-  return this.coursesService.DeleteModuleFromCourse(courseCode, title);
+async DeleteModuleFromCourse( @Req (){user},@Param('courseCode') courseCode: string , @Param ('title')title:string): Promise<Courses> {
+  return this.coursesService.DeleteModuleFromCourse(user,courseCode, title);
 }
 
 //GET: find outdated attributed of specific course

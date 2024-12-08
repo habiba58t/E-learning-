@@ -4,6 +4,7 @@ import { Courses } from '../courses/courses.schema'; // Adjust path as necessary
 import { HydratedDocument } from 'mongoose';
 import { Notes } from 'src/notes/notes.schema';
 import { Role } from 'src/auth/decorators/role.decorator';
+import {Notification} from 'src/notification/notification.schema';
 
 export type userDocument = HydratedDocument<Users>
 @Schema()
@@ -52,6 +53,10 @@ export class Users {
   
   @Prop({type: Map,of: String,enum: ['easy', 'medium', 'hard'],})
   studentLevel: Map<mongoose.Types.ObjectId, string>; // Map of course id to string (enum)
+
+  // Reference to notification documents using ObjectId
+@Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'notification' }] })
+notification: mongoose.Types.ObjectId[]; 
 }
 
 export const UsersSchema = SchemaFactory.createForClass(Users);

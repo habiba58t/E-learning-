@@ -2,7 +2,7 @@ import { ConflictException, Injectable, NotFoundException, UnauthorizedException
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import { RegisterDto } from './dto/registerDto';
-import { CreateUserDto } from 'src/users/dto/CreateUser.dto';
+import { CreateUserDto } from 'src/users/dto/createuser.dto';
 import * as bcrypt from 'bcrypt';
 import mongoose, { Model, Types } from 'mongoose';
 import { SignInDto } from './dto/signInDto';

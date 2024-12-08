@@ -9,7 +9,7 @@ import { userDocument } from './users.schema';
 import { courseDocument } from 'src/courses/courses.schema';
 import { ProgressService } from 'src/progress/progress.service';
 import { SearchUserDto } from './dto/SearchUser.dto';
-import { CreateUserDto } from './dto/CreateUser.dto';
+import { CreateUserDto } from './dto/createuser.dto';
 import { UpdateUserDto } from './dto/UpdateUser.dto';
 import { Role, Roles } from 'src/auth/decorators/role.decorator';
 import { AuthGuard } from 'src/auth/guards/authentication.guard';
@@ -20,7 +20,7 @@ import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
 @Injectable()
 export class UsersService {
     constructor(
-        @InjectModel(Module.name) private readonly moduleModel: Model<moduleDocument>, private readonly modulesServive: ModulesService,
+        // @InjectModel(Module.name) private moduleModel: Model<Module>,
          @InjectModel(Users.name) private readonly userModel: Model<userDocument>,
          @InjectModel(Courses.name) private readonly courseModel: Model<courseDocument>,
          @Inject(forwardRef(() => CoursesService)) private readonly coursesService: CoursesService,
@@ -34,12 +34,11 @@ async findUserByUsername( username: string): Promise<userDocument> {
 }
 
 // //GET ENROLLED STUDENTS in a specific course 
-@UseGuards(AuthorizationGuard)
-@Roles(Role.User, Role.Admin, Role.Instructor)
-async getEnrolledStudents(objectId:mongoose.Types.ObjectId): Promise<string[]>{
+async getEnrolledStudents(objectId:mongoose.Types.ObjectId): Promise<string[]>{  // i have course objectid 
 const course= await this.coursesService.getcoursebyid(objectId);
+console.log(`course seeing who is enroll in ${course}`)
 return await this.progressService.findAllStudentsEnrolled(course.course_code);
-}///add to find usernames where completion <100
+}//get all username where they didn't finish course
 
 
 // CREATE NEW User FOR REGISTER
@@ -128,4 +127,3 @@ async updateProfile(username: string, updateUserDto: UpdateUserDto): Promise<use
 
 
 }
-

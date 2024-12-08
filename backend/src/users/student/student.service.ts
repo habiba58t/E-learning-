@@ -12,7 +12,7 @@ import { ProgressService } from 'src/progress/progress.service';
 import { Progress } from 'src/progress/progress.schema';
 import { HydratedDocument } from 'mongoose';
 import { UpdateUserDto } from '../dto/UpdateUser.dto';
-import { CreateUserDto } from '../dto/CreateUser.dto';
+import { CreateUserDto } from '../dto/createuser.dto';
 import { userDocument } from '../users.schema';
 import {Responses} from 'src/responses/responses.schema';
 import { ResponsesService } from 'src/responses/responses.service';
@@ -21,6 +21,7 @@ import { Role, Roles } from 'src/auth/decorators/role.decorator';
 import { AuthGuard } from 'src/auth/guards/authentication.guard';
 import { Public } from 'src/auth/decorators/public.decorator';
 import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
+import { CreateProgressDTo } from 'src/progress/dto/createProgress.dto';
 
 
 @Injectable()
@@ -28,28 +29,27 @@ import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
 
 export class StudentService {
 
-    constructor(
-        @InjectModel(Users.name) private readonly userModel: Model<Users>, //msh motakeda
-        @InjectModel(Courses.name) private readonly courseModel: Model<Courses>,
-        @InjectModel(Progress.name) private readonly progressModel: Model<Progress>,
-        @InjectModel(Responses.name) private readonly responsesModel: Model<Responses>,
-        @InjectModel(Responses.name) private readonly responsesModel: Model<Responses>,
-        @Inject(forwardRef(() => CoursesService)) private readonly coursesService: CoursesService,
-        @Inject(forwardRef(() => UsersService)) private readonly usersService: UsersService,
-        @Inject(forwardRef(() => ProgressService)) private readonly progressService: ProgressService,
-        @Inject(forwardRef(() => ResponsesService)) private readonly responsesService: ResponsesService,
-        @Inject(forwardRef(() => NotesService)) private readonly notesService: NotesService,
-    ){}
+  constructor(
+    @InjectModel(Users.name) private readonly userModel: Model<Users>, //msh motakeda
+    @InjectModel(Courses.name) private readonly courseModel: Model<Courses>,
+    @InjectModel(Progress.name) private readonly progressModel: Model<Progress>,
+    @InjectModel(Responses.name) private readonly responsesModel: Model<Responses>,
+    @Inject(forwardRef(() => CoursesService)) private readonly coursesService: CoursesService,
+    @Inject(forwardRef(() => UsersService)) private readonly usersService: UsersService,
+    @Inject(forwardRef(() => ProgressService)) private readonly progressService: ProgressService,
+    @Inject(forwardRef(() => ResponsesService)) private readonly responsesService: ResponsesService,
+    @Inject(forwardRef(() => NotesService)) private readonly notesService: NotesService,
+){}
 
 
 // @UseGuards(AuthorizationGuard)
 // @Roles(Role.User)
     // Method to enroll a student in a course
-async enrollStudentInCourse(username: string, courseId: string): Promise<userDocument> {
+async enrollStudentInCourse(user: any, courseId: string): Promise<userDocument> {
         // Find the student by username
-        const student = await this.userModel.findOne({ username }).exec();
+        const student = await this.userModel.findOne({username: user.username}).exec();
         if (!student) {
-          throw new NotFoundException(`Student with username ${username} not found`);
+          throw new NotFoundException(`Student with username ${user.username} not found`);
         }
     
         // Find the course by its ID
@@ -68,17 +68,21 @@ async enrollStudentInCourse(username: string, courseId: string): Promise<userDoc
         student.courses.push(course._id);
         student.studentScore.set(course._id, 0); 
         student.studentLevel.set(course._id, 'easy');
-       const username1=student.username;
+        await student.save();
+        console.log(`student username ${student.username} !!`)
       // Prepare the progress data
-    const progressDto= {
+    const progressDto= {  //only course code and last accessed seen?
       username: student.username,
-      course_code: course._id, 
+      course_code: course.course_code, 
       completetion_percentage: 0,
       last_accessed: new Date() 
   };
 
+  console.log(`student username ${student.username} !! x2`)
+  console.log(`student completion ${progressDto.completetion_percentage} !! `)  //till here tmamm
+
   // Create the progress record
-  //const createdProgress = await this.progressService.create(progressDto);
+  const createdProgress = await this.progressService.create(progressDto);
         // Save the updated student document
         await student.save();
     

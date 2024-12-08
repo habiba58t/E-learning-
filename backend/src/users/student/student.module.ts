@@ -1,31 +1,3 @@
-// import { Module } from '@nestjs/common';
-// import { MongooseModule } from '@nestjs/mongoose';
-// import { StudentService } from './student.service';
-// import { StudentController } from './student.controller';
-// import { CoursesSchema } from 'src/courses/courses.schema';
-// import { CoursesService } from 'src/courses/courses.service';
-// import { UsersSchema } from '../users.schema';
-// import { Progress, ProgressSchema } from 'src/progress/progress.schema';
-// import { Responses, ResponsesSchema } from 'src/responses/responses.schema';
-// import { CoursesModule } from 'src/courses/courses.module';
-// import { UsersModule } from 'src/users/users.module';
-// import { ProgressModule } from 'src/progress/progress.module';
-// import { ResponsesModule } from 'src/responses/responses.module';
-// import { NoteSchema } from 'src/notes/notes.schema';
-
-// @Module({
-//   imports: [
-//     MongooseModule.forFeature([{ name: 'student', schema: UsersSchema }]),
-//     MongooseModule.forFeature([{ name: 'course', schema: CoursesSchema }]),
-//     MongooseModule.forFeature([{ name: 'progress', schema: ProgressSchema }]),
-//     MongooseModule.forFeature([{ name: 'Responses', schema: ResponsesSchema }]),
-//     MongooseModule.forFeature([{ name: 'Note', schema: NoteSchema }]),
-//   ],
-//   providers: [StudentService],
-//   controllers: [StudentController,CoursesService],
-//   exports: [StudentService,CoursesService]
-// })
-// export class StudentModule {}
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { StudentService } from './student.service';
@@ -52,6 +24,9 @@ import { ContentSchema } from 'src/modules/content/content.schema';
 import { ContentService } from 'src/modules/content/content.service';
 import { QuestionsSchema } from 'src/questions/questions.schema';
 import { QuestionsService } from 'src/questions/questions.service';
+import {Notification} from 'src/notification/notification.schema';
+import {NotificationSchema} from 'src/notification/notification.schema';
+import {NotificationService} from 'src/notification/notification.service';
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: 'Users', schema: UsersSchema }]),
@@ -63,9 +38,10 @@ import { QuestionsService } from 'src/questions/questions.service';
     MongooseModule.forFeature([{ name: 'Quiz', schema: QuizzesSchema }]),
     MongooseModule.forFeature([{ name: 'Content', schema:ContentSchema }]),
     MongooseModule.forFeature([{ name: 'Question', schema: QuestionsSchema}]),
+    MongooseModule.forFeature([{ name: 'Notification', schema: NotificationSchema}]),
   ],
-  providers: [StudentService,CoursesService, UsersService, ProgressService,ResponsesService, NotesService,ModulesService,QuizzesService,ContentService,QuestionsService ],
+  providers: [StudentService,CoursesService, UsersService, ProgressService,ResponsesService, NotesService,ModulesService,QuizzesService,ContentService,QuestionsService,NotificationService ],
   controllers: [StudentController],
-  exports: [StudentService,CoursesService, UsersService, ProgressService,ResponsesService, NotesService,ModulesService,QuizzesService,ContentService,QuestionsService ],
+  exports: [StudentService,CoursesService, UsersService, ProgressService,ResponsesService, NotesService,ModulesService,QuizzesService,ContentService,QuestionsService,NotificationService ],
 })
 export class StudentModule {}

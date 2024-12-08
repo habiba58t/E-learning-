@@ -58,8 +58,14 @@ async update(course_code: string,Username: string,updateData: { completion_perce
 
       //createeee
       async create(progressData: CreateProgressDTo): Promise<Progress> {
-        const createdProgress = new this.progressModel(progressData);
-        return createdProgress.save();  // Save to the database
+        try {
+          const createdProgress = new this.progressModel(progressData);{
+          console.log('Progress created successfully:', createdProgress);
+          return createdProgress;
+       } } catch (error) {
+          console.error('Error creating progress:', error.message);
+          throw error;
+        }
       }
 
 
@@ -81,20 +87,20 @@ async deleteProgressByUsername(Username: string) {
         const students = await this.findAllByCourse(course_code);
         return students.length;
       }
+
+
       async findAllStudentsEnrolled(course_code: string): Promise<string[]> { //maybe instructer and admin
         const students = await this.findAllByCourse(course_code);
         const usernames = students.map(student => student.Username);
-
-        // Return the array of usernames
-        return usernames;
-       
+        console.log(`usernames taking course ${usernames}`)
+        const completed= await this.findAllStudentsCompleted(course_code);
+        const completedUsernames  = completed.map(student => student.Username); //get all username where they finished course
+        console.log(`usernames finished course ${completedUsernames}`)
+        const incompleteUsernames = usernames.filter(username => !completedUsernames.includes(username));
+        console.log(`usernames not finish course ${incompleteUsernames}`)
+        return incompleteUsernames; 
       }
-      
-
-      
-      
-      
-      
+        
       //completed: the array aboth, filter who finished. kol student check if completetion is 100 . getStudentsCOmpleted
       async findAllStudentsCompleted(course_code: string): Promise<Progress[]> {
         const students = await this.findAllByCourse(course_code); // Get all progress documents for the course

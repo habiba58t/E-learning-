@@ -27,6 +27,10 @@ import { ContentService } from 'src/modules/content/content.service';
 import { Notes } from 'src/notes/notes.schema';
 import { NotesService } from 'src/notes/notes.service';
 import { NoteSchema } from 'src/notes/notes.schema';
+import {Notification} from 'src/notification/notification.schema';
+import {NotificationSchema} from 'src/notification/notification.schema';
+import {NotificationService} from 'src/notification/notification.service';
+
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Progress.name, schema: ProgressSchema }]),
@@ -38,9 +42,10 @@ import { NoteSchema } from 'src/notes/notes.schema';
     MongooseModule.forFeature([{ name: Responses.name, schema: ResponsesSchema }]),
     MongooseModule.forFeature([{ name: Content.name, schema: ContentSchema }]),
     MongooseModule.forFeature([{ name: Notes.name, schema: NoteSchema }]),
+    MongooseModule.forFeature([{ name: Notification.name, schema: NotificationSchema }]),
   ],
   controllers: [ProgressController],
-  providers: [ProgressService,CoursesService,QuizzesService,ModulesService,UsersService,QuestionsService,ResponsesService,StudentService,ContentService,NotesService],
-  exports:[ProgressService,CoursesService,QuizzesService,ModulesService,UsersService,QuestionsService,ResponsesService,StudentService,ContentService,NotesService],
+  providers: [ProgressService,CoursesService,QuizzesService,ModulesService,UsersService,QuestionsService,ResponsesService,StudentService,ContentService,NotesService,NotificationService],
+  exports:[ProgressService,CoursesService,QuizzesService,ModulesService,UsersService,QuestionsService,ResponsesService,StudentService,ContentService,NotesService,NotificationService],
 })
 export class ProgressModule {}
