@@ -69,6 +69,8 @@ export class CoursesController {
 
 
   //GET: GET cousrse by module id
+  @UseGuards(AuthGuard, AuthorizationGuard)
+  @Roles(Role.Admin, Role.Instructor,Role.User)
  @Get('module/:moduleId')
 async findCourseByModuleId(@Param('moduleId') moduleId: string):Promise<courseDocument>{
   const mid = new mongoose.Types.ObjectId(moduleId);
@@ -78,11 +80,11 @@ async findCourseByModuleId(@Param('moduleId') moduleId: string):Promise<courseDo
   // Get modules for a student in a specific course
   @UseGuards(AuthGuard, AuthorizationGuard)
  @Roles(Role.Admin, Role.User)
-  @Get(':course_code/modules/:username')
-  async getModulesForCourseStudent(@Param('course_code') course_code: string,@Param('username') username: string): Promise<moduleDocument[]> {
+  @Get(':course_code/modules')
+  async getModulesForCourseStudent(@Param('course_code') course_code: string,@Req(){user}): Promise<moduleDocument[]> {
     try {
       // Call the service method to get the filtered modules for the student
-      return await this.coursesService.getModulesForCourseStudent(course_code, username);
+      return await this.coursesService.getModulesForCourseStudent(course_code, user);
     } catch (error) {
       throw new NotFoundException(error.message);
     }
@@ -92,9 +94,9 @@ async findCourseByModuleId(@Param('moduleId') moduleId: string):Promise<courseDo
   @UseGuards(AuthGuard, AuthorizationGuard)
   @Roles(Role.Admin, Role.Instructor)
   @Get(':course_code/modules')
-  async getModulesForInstructor(@Param('course_code') course_code: string,): Promise<moduleDocument[]> {
+  async getModulesForInstructor(@Param('course_code') course_code: string, @Req(){user}): Promise<moduleDocument[]> {
     // Call the service method to get the modules for the course
-    const modules = await this.coursesService.getModulesForCourseInstructor(course_code);
+    const modules = await this.coursesService.getModulesForCourseInstructor(course_code,user);
     
     if (!modules || modules.length === 0) {
       throw new NotFoundException(`No modules found for course ${course_code}`);
@@ -106,7 +108,7 @@ async findCourseByModuleId(@Param('moduleId') moduleId: string):Promise<courseDo
   @UseGuards(AuthGuard, AuthorizationGuard)
   @Roles(Role.Admin, Role.Instructor)
   @Put(':courseCode/modules')
-  async addModuleToCourse(@Req() {user}, @Param('courseCode') courseCode: string,@Body() createModuleDto: CreateModuleDto): Promise<notificationDocument> {
+  async addModuleToCourse(@Req() {user}, @Param('courseCode') courseCode: string,@Body() createModuleDto: CreateModuleDto): Promise<courseDocument> {
     return this.coursesService.addModuleToCourse(courseCode, createModuleDto,user);
 }
 
@@ -119,11 +121,15 @@ async DeleteModuleFromCourse( @Req (){user},@Param('courseCode') courseCode: str
 }
 
 //GET: find outdated attributed of specific course
+@UseGuards(AuthGuard, AuthorizationGuard)
+@Roles(Role.Admin, Role.Instructor)
 @Get('foutdated/:course_code')
   async findOutdated(@Param('course_code') course_code: string): Promise<boolean> {
     return this.coursesService.findOutdated(course_code);
   }
 
+  @UseGuards(AuthGuard, AuthorizationGuard)
+  @Roles(Role.Admin, Role.Instructor)
   @Put('upoutdated/:course_code')
   async toggleOutdated(@Param('course_code') course_code: string): Promise<Courses> {
     return this.coursesService.toggleOutdated(course_code);
@@ -160,10 +166,10 @@ async setRating(@Param('ObjectId') ObjectId: string, @Param('score')score:number
 
 //GET COURSE FOR SPECIFIC MODULE TITLE
 @UseGuards(AuthGuard, AuthorizationGuard)
- @Roles(Role.Admin,Role.User)
+ @Roles(Role.Admin,Role.User,Role.Instructor)
 @Get('moduletitle/:title')
-async getCourseForModule (@Param('moduleTitle')moduleTitle:string): Promise<Courses>{
-return await this.coursesService.getCourseForModule(moduleTitle);
+async getCourseForModule (@Param('title')title:string): Promise<courseDocument>{
+return await this.coursesService.getCourseForModule(title);
 
 }
 
@@ -180,7 +186,7 @@ async getNonOutdatedCoursesForStudent(@Param('username') username: string) {
 @UseGuards(AuthGuard, AuthorizationGuard)
 @Roles(Role.Admin, Role.Instructor)
 @Put(':course_code/delete')
-  async markCourseAsUnavailable(@Param('course_code') courseId: string) {
-    return await this.coursesService.deleteCourse(courseId);
+  async markCourseAsUnavailable(@Param('course_code') courseId: string, @Req(){user}) :Promise<courseDocument> {
+    return await this.coursesService.deleteCourse(courseId,user);
   }
 }

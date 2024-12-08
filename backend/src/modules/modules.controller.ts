@@ -45,8 +45,8 @@ constructor(private readonly modulesService: ModulesService) {}
   }
 
 //GET: get one module by title
-@UseGuards(AuthorizationGuard)
-@Roles(Role.Admin,Role.Instructor, Role.User)
+@UseGuards(AuthGuard, AuthorizationGuard)
+ @Roles(Role.Admin,Role.User,Role.Instructor)
 @Get('mtitle/:title')
 async findByTitle(@Param('title') title: string): Promise<moduleDocument> {
   return this.modulesService.findByTitle(title);

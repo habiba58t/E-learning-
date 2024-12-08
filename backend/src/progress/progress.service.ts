@@ -94,12 +94,12 @@ async deleteProgressByUsername(Username: string) {
       async findAllStudentsEnrolled(course_code: string): Promise<string[]> { //maybe instructer and admin
         const students = await this.findAllByCourse(course_code);
         const usernames = students.map(student => student.Username);
-        console.log(`usernames taking course ${usernames}`)
+       // console.log(`usernames taking course ${usernames}`)
         const completed= await this.findAllStudentsCompleted(course_code);
         const completedUsernames  = completed.map(student => student.Username); //get all username where they finished course
-        console.log(`usernames finished course ${completedUsernames}`)
+        //console.log(`usernames finished course ${completedUsernames}`)
         const incompleteUsernames = usernames.filter(username => !completedUsernames.includes(username));
-        console.log(`usernames not finish course ${incompleteUsernames}`)
+        //console.log(`usernames not finish course ${incompleteUsernames}`)
         return incompleteUsernames; 
       }
         
@@ -112,7 +112,6 @@ async deleteProgressByUsername(Username: string) {
       
         return completedStudents; 
       }
-      
 
 
       // // get length of modules array mn course code(total number of modules), how many modules completed per user needed . getModulesCompleted

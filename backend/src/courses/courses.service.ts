@@ -20,7 +20,7 @@ import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
 import { Public } from 'src/auth/decorators/public.decorator';
 import {NotificationService} from 'src/notification/notification.service';
 import {notificationDocument} from 'src/notification/notification.schema';
-
+import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class CoursesService {
@@ -31,6 +31,7 @@ export class CoursesService {
       @Inject(forwardRef(() => ModulesService)) private readonly modulesService: ModulesService,
       @Inject(forwardRef(() => ProgressService)) private readonly progressService: ProgressService,
       @Inject(forwardRef(() => NotificationService)) private readonly notificationService: NotificationService,
+      @Inject(forwardRef(() => UsersService)) private readonly usersService: UsersService,
     ) {}
     
   //GET ALL COURSES //PUBLIC  
@@ -73,7 +74,6 @@ export class CoursesService {
 
 
   //CREATE: intructor create course
-  
   async create(createCourseDto: CreateCourseDto,user: any): Promise<courseDocument> {
     const newCourse = new this.courseModel(createCourseDto); // Step 1: Create the new course
     newCourse.Unavailable=false;
@@ -98,8 +98,6 @@ export class CoursesService {
   }
 
  // Update an existing course by ID
-//  @UseGuards(AuthGuard, AuthorizationGuard)
-//  @Roles(Role.Admin, Role.Instructor)
   async update(course_code: string, updateCourseDto: UpdateCourseDto,user: any): Promise<courseDocument> {
     const course = await this.courseModel.findOne({ course_code, Unavailable: false }).exec();
   
@@ -126,11 +124,17 @@ async findCourseByModuleId(moduleId:mongoose.Types.ObjectId):Promise<courseDocum
 }
 
 //GET: modules for a course for a student
-async getModulesForCourseStudent(course_code: string, username: string): Promise<moduleDocument[]> {
+async getModulesForCourseStudent(course_code: string, user: any): Promise<moduleDocument[]> {
+  const students= await this.progressService.findAllByCourse(course_code);
+  const found = students.some(student => student.Username === user.username);
+
+if (!found) {
+    throw new Error(`User with username ${user.username}not enrolled in the course`);
+}
   // Step 1: Fetch the student by their username
-  const student = await this.userModel.findOne({ username }).exec();
+  const student = await this.userModel.findOne({ username:user.username }).exec();
   if (!student) {
-    throw new NotFoundException(`Student with username ${username} not found`);
+    throw new NotFoundException(`Student with username ${user.username} not found`);
   }
 
   // Step 2: Fetch the course by its code
@@ -147,12 +151,8 @@ async getModulesForCourseStudent(course_code: string, username: string): Promise
 
   // Step 4: Filter the modules based on the student's level and outdated status
   const validModules = modules.filter(module => {
-    
-    // Get the student's level for the current course using the course _id
-    const studentLevel = student.studentLevel.get(course._id);
-
-    // Return modules that match the student's level and are not outdated
-    return studentLevel === module.level && !module.isOutdated;
+    const studentLevel = student.studentLevel.get(course._id); // Get the student's level for the current course using the course _id
+    return studentLevel === module.level && !module.isOutdated; // Return modules that match the student's level and are not outdated
 });
 
   return validModules;
@@ -160,23 +160,23 @@ async getModulesForCourseStudent(course_code: string, username: string): Promise
 
 
 //GET: modules for a course for an instructor
-async getModulesForCourseInstructor(course_code: string): Promise<moduleDocument[]> {
-  const course = await this.findOne(course_code);
-
-  if (!course) {
-    throw new NotFoundException(`Course with code ${course_code} not found`);
-  }
+async getModulesForCourseInstructor(course_code: string,user:any): Promise<moduleDocument[]> {
+  const course = await this.courseModel.findOne({course_code}).exec();
+   if (!course) {
+     throw new NotFoundException(`Course with Course code ${course_code} not found`);
+   }
+   if (course .created_by !== user.username) { //  token has username attached
+     throw new UnauthorizedException('You are not authorized to get this course');
+   }
 
   // Fetch all modules by their ObjectIds
-  const modules = await this.moduleModel.find({
-    _id: { $in: course.modules }
-  }).exec();
+  const modules = await this.moduleModel.find({_id: { $in: course.modules }}).exec();
  
   return modules;
 }
 
 //PUT: add module to a course
-async addModuleToCourse(courseCode: string, createModuleDto: CreateModuleDto,user: any): Promise<notificationDocument> {
+async addModuleToCourse(courseCode: string, createModuleDto: CreateModuleDto,user: any): Promise<courseDocument> {
    // Find the course by course code
    const course = await this.courseModel.findOne({ course_code: courseCode ,Unavailable: false}).exec();
    if (!course) {
@@ -204,7 +204,7 @@ async addModuleToCourse(courseCode: string, createModuleDto: CreateModuleDto,use
   };
   const notification= await this.notificationService.createModuleNotification(course.course_code,NotificationDto);
 
-  return notification;
+  return course;
 }
 
 //PUT: remove module from array of modules in specific course
@@ -339,10 +339,18 @@ async getCourseForModule (moduleTitle:string): Promise<courseDocument>{
 
 }
 
+
+
 //DELETE COURSE (MAKE IT UNAVAILABLE)
-// @UseGuards(AuthGuard, AuthorizationGuard)
-// @Roles(Role.Admin, Role.Instructor)
-async deleteCourse(course_code: string): Promise<{ message: string }> {
+async deleteCourse(course_code: string,user: any): Promise <courseDocument>{//Promise<{ message: string }> {
+  const course = await this.courseModel.findOne({ course_code, Unavailable: false }).exec();
+    if (!course) {
+      throw new NotFoundException(  `Course with Course code${course_code} not found`);
+    }
+
+  if (course .created_by !== user.username) { //  token has username attached
+    throw new UnauthorizedException('You are not authorized to update this course');
+  }
   // Fetch all progress records for the course
   const progressRecords = await this.progressService.findAllByCourse(course_code);
 
@@ -356,15 +364,15 @@ async deleteCourse(course_code: string): Promise<{ message: string }> {
   // Mark course as unavailable
   const updatedCourse = await this.courseModel.findOneAndUpdate(
     { course_code },
-    { unavailable: true },
-    { new: true } // Return the updated document
+    { Unavailable: true },
+    { new: true } 
   );
 
   if (!updatedCourse) {
     throw new NotFoundException('Course not found');
   }
 
-  return { message: 'Course marked as unavailable successfully' };
+  return updatedCourse;
 }
 
 
