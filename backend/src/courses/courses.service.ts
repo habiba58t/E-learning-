@@ -314,7 +314,6 @@ async getAverageScoreForCourse(course_code: string): Promise<number> {
 //GET AVERAGE RATING
 async getAverageRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
   const course = await this.getcoursebyid(ObjectId);
-  console.log("course is",course);
   if(await(course.Unavailable) ===false){
   return course.averageRating;
   }else 
@@ -332,21 +331,24 @@ async getAverageRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
   }
    const students= await this.progressService.findAllByCourse(course.course_code);
   const found = students.some(student => student.Username === user.username);
+const isAdmin = user.role === 'admin';
 
-if (!found) {
-    throw new Error(`User with username ${user.username}not enrolled in the course`);
-}
-   course.totalRating = (course.totalRating || 0) + score; 
-  course.totalStudents = (course.totalStudents || 0) + 1;
-  course.averageRating = course.totalRating / course.totalStudents;
+  if (!found && !isAdmin) {
+    throw new UnauthorizedException('You are not authorized to view questions of this module');
+  } 
+  const totalRating = Number(course.totalRating) || 0 ;
+const totalStudents = Number(course.totalStudents) || 0;
+const newScore = Number(score);
+
+course.totalRating = totalRating + newScore;
+course.totalStudents = totalStudents + 1;
+course.averageRating = course.totalRating / course.totalStudents;
 
   // Save the updated document
   await course.save();
  }
 
- //GET courses for student
-//  @UseGuards(AuthGuard, AuthorizationGuard)
-//  @Roles(Role.Admin,Role.User)
+ //GET courses for student   //admin not implemented i think?
 async getNonOutdatedCoursesForStudent(username: string): Promise<Courses[]> {
   // Find the student by username
   const student = await this.userModel.findOne({ username }).exec();
@@ -382,10 +384,12 @@ async deleteCourse(course_code: string,user: any): Promise <courseDocument>{//Pr
     if (!course) {
       throw new NotFoundException(  `Course with Course code${course_code} not found`);
     }
+    const isInstructor = course.created_by === user.username;
+    const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
+    if (!isInstructor && !isAdmin) {
+      throw new UnauthorizedException('You are not authorized to view questions of this module');
+    } 
 
-  if (course .created_by !== user.username) { //  token has username attached
-    throw new UnauthorizedException('You are not authorized to update this course');
-  }
   // Fetch all progress records for the course
   const progressRecords = await this.progressService.findAllByCourse(course_code);
 
