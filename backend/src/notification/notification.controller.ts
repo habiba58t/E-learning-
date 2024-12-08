@@ -14,18 +14,35 @@ export class NotificationController {
     constructor(private readonly notificationService: NotificationService) {}
    
  //get notification   
-@Get(':ObjectId')
-  async getNotification(@Param("ObjectId")ObjectId:string): Promise<notificationDocument> {
-    const objectId = new mongoose.Types.ObjectId(ObjectId);
-    return this.notificationService.getNotification(objectId);
+@Get('usernotifications')
+  async getNotification(@Req() {user}): Promise<notificationDocument[]> {
+    return this.notificationService.getNotification(user);
   }
 
 //create notification for module
 @UseGuards(AuthGuard, AuthorizationGuard)
 @Roles(Role.Admin, Role.Instructor)
-@Post('moduleadded/:title/coursecode')
+@Post('moduleadded/:coursecode')
 async createModuleNotification(@Param('course_code') course_code: string, @Body('dto')dto:CreateNotificationDto): Promise<notificationDocument>{
     return this.notificationService.createModuleNotification(course_code,dto);
 }
-  
+
+//create notification for forum and reply
+@UseGuards(AuthGuard, AuthorizationGuard)
+@Roles(Role.Admin, Role.User, Role.Instructor)
+@Post('forum/:coursecode')
+async createForumNotification( @Req() user,@Param('course_code')course_code:string, @Body('dto')dto:CreateNotificationDto): Promise<notificationDocument>{
+    return this.notificationService.createForumNotification(user,course_code,dto);
+}
+
+//create notification for chat
+@UseGuards(AuthGuard, AuthorizationGuard)
+@Roles(Role.Admin, Role.User)
+@Post('chatadded/:senderUsername')
+async createChatNotification(@Req() user, @Param('recieverUsername')recieverUsername:string): Promise<notificationDocument>{
+    return this.notificationService.createChatNotification(user,recieverUsername);
+}
+
+
+
 }

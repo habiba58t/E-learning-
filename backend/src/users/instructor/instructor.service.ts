@@ -72,7 +72,7 @@ async getAvgRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
           `Cannot delete instructor. Students are still in progress for course with ID: ${courseId}`
         );
       }
-      await this.coursesService.deleteCourse(course.course_code);
+      await this.coursesService.deleteCourse(course.course_code,username);
     }
   
     // All validations passed, delete the instructor
