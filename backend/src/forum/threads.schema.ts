@@ -15,6 +15,9 @@ export class Threads {
 
   @Prop({ default: Date.now })
   timestamp: Date;
+
+  @Prop({ required: true })
+  created_by: string;
 }
 
 export const ThreadSchema = SchemaFactory.createForClass(Threads);

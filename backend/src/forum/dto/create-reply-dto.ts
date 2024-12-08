@@ -1,6 +1,6 @@
+import mongoose from "mongoose";
 
 export class CreateReplyDto {
-    username: string;  
+    threadId: mongoose.Types.ObjectId;
     message: string;
-    timestamp: Date;
     }

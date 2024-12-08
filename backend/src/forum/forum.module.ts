@@ -6,6 +6,7 @@ import { ForumService } from './forum.service';
 import { Threads, ThreadSchema } from './threads.schema';
 import { Reply, replySchema } from './reply.schema';
 import { Courses, CoursesSchema } from 'src/courses/courses.schema';
+import { Users, UsersSchema } from 'src/users/users.schema';
 
 
 @Module({
@@ -13,6 +14,7 @@ import { Courses, CoursesSchema } from 'src/courses/courses.schema';
     MongooseModule.forFeature([{ name: Threads.name, schema: ThreadSchema }]),
     MongooseModule.forFeature([{ name: Reply.name, schema: replySchema }]),
     MongooseModule.forFeature([{ name: Courses.name, schema: CoursesSchema }]),
+    MongooseModule.forFeature([{ name: Users.name, schema: UsersSchema }]),
   ],
   controllers: [ForumController],
   providers: [ForumService], 

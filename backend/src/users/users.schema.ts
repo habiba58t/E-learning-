@@ -68,6 +68,12 @@ notification: mongoose.Types.ObjectId[];
   ref: 'Chat'  // Adding ref to establish a reference to the Chat schema
 })
 chats: Map<mongoose.Types.ObjectId,boolean>;
+
+@Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Threads' }] })
+threads: mongoose.Types.ObjectId[];
+
 }
+
+
 
 export const UsersSchema = SchemaFactory.createForClass(Users);
