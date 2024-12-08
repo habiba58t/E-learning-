@@ -6,7 +6,7 @@ import { extname } from 'path';
 import { v4 as uuidv4 } from 'uuid'; // to generate unique file names
 import { ModulesService } from './modules.service';
 import * as mongoose from 'mongoose';
-import { Controller, Get, Post, Body, Param, Put, Delete,NotFoundException, InternalServerErrorException,UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete,NotFoundException, InternalServerErrorException,UseGuards ,Req} from '@nestjs/common';
 import { Module } from './modules.schema';
 import { Quiz } from '../quizzes/quizzes.schema';
 import { CreateModuleDto } from './dto/CreateModule.dto';
@@ -64,8 +64,8 @@ async findByTitle(@Param('title') title: string): Promise<moduleDocument> {
  @UseGuards(AuthorizationGuard)
 @Roles(Role.Admin,Role.Instructor)
  @Put(':title')
- async update(@Param('title') title: string, @Body() updateModuleDto: UpdateModuleDto): Promise<moduleDocument> {
-   return this.modulesService.update(title, updateModuleDto);
+ async update(@Req() {user},@Param('title') title: string, @Body() updateModuleDto: UpdateModuleDto): Promise<moduleDocument> {
+   return this.modulesService.update(title, updateModuleDto,user);
  }
 // DELETE /modules/:title: Delete a module by its title
 @UseGuards(AuthorizationGuard)
@@ -90,9 +90,9 @@ async findModuleByQuizId(@Param('quizId') quizId: string): Promise<moduleDocumen
 @UseGuards(AuthorizationGuard)
 @Roles(Role.Admin,Role.Instructor)
 @Get('id/:ObjectId')             
-async getQuestionsForModule(@Param('ObjectId') ObjectId: string): Promise<Question[]> {
+async getQuestionsForModule(@Req() {user},@Param('ObjectId') ObjectId: string): Promise<Question[]> {
   const objectId = new mongoose.Types.ObjectId(ObjectId);
-  return this.modulesService.getQuestionsForModule(objectId);
+  return this.modulesService.getQuestionsForModule(objectId,user);
 } 
 
 
@@ -108,14 +108,9 @@ async getQuizzesForModule(@Param('ObjectId') ObjectId: string): Promise<Quiz[]> 
 @UseGuards(AuthorizationGuard)
 @Roles(Role.Admin,Role.Instructor)
 @Put(':moduleId/add-quiz/:quizId')
-  async addQuizToModule(
-    @Param('moduleId') moduleId: string, // Module ID as string
-    @Param('quizId') quizId: string, // Quiz ID as string
+  async addQuizToModule(@Req() {user}, @Param('moduleId') moduleId: string,@Param('quizId') quizId: string, // Quiz ID as string
   ) {
-    const updatedModule = await this.modulesService.addQuizToModule(
-      new mongoose.Types.ObjectId(moduleId), // Convert to ObjectId
-      new mongoose.Types.ObjectId(quizId), // Convert to ObjectId
-    );
+    const updatedModule = await this.modulesService.addQuizToModule(new mongoose.Types.ObjectId(moduleId),new mongoose.Types.ObjectId(quizId),user);
 
     return {
       message: 'Quiz successfully added to the module.',
@@ -129,14 +124,12 @@ async getQuizzesForModule(@Param('ObjectId') ObjectId: string): Promise<Quiz[]> 
   @UseGuards(AuthorizationGuard)
 @Roles(Role.Admin,Role.Instructor)
 @Put(':moduleId/add-question/:quizId')
-async addQuestionToModule( @Param('moduleId') moduleId: string, // Module ID as string
-  @Param('questionId') questionId: string, // Quiz ID as string
+async addQuestionToModule( @Req() {user},@Param('moduleId') moduleId: string, @Param('questionId') questionId: string, // Quiz ID as string
 ) {
   const updatedModule = await this.modulesService.addQuestionToModule(
-    new mongoose.Types.ObjectId(moduleId), // Convert to ObjectId
-    new mongoose.Types.ObjectId(questionId), // Convert to ObjectId
-  );
-
+    new mongoose.Types.ObjectId(moduleId), 
+    new mongoose.Types.ObjectId(questionId), 
+    user);
   return {
     message: 'Question successfully added to the module.',
     module: updatedModule,
@@ -155,8 +148,8 @@ async addQuestionToModule( @Param('moduleId') moduleId: string, // Module ID as 
   @UseGuards(AuthorizationGuard)
 @Roles(Role.Admin,Role.Instructor)
   @Put(':title')
-  async toggleOutdated(@Param('title') title: string): Promise<moduleDocument> {
-    return this.modulesService.toggleOutdated(title);
+  async toggleOutdated(@Req() {user},@Param('title') title: string): Promise<moduleDocument> {
+    return this.modulesService.toggleOutdated(title,user);
   } 
 
 // Upload files to resourses array
@@ -175,7 +168,7 @@ async addQuestionToModule( @Param('moduleId') moduleId: string, // Module ID as 
       }),
     }),
   )
-  async addFileToModule(
+  async addFileToModule(@Req() {user},
     @Param('moduleId') moduleId: string, @Param('contentTitle') contentTitle: string,
     @UploadedFile() file: Express.Multer.File,
   ) {
@@ -185,7 +178,7 @@ async addQuestionToModule( @Param('moduleId') moduleId: string, // Module ID as 
     const originalName = file.originalname;
 
     // Add the file metadata to the Module's resources array
-    const updatedModule = await this.modulesService.addFileToModule(moduleId, fileUrl, originalName, fileType,contentTitle);
+    const updatedModule = await this.modulesService.addFileToModule(moduleId, fileUrl, originalName, fileType,contentTitle,user);
 
     return {
       message: 'File uploaded successfully!',
@@ -201,12 +194,12 @@ async addQuestionToModule( @Param('moduleId') moduleId: string, // Module ID as 
 @UseGuards(AuthorizationGuard)
 @Roles(Role.Admin,Role.Instructor)
   @Delete(':moduleId')
-  async deleteModule(@Param('moduleId') moduleId: string) {
+  async deleteModule(@Req() {user},@Param('moduleId') moduleId: string) {
     try {
       const moduleObjectId = new mongoose.Types.ObjectId(moduleId); // Convert moduleId to ObjectId
 
       // Call the service to delete the module and its related data
-      const result = await this.modulesService.deleteModule(moduleObjectId);
+      const result = await this.modulesService.deleteModule(moduleObjectId,user);
 
       return {
         message: result.message, // Return success message from service
