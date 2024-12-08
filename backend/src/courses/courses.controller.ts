@@ -52,7 +52,7 @@ export class CoursesController {
 //Create: course created by instructor
 @UseGuards(AuthGuard, AuthorizationGuard)
 @Roles(Role.Admin, Role.Instructor)
-   @Post('createCourse ')
+   @Post('createCourse')
   async create(@Req() {user}, @Body() createCourseDto: CreateCourseDto ): Promise<Courses> {
     // Pass the username and course data to the service to create the course and associate it with the instructor
     return this.coursesService.create(createCourseDto,user);
