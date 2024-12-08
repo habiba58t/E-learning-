@@ -46,6 +46,9 @@ averageRating: number;
 
   @Prop()
   isOutdated: boolean;
+
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Threads' }] })
+threads: mongoose.Types.ObjectId[];
 }
 
 export const CoursesSchema = SchemaFactory.createForClass(Courses);
