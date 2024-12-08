@@ -12,7 +12,7 @@ export class ForumService {
   constructor(
    @InjectModel(Threads.name) private  ThreadsModel: Model<threadDocument>,
    @InjectModel(Reply.name) private  replyModel: Model<replyDocument>,
-   @InjectModel(Courses.name) private  courseModel: Model<courseDocument>,
+ @InjectModel(Courses.name) private  courseModel: Model<courseDocument>,
   ) {}
 
 
