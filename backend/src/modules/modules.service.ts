@@ -81,16 +81,13 @@ export class ModulesService {
 
 
 // Create a new Module
-// @UseGuards(AuthorizationGuard)
-// @Roles(Role.Admin, Role.Instructor)
 async create(createModuleDto: CreateModuleDto): Promise<moduleDocument> {
   const newModule = new this.moduleModel(createModuleDto);
   newModule.created_at= new Date(); 
   return await newModule.save();
 }
+
 // Update an existing module by title
-// @UseGuards(AuthorizationGuard)
-// @Roles(Role.Admin,Role.Instructor)
 async update(title: string, updateModuleDto: UpdateModuleDto): Promise<moduleDocument> {
   const updatedModule = await this.moduleModel.findOneAndUpdate({title, updateModuleDto}, { new: true });
   if (!updatedModule) {
@@ -100,8 +97,6 @@ async update(title: string, updateModuleDto: UpdateModuleDto): Promise<moduleDoc
 }
 
 // Delete a module by title
-// @UseGuards(AuthorizationGuard)
-// @Roles(Role.Admin, Role.Instructor)
 async delete(title: string): Promise<moduleDocument> {
   const deletedModule = await this.moduleModel.findOneAndDelete({title}).exec();
   if (!deletedModule) {
@@ -111,8 +106,6 @@ async delete(title: string): Promise<moduleDocument> {
 }
 
 //implemented by farah for use in quiz
-// @UseGuards(AuthorizationGuard)
-// @Roles(Role.Admin,Role.Instructor)
 async findModuleByQuizId(quizId: mongoose.Types.ObjectId): Promise<moduleDocument>{
   const module = await this.moduleModel.findOne({quizzes: {$in: [quizId]}})
   return module;
@@ -120,8 +113,6 @@ async findModuleByQuizId(quizId: mongoose.Types.ObjectId): Promise<moduleDocumen
 
 
 // Add question to modules array
-// @UseGuards(AuthorizationGuard)
-// @Roles(Role.Admin,Role.Instructor)
 async addQuestionToModule(moduleId: mongoose.Types.ObjectId, questionId: mongoose.Types.ObjectId): Promise<moduleDocument> {
   // Find the module by ID
   const module = await this.moduleModel.findById(moduleId).exec();
@@ -144,8 +135,6 @@ async addQuestionToModule(moduleId: mongoose.Types.ObjectId, questionId: mongoos
 }
 
 //get all quizzes of module by module objectid
-// @UseGuards(AuthorizationGuard)
-// @Roles(Role.Admin,Role.Instructor)
 async getQuizzesForModule(ObjectId: mongoose.Types.ObjectId): Promise<QuizzesDocument[]> {
   const module = await this.findById(ObjectId);
 
