@@ -57,8 +57,9 @@ async updateProgress(@Param('course_code') course_code: string,@Param('Username'
     const updatedProgress = await this.progressService.update(course_code, Username, progressData);
     return updatedProgress;
   }
-
-  @Post('create') // Changed path
+  @UseGuards(AuthorizationGuard)
+  @Roles(Role.User)
+  @Post('create') 
   async createProgress(@Body() progressData: CreateProgressDTo) {
     const newProgress = await this.progressService.create(progressData);
     return newProgress;

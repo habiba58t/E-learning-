@@ -72,7 +72,7 @@ async enrollStudentInCourse(user: any, courseId: string): Promise<userDocument> 
         console.log(`student username ${student.username} !!`)
       // Prepare the progress data
     const progressDto= {  //only course code and last accessed seen?
-      username: student.username,
+      Username: student.username,
       course_code: course.course_code, 
       completetion_percentage: 0,
       last_accessed: new Date() 

@@ -13,7 +13,7 @@ export class Progress {
   @Prop({ required: true })
   completion_percentage: number;
 
-  @Prop({ required: true })
+  @Prop({ required: true, default: Date.now })
   last_accessed: Date;
 }
 

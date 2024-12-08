@@ -60,6 +60,8 @@ async update(course_code: string,Username: string,updateData: { completion_perce
       async create(progressData: CreateProgressDTo): Promise<Progress> {
         try {
           const createdProgress = new this.progressModel(progressData);{
+            createdProgress.completion_percentage=0;
+            await createdProgress.save();
           console.log('Progress created successfully:', createdProgress);
           return createdProgress;
        } } catch (error) {
