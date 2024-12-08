@@ -112,7 +112,6 @@ async deleteProgressByUsername(Username: string) {
       
         return completedStudents; 
       }
-      
 
 
       // // get length of modules array mn course code(total number of modules), how many modules completed per user needed . getModulesCompleted

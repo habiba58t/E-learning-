@@ -18,7 +18,7 @@ export class NotificationService {
 
  //GET: 
  async getNotification(user:any): Promise<notificationDocument[]> {
-    console.log("username");
+    console.log("username IS X2:");
     console.log(user.username);
     const User= await this.userModel.findOne({username: user.username});
     if (!User) {

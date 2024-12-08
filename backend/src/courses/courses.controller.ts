@@ -69,6 +69,8 @@ export class CoursesController {
 
 
   //GET: GET cousrse by module id
+  @UseGuards(AuthGuard, AuthorizationGuard)
+  @Roles(Role.Admin, Role.Instructor,Role.User)
  @Get('module/:moduleId')
 async findCourseByModuleId(@Param('moduleId') moduleId: string):Promise<courseDocument>{
   const mid = new mongoose.Types.ObjectId(moduleId);
@@ -78,11 +80,11 @@ async findCourseByModuleId(@Param('moduleId') moduleId: string):Promise<courseDo
   // Get modules for a student in a specific course
   @UseGuards(AuthGuard, AuthorizationGuard)
  @Roles(Role.Admin, Role.User)
-  @Get(':course_code/modules/:username')
-  async getModulesForCourseStudent(@Param('course_code') course_code: string,@Param('username') username: string): Promise<moduleDocument[]> {
+  @Get(':course_code/modules')
+  async getModulesForCourseStudent(@Param('course_code') course_code: string,@Req(){user}): Promise<moduleDocument[]> {
     try {
       // Call the service method to get the filtered modules for the student
-      return await this.coursesService.getModulesForCourseStudent(course_code, username);
+      return await this.coursesService.getModulesForCourseStudent(course_code, user);
     } catch (error) {
       throw new NotFoundException(error.message);
     }
@@ -92,9 +94,9 @@ async findCourseByModuleId(@Param('moduleId') moduleId: string):Promise<courseDo
   @UseGuards(AuthGuard, AuthorizationGuard)
   @Roles(Role.Admin, Role.Instructor)
   @Get(':course_code/modules')
-  async getModulesForInstructor(@Param('course_code') course_code: string,): Promise<moduleDocument[]> {
+  async getModulesForInstructor(@Param('course_code') course_code: string, @Req(){user}): Promise<moduleDocument[]> {
     // Call the service method to get the modules for the course
-    const modules = await this.coursesService.getModulesForCourseInstructor(course_code);
+    const modules = await this.coursesService.getModulesForCourseInstructor(course_code,user);
     
     if (!modules || modules.length === 0) {
       throw new NotFoundException(`No modules found for course ${course_code}`);

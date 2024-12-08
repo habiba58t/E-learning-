@@ -13,9 +13,12 @@ export class NotificationController {
      
     constructor(private readonly notificationService: NotificationService) {}
    
- //get notification   
+ //get notification  
+ @UseGuards(AuthGuard, AuthorizationGuard)
+ @Roles(Role.Admin, Role.Instructor, Role.User) 
 @Get('usernotifications')
   async getNotification(@Req() {user}): Promise<notificationDocument[]> {
+    console.log("user is:",user);
     return this.notificationService.getNotification(user);
   }
 
