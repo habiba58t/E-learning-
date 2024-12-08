@@ -44,9 +44,9 @@ export class CoursesController {
   @UseGuards(AuthGuard, AuthorizationGuard)
   @Roles(Role.Admin, Role.Instructor,Role.User)
   @Get('id/:ObjectId')
-  async getcoursebyid(@Param('ObjectId') ObjectId: string): Promise<Courses> {
-    const objectId = new mongoose.Types.ObjectId(ObjectId);
-    return this.coursesService.getcoursebyid(objectId);
+  async getcoursebyid(@Param('ObjectId') ObjectId: string): Promise<courseDocument> {
+    const id = new mongoose.Types.ObjectId(ObjectId);
+    return this.coursesService.getcoursebyid(id);
   }
 
 
@@ -93,7 +93,7 @@ async findCourseByModuleId(@Param('moduleId') moduleId: string):Promise<courseDo
   // Get modules for a instructor in a specific course
   @UseGuards(AuthGuard, AuthorizationGuard)
   @Roles(Role.Admin, Role.Instructor)
-  @Get(':course_code/modules')
+  @Get(':course_code/modulesInstructor')
   async getModulesForInstructor(@Param('course_code') course_code: string, @Req(){user}): Promise<moduleDocument[]> {
     // Call the service method to get the modules for the course
     const modules = await this.coursesService.getModulesForCourseInstructor(course_code,user);
@@ -124,15 +124,15 @@ async DeleteModuleFromCourse( @Req (){user},@Param('courseCode') courseCode: str
 @UseGuards(AuthGuard, AuthorizationGuard)
 @Roles(Role.Admin, Role.Instructor)
 @Get('foutdated/:course_code')
-  async findOutdated(@Param('course_code') course_code: string): Promise<boolean> {
-    return this.coursesService.findOutdated(course_code);
+  async findOutdated(@Param('course_code') course_code: string, @Req(){user}): Promise<boolean> {
+    return this.coursesService.findOutdated(course_code,user);
   }
 
   @UseGuards(AuthGuard, AuthorizationGuard)
   @Roles(Role.Admin, Role.Instructor)
   @Put('upoutdated/:course_code')
-  async toggleOutdated(@Param('course_code') course_code: string): Promise<Courses> {
-    return this.coursesService.toggleOutdated(course_code);
+  async toggleOutdated(@Param('course_code') course_code: string, @Req(){user}): Promise<Courses> {
+    return this.coursesService.toggleOutdated(course_code,user);
   } 
 
 
@@ -147,11 +147,10 @@ async getAverageScore(@Param('course_code') course_code: string): Promise<{ aver
 }
 
 // //Get AverageRating  of course
-@UseGuards(AuthGuard, AuthorizationGuard)
- @Roles(Role.Admin, Role.Instructor,Role.User)
+@Public()
    @Get('getavg/:courseId')
-   async getAverageRating(@Param('ObjectId') ObjectId: string): Promise<number> {
-    const objectId = new mongoose.Types.ObjectId(ObjectId);
+   async getAverageRating(@Param('courseId') courseId: string): Promise<number> {
+    const objectId = new mongoose.Types.ObjectId(courseId);
     return await this.coursesService.getAverageRating(objectId);
    }
 
@@ -159,9 +158,9 @@ async getAverageScore(@Param('course_code') course_code: string): Promise<{ aver
 @UseGuards(AuthGuard, AuthorizationGuard)
  @Roles(Role.Admin,Role.User)
 @Put('setrate/:courseId/:score')
-async setRating(@Param('ObjectId') ObjectId: string, @Param('score')score:number): Promise<void> {
-  const objectId = new mongoose.Types.ObjectId(ObjectId);
-  await this.coursesService.setRating(objectId,score);
+async setRating(@Param('courseId') courseId: string, @Param('score')score:number, @Req() {user}): Promise<void> {
+  const objectId = new mongoose.Types.ObjectId(courseId);
+  await this.coursesService.setRating(objectId,score,user);
 }
 
 //GET COURSE FOR SPECIFIC MODULE TITLE
