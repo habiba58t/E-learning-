@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, Inject, forwardRef, UseGuards } from '@nestjs/common';
-import { Controller, Delete, Param,  InternalServerErrorException } from '@nestjs/common';
+import { Controller, Delete, Param,  InternalServerErrorException,UnauthorizedException} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Module} from './modules.schema';
 import * as mongoose from 'mongoose';
@@ -91,11 +91,21 @@ async create(createModuleDto: CreateModuleDto): Promise<moduleDocument> {
 // Update an existing module by title
 // @UseGuards(AuthorizationGuard)
 // @Roles(Role.Admin,Role.Instructor)
-async update(title: string, updateModuleDto: UpdateModuleDto): Promise<moduleDocument> {
-  const updatedModule = await this.moduleModel.findOneAndUpdate({title, updateModuleDto}, { new: true });
-  if (!updatedModule) {
-    throw new NotFoundException(`Module with title${title} not found`);
+async update(title: string, updateModuleDto: UpdateModuleDto,user:any): Promise<moduleDocument> {
+  const module = await this.moduleModel.findOne({title}).exec();
+        if (!module) {
+          throw new NotFoundException(`Module with title ${title} not found`);
   }
+  // check if instructor who i updated is the one who created 
+  const course = await this.coursesService.findCourseByModuleId(module._id)
+
+  const isInstructor = course.created_by === user.username;
+  const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
+
+  if (!isInstructor && !isAdmin) {
+    throw new UnauthorizedException('You are not authorized to view questions of this module');
+  }
+  const updatedModule = await this.moduleModel.findOneAndUpdate({title, updateModuleDto}, { new: true });
   return updatedModule;
 }
 
@@ -122,11 +132,20 @@ async findModuleByQuizId(quizId: mongoose.Types.ObjectId): Promise<moduleDocumen
 // Add question to modules array
 // @UseGuards(AuthorizationGuard)
 // @Roles(Role.Admin,Role.Instructor)
-async addQuestionToModule(moduleId: mongoose.Types.ObjectId, questionId: mongoose.Types.ObjectId): Promise<moduleDocument> {
+async addQuestionToModule(moduleId: mongoose.Types.ObjectId, questionId: mongoose.Types.ObjectId,user:any): Promise<moduleDocument> {
   // Find the module by ID
   const module = await this.moduleModel.findById(moduleId).exec();
   if (!module) {
     throw new NotFoundException(`Module with ID ${moduleId} not found.`);
+  }
+
+  const course = await this.coursesService.findCourseByModuleId(module._id)
+
+  const isInstructor = course.created_by === user.username;
+  const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
+
+  if (!isInstructor && !isAdmin) {
+    throw new UnauthorizedException('You are not authorized to add quiz to module');
   }
 
   // Check if the quiz is already in the array
@@ -153,6 +172,7 @@ async getQuizzesForModule(ObjectId: mongoose.Types.ObjectId): Promise<QuizzesDoc
     throw new NotFoundException(`module with code ${ObjectId} not found`);
   }
 
+
   // Fetch all modules by their ObjectIds
   const quizzes = await this.quizModel.find({
     _id: { $in: module.quizzes }, // Match ObjectIds in `course.modules`
@@ -164,9 +184,21 @@ async getQuizzesForModule(ObjectId: mongoose.Types.ObjectId): Promise<QuizzesDoc
 //get all questions of module by module objectid
 //@UseGuards(AuthorizationGuard)
 // @Roles(Role.Admin,Role.Instructor)
-async getQuestionsForModule(ObjectId: mongoose.Types.ObjectId): Promise<QuestionsDocument[]> {
-  const module = await this.findById(ObjectId);
+async getQuestionsForModule(ObjectId: mongoose.Types.ObjectId,user:any): Promise<QuestionsDocument[]> {
+  const course = await this.coursesService.findCourseByModuleId(ObjectId)
 
+  if (!course) {
+    throw new NotFoundException(`course with code ${ObjectId} not found`);
+  }
+
+  const isInstructor = course.created_by === user.username;
+  const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
+
+  if (!isInstructor && !isAdmin) {
+    throw new UnauthorizedException('You are not authorized to view questions of this module');
+  }
+
+  const module = await this.findById(ObjectId);
   if (!module) {
     throw new NotFoundException(`module with code ${ObjectId} not found`);
   }
@@ -183,11 +215,22 @@ async getQuestionsForModule(ObjectId: mongoose.Types.ObjectId): Promise<Question
 // Add quiz to modules array
 // @UseGuards(AuthorizationGuard)
 // @Roles(Role.Admin,Role.Instructor)
-async addQuizToModule(moduleId: mongoose.Types.ObjectId, quizId: mongoose.Types.ObjectId): Promise<moduleDocument> {
+async addQuizToModule(moduleId: mongoose.Types.ObjectId, quizId: mongoose.Types.ObjectId,user:any): Promise<moduleDocument> {
   // Find the module by ID
   const module = await this.moduleModel.findById(moduleId).exec();
   if (!module) {
     throw new NotFoundException(`Module with ID ${moduleId} not found.`);
+  }
+const course = await this.coursesService.findCourseByModuleId(moduleId)
+  if (!course) {
+    throw new NotFoundException(`course with code ${moduleId} not found`);
+  }
+
+  const isInstructor = course.created_by === user.username;
+  const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
+
+  if (!isInstructor && !isAdmin) {
+    throw new UnauthorizedException('You are not authorized to view questions of this module');
   }
 
   // Check if the quiz is already in the array
@@ -204,7 +247,7 @@ async addQuizToModule(moduleId: mongoose.Types.ObjectId, quizId: mongoose.Types.
   return module;
 }
 
-//GET: find course outdated attribute by course code
+//GET: find module outdated attribute by course code
 // @UseGuards(AuthorizationGuard)
 // @Roles(Role.Admin,Role.Instructor)
 async findOutdated(title: string): Promise<boolean> {
@@ -219,11 +262,24 @@ async findOutdated(title: string): Promise<boolean> {
 //PUT: change outdated of module
 // @UseGuards(AuthorizationGuard)
 // @Roles(Role.Admin,Role.Instructor)
-async toggleOutdated(title: string): Promise<moduleDocument> {
+async toggleOutdated(title: string,user:any): Promise<moduleDocument> {
   const module = await this.moduleModel.findOne({ title }).exec();
   if (!module) {
     throw new NotFoundException(`Course with module ${title} not found`);
   }
+
+  const course = await this.coursesService.findCourseByModuleId(module._id)
+  if (!course) {
+    throw new NotFoundException(`course with code ${module._id} not found`);
+  }
+
+  const isInstructor = course.created_by === user.username;
+  const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
+
+  if (!isInstructor && !isAdmin) {
+    throw new UnauthorizedException('You are not authorized to view questions of this module');
+  }
+
   module.isOutdated = !module.isOutdated;
   return await module.save();
 }
@@ -231,11 +287,24 @@ async toggleOutdated(title: string): Promise<moduleDocument> {
 // Method to add file metadata to a Module's resources
 // @UseGuards(AuthorizationGuard)
 // @Roles(Role.Admin,Role.Instructor)
-async addFileToModule(moduleId: string, fileUrl: string, originalName: string, fileType: string,contentTitle:string): Promise<moduleDocument> {
+async addFileToModule(moduleId: string, fileUrl: string, originalName: string, fileType: string,contentTitle:string,user:any): Promise<moduleDocument> {
   const module = await this.moduleModel.findById(moduleId).exec();
   if (!module) {
     throw new Error(`Module with ID ${moduleId} not found`);
   }
+
+  const course = await this.coursesService.findCourseByModuleId(module._id)
+  if (!course) {
+    throw new NotFoundException(`course with code ${module._id} not found`);
+  }
+
+  const isInstructor = course.created_by === user.username;
+  const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
+
+  if (!isInstructor && !isAdmin) {
+    throw new UnauthorizedException('You are not authorized to upload files to this module');
+  }
+
 
   // Create metadata for the uploaded file
   const fileMetadata = {
@@ -263,13 +332,23 @@ const contents = await this.contentService.createContent(contentDto);
 // delete module and all related quizzes and questions 
 // @UseGuards(AuthorizationGuard)
 // @Roles(Role.Admin,Role.Instructor)
-async deleteModule(moduleId: mongoose.Types.ObjectId): Promise<any> {
+async deleteModule(moduleId: mongoose.Types.ObjectId,user:any): Promise<any> {
   // Step 1: Find the module to delete
   const module = await this.moduleModel.findById(moduleId).exec();
   if (!module) {
     throw new NotFoundException(`Module with ID ${moduleId} not found`);
   }
+const course = await this.coursesService.findCourseByModuleId(module._id)
+  if (!course) {
+    throw new NotFoundException(`course with code ${module._id} not found`);
+  }
 
+  const isInstructor = course.created_by === user.username;
+  const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
+
+  if (!isInstructor && !isAdmin) {
+    throw new UnauthorizedException('You are not authorized to upload files to this module');
+  }
   // Step 2: Extract related quizzes and questions
   const { quizzes = [], questions = [] } = module;
 

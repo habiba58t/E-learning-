@@ -64,10 +64,10 @@ export class CoursesService {
   }
 
   //get course by objectId
-  async getcoursebyid(ObjectId: mongoose.Types.ObjectId): Promise<courseDocument> {
-    const course = await this.courseModel.findById({_id:ObjectId,Unavailable: false}).exec();
+  async getcoursebyid(objectId: mongoose.Types.ObjectId): Promise<courseDocument> {
+    const course = await this.courseModel.findById(objectId);
     if (!course) {
-      throw new NotFoundException(`course with Object id ${ObjectId} not found`);
+      throw new NotFoundException(`course with Object id ${objectId} not found`);
     }
     return course;
   }
@@ -104,9 +104,13 @@ export class CoursesService {
     if (!course) {
       throw new NotFoundException(  `Course with Course code${course_code} not found`);
     }
-    if (course .created_by !== user.username) { //  token has username attached
-      throw new UnauthorizedException('You are not authorized to update this course');
-    }
+    // Check if the user is the instructor or an admin
+  const isInstructor = course.created_by === user.username;
+  const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
+
+  if (!isInstructor && !isAdmin) {
+    throw new UnauthorizedException('You are not authorized to update this course');
+  }
 
     const updatedCourse = await this.courseModel.findOneAndUpdate({ course_code, Unavailable: false }, updateCourseDto, { new: true }).exec();
 
@@ -127,8 +131,7 @@ async findCourseByModuleId(moduleId:mongoose.Types.ObjectId):Promise<courseDocum
 async getModulesForCourseStudent(course_code: string, user: any): Promise<moduleDocument[]> {
   const students= await this.progressService.findAllByCourse(course_code);
   const found = students.some(student => student.Username === user.username);
-
-if (!found) {
+if (!found ) {
     throw new Error(`User with username ${user.username}not enrolled in the course`);
 }
   // Step 1: Fetch the student by their username
@@ -165,10 +168,12 @@ async getModulesForCourseInstructor(course_code: string,user:any): Promise<modul
    if (!course) {
      throw new NotFoundException(`Course with Course code ${course_code} not found`);
    }
-   if (course .created_by !== user.username) { //  token has username attached
-     throw new UnauthorizedException('You are not authorized to get this course');
-   }
-
+   const isInstructor = course.created_by === user.username;
+   const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
+ 
+   if (!isInstructor && !isAdmin) {
+     throw new UnauthorizedException('You are not authorized to view questions of this module');
+   } 
   // Fetch all modules by their ObjectIds
   const modules = await this.moduleModel.find({_id: { $in: course.modules }}).exec();
  
@@ -182,9 +187,12 @@ async addModuleToCourse(courseCode: string, createModuleDto: CreateModuleDto,use
    if (!course) {
      throw new NotFoundException(`Course with Course code ${courseCode} not found`);
    }
-   if (course .created_by !== user.username) { //  token has username attached
-     throw new UnauthorizedException('You are not authorized to update this course');
-   }
+   const isInstructor = course.created_by === user.username;
+  const isAdmin = user.role === 'admin';
+
+  if (!isInstructor && !isAdmin) {
+    throw new UnauthorizedException('You are not authorized to view questions of this module');
+  } 
   // Create new module and save it to the database
   const newModule = await this.modulesService.create(createModuleDto);
 
@@ -210,9 +218,12 @@ async addModuleToCourse(courseCode: string, createModuleDto: CreateModuleDto,use
 //PUT: remove module from array of modules in specific course
 async DeleteModuleFromCourse(user: any,courseCode: string, title:string): Promise<courseDocument> {
   const course= await this.findOne(courseCode);
-  if(user.username !== course.created_by){
-    throw new NotFoundException(`you're not authorized`);
-  }
+  const isInstructor = course.created_by === user.username;
+  const isAdmin = user.role === 'admin';
+
+  if (!isInstructor && !isAdmin) {
+    throw new UnauthorizedException('You are not authorized to view questions of this module');
+  } 
   const deletedModule= await this.modulesService.delete(title);
   // Use $pull to remove the moduleId from the modules array atomically
   const updatedCourse = await this.courseModel.findOneAndUpdate({ course_code: courseCode,Unavailable: false }, { $pull: { modules: deletedModule._id} },{ new: true } ).exec();
@@ -224,21 +235,32 @@ async DeleteModuleFromCourse(user: any,courseCode: string, title:string): Promis
 }
 
 //GET: find course outdated attribute by course code
-async findOutdated(course_code: string): Promise<boolean> {
-  const course = await this.courseModel.findOne({ course_code ,Unavailable: false}, { isOutdated: 1, _id: 0 }) 
+async findOutdated(course_code: string,user:any): Promise<boolean> {
+  const course = await this.courseModel.findOne({ course_code }) 
   if (!course) {
     throw new NotFoundException(`Course with course code ${course_code} not found`);
   }
+  const isInstructor = course.created_by === user.username;
+  const isAdmin = user.role === 'admin'; 
+
+  if (!isInstructor && !isAdmin) {
+    throw new UnauthorizedException('You are not authorized');
+  } 
 
   return course.isOutdated === true;
 }
 
 //PUT: change outdated of course
-async toggleOutdated(course_code: string): Promise<courseDocument> {
-  const course = await this.courseModel.findOne({ course_code,Unavailable: false }).exec();
+async toggleOutdated(course_code: string,user:any): Promise<courseDocument> {
+  const course = await this.courseModel.findOne({ course_code }) ;
   if (!course) {
     throw new NotFoundException(`Course with course code ${course_code} not found`);
   }
+  const isInstructor = course.created_by === user.username;
+  const isAdmin = user.role === 'admin';
+  if (!isInstructor && !isAdmin) {
+    throw new UnauthorizedException('You are not authorized');
+  } 
   course.isOutdated = !course.isOutdated;
   return await course.save();
 }
@@ -290,28 +312,43 @@ async getAverageScoreForCourse(course_code: string): Promise<number> {
 }
 
 //GET AVERAGE RATING
-@Public()
 async getAverageRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
-  const course = await this.courseModel.findOne({ObjectId, Unavailable: false});
+  const course = await this.getcoursebyid(ObjectId);
+  if(await(course.Unavailable) ===false){
   return course.averageRating;
+  }else 
+  throw new NotFoundException(`course unavailable`);
  }
  
  //SET RATING,TOTAL,AVERAGE
-//  @UseGuards(AuthGuard, AuthorizationGuard)
-//  @Roles(Role.Admin, Role.Instructor,Role.User)
- async setRating(ObjectId: mongoose.Types.ObjectId,score:number): Promise<void> {
-   const course = await this.courseModel.findOne({ObjectId, Unavailable: false});
-   course.totalRating = (course.totalRating || 0) + score; 
-  course.totalStudents = (course.totalStudents || 0) + 1;
-  course.averageRating = course.totalRating / course.totalStudents;
+ async setRating(objectId: mongoose.Types.ObjectId,score:number,user:any): Promise<void> {
+   const course = await this.getcoursebyid(objectId);
+   if(await(course.Unavailable) !==false){
+    throw new NotFoundException(`course unavailable`);
+   }
+   if (!course) {
+    throw new NotFoundException(`Course with code ${objectId} not found`);
+  }
+   const students= await this.progressService.findAllByCourse(course.course_code);
+  const found = students.some(student => student.Username === user.username);
+const isAdmin = user.role === 'admin';
+
+  if (!found && !isAdmin) {
+    throw new UnauthorizedException('You are not authorized to view questions of this module');
+  } 
+  const totalRating = Number(course.totalRating) || 0 ;
+const totalStudents = Number(course.totalStudents) || 0;
+const newScore = Number(score);
+
+course.totalRating = totalRating + newScore;
+course.totalStudents = totalStudents + 1;
+course.averageRating = course.totalRating / course.totalStudents;
 
   // Save the updated document
   await course.save();
  }
 
- //GET courses for student
-//  @UseGuards(AuthGuard, AuthorizationGuard)
-//  @Roles(Role.Admin,Role.User)
+ //GET courses for student   //admin not implemented i think?
 async getNonOutdatedCoursesForStudent(username: string): Promise<Courses[]> {
   // Find the student by username
   const student = await this.userModel.findOne({ username }).exec();
@@ -347,10 +384,12 @@ async deleteCourse(course_code: string,user: any): Promise <courseDocument>{//Pr
     if (!course) {
       throw new NotFoundException(  `Course with Course code${course_code} not found`);
     }
+    const isInstructor = course.created_by === user.username;
+    const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
+    if (!isInstructor && !isAdmin) {
+      throw new UnauthorizedException('You are not authorized to view questions of this module');
+    } 
 
-  if (course .created_by !== user.username) { //  token has username attached
-    throw new UnauthorizedException('You are not authorized to update this course');
-  }
   // Fetch all progress records for the course
   const progressRecords = await this.progressService.findAllByCourse(course_code);
 
