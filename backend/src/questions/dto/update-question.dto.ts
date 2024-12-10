@@ -4,4 +4,5 @@ export class UpdateQuestionDto {
     difficulty_level?: string;
     correct_answer?: string;
     type?:string;
+    keywordTitle?: string;
 }

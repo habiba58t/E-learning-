@@ -4,6 +4,6 @@ export const Roles =
 (...roles: Role[]) =>SetMetadata(ROLES_KEY, roles);
 export enum Role {
     User = 'student',
-    Instructor='instrictor',
+    Instructor='instructor',
     Admin = 'admin'
   }

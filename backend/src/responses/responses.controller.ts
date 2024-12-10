@@ -1,65 +1,46 @@
-import { Body, Controller, Get, InternalServerErrorException, NotFoundException, Param, Post } from '@nestjs/common';
+import { Controller, Post, Get, Body, Query, Delete, Param, UseGuards } from '@nestjs/common';
 import { ResponsesService } from './responses.service';
 import { CreateResponseDto } from './dto/create-response.dto';
-import mongoose from 'mongoose';
+import { FindResponsesDto } from './dto/find-responses.dto';
+import { Types } from 'mongoose';
+import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
+import { Role, Roles } from 'src/auth/decorators/role.decorator';
+import { AuthGuard } from 'src/auth/guards/authentication.guard';
 
+
+@UseGuards(AuthGuard)
 @Controller('responses')
 export class ResponsesController {
-constructor(private readonly responsesService:ResponsesService){}
+  constructor(private readonly responsesService: ResponsesService) {}
 
-@Get('quiz/:quizId')
-async findAllResponsesByQuizId(@Param('quizId') quizId: string) {
-  try {
-    if (!mongoose.Types.ObjectId.isValid(quizId)) {
-      throw new NotFoundException(`Invalid quizId: "${quizId}".`);
-    }
-
-    const responses = await this.responsesService.findAllByQuizId(new mongoose.Types.ObjectId(quizId));
-    if (!responses.length) {
-      throw new NotFoundException(`No responses found for quizId "${quizId}".`);
-    }
-
-    return {
-      message: 'Responses retrieved successfully',
-      data: responses,
-    };
-  } catch (error) {
-    throw new InternalServerErrorException('Failed to fetch responses', error.message);
+  // Endpoint to create a new response
+  @Post()
+  async createResponse(
+    @Body() createResponseDto: CreateResponseDto,
+  ): Promise<any> {  // Return type can be adjusted as needed
+    return this.responsesService.createResponse(createResponseDto);
   }
 
-}
-
-@Get(':username')
-async findByUsername(@Param('username') username: string) {
-  const response = await this.responsesService.findByUsername(username);
-  if (!response) {
-    throw new NotFoundException(`Response for username "${username}" not found.`);
+  @Get('find/:username') 
+  async findResponsesByUsername(@Param('username') username: string,): Promise<any> {  // Return type can be adjusted as needed
+    return this.responsesService.findResponsesByUsername(username);
   }
-  return response;
-}
 
+ // Endpoint to get responses by username and course code
+ @Get('find/:username/:course_code')
+ async findResponsesByUsernameAndCourseCode(@Param('username') username: string,@Param('course_code') course_code: Types.ObjectId,): Promise<any> { 
+   return this.responsesService.findResponsesByUsernameAndCourseCode(username, course_code);
+ }
 
-@Post(':userId')  // Expecting userId in the URL path
-async createAndUpdateUser(
-  @Param('userId') userId: string, // Getting userId from route parameters
-  @Body() createResponse: CreateResponseDto
-) {
-  try {
-    // Convert userId to mongoose.Types.ObjectId if necessary
-    const userObjectId = new mongoose.Types.ObjectId(userId);
-
-    // Call the service method and pass both the response data and userId
-    const createdResponse = await this.responsesService.createAndUpdateUser(createResponse, userObjectId);
-
-    return {
-      message: 'Response created successfully',
-      data: createdResponse,
-    };
-  } catch (error) {
-    throw new InternalServerErrorException('Failed to create response', error.message);
-  }
-}
-
-
+   // Delete response by username (Only for Admin and Instructor)
+ // Endpoint to delete a response by username
+ @Delete('delete/:username')
+ @UseGuards(AuthorizationGuard) // Additional guard for authorization
+ @Roles(Role.Admin, Role.Instructor) // Restrict roles to admin and instructor
+ async deleteResponseByUsername(
+   @Param('username') username: string,
+ ): Promise<{ message: string }> {
+   return this.responsesService.deleteResponseByUsername(username);
+ }
 
 }

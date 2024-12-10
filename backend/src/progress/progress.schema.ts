@@ -1,10 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
 
-
-
+export type ProgressDocument = HydratedDocument<Progress>;
 @Schema()
-export class Progress {  // Class name should be ProgressSchema
+export class Progress {  
   @Prop({ required: true })
   Username: string;
   
@@ -14,9 +13,8 @@ export class Progress {  // Class name should be ProgressSchema
   @Prop({ required: true })
   completion_percentage: number;
 
-  @Prop({ required: true })
+  @Prop({ required: true, default: Date.now })
   last_accessed: Date;
 }
 
-// Create the Mongoose schema model (avoid duplication with the class name)
-export const ProgressSchema= SchemaFactory.createForClass(Progress);
+export const ProgressSchema = SchemaFactory.createForClass(Progress);

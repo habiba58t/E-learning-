@@ -1,22 +1,25 @@
 import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
 
+
+export type notesDocument = HydratedDocument<Notes>
 @Schema()
-export class Note  {
+export class Notes  {
   @Prop({ required: true })
-  userId: string;
+  username: string;
 
-  @Prop()
-  courseId?: string;
+  @Prop({ required: true })
+  course_code: string;
 
   @Prop({ required: true })
   content: string;
 
-  @Prop({ required: true, default: Date.now })
+  @Prop()
   createdAt: Date;
 
-  @Prop({ default: Date.now })
+  @Prop()
   lastUpdated: Date;
 }
 
-export const NoteSchema = SchemaFactory.createForClass(Note);
+export const NoteSchema = SchemaFactory.createForClass(Notes);

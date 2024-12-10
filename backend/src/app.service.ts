@@ -4,17 +4,12 @@ import { InjectConnection } from '@nestjs/mongoose';
 
 @Injectable()
 export class AppService {
-  constructor(@InjectConnection() private readonly connection: Connection) {}
+  constructor() {}
 
   getHello(): string {
     return 'Hello World!';
   }
 
-  checkDatabaseConnection(): string {
-    if (this.connection.readyState === 1) {
-      return 'Database is connected!';
-    } else {
-      return 'Database is not connected!';
-    }
-  }
+  
+  
 }
