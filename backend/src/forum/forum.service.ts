@@ -55,30 +55,63 @@ export class ForumService {
     return savedThread;
   }
 
+//get all forums
+  async findAllForums():Promise<threadDocument[]>{
+    const threads = await this.ThreadsModel.find();
+     return threads;
+  }
+//get forums by course code 
+async findThreadByCourseCode(courseCode: string): Promise<threadDocument[]> {
+  // Find the course by its code
+  const course = await this.courseModel
+    .findOne({ course_code: courseCode })
+    .populate<{ threads: threadDocument[] }>('threads')
+    .exec();
+  if (!course) {
+    throw new NotFoundException(`Course with code ${courseCode} not found`);
+  }
+  return course.threads || [];
+}
+
+//get forum by title 
+async findThreadByTitle(courseCode: string, title: string): Promise<threadDocument> {
+  const threads = await this.findThreadByCourseCode(courseCode);
+
+  if (!threads || threads.length === 0) {
+    throw new NotFoundException(`No threads found for course with code ${courseCode}`);
+  }
+  const matchingThread = threads.find(thread => thread.title === title);
+
+  if (!matchingThread) {
+    throw new NotFoundException(`Thread with title "${title}" not found in course with code ${courseCode}`);
+  }
+  return matchingThread;
+}
+
 
   
 
  // get thread by courseId and thread title
- async findThreadByCourseCode(courseCode: string, title: string): Promise<Threads | null> {
-    const course = await this.courseModel.findOne({ course_code: courseCode }).exec();
+//  async findThreadByCourseCodeT(courseCode: string, title: string): Promise<Threads | null> {
+//     const course = await this.courseModel.findOne({ course_code: courseCode }).exec();
 
-    if (!course) {
-      throw new NotFoundException(`Course with code ${courseCode} not found`);
-    }
-    const populatedCourse = await this.courseModel
-      .findById(course._id)
-      .populate<{ threads: Threads[] }>('threads')
-      .exec();
+//     if (!course) {
+//       throw new NotFoundException(`Course with code ${courseCode} not found`);
+//     }
+//     const populatedCourse = await this.courseModel
+//       .findById(course._id)
+//       .populate<{ threads: Threads[] }>('threads')
+//       .exec();
 
-    if (!populatedCourse || !populatedCourse.threads || populatedCourse.threads.length === 0) {
-      return null;
-    }
-    const matchingThread = populatedCourse.threads.find((thread) =>
-      thread.title.toLowerCase().includes(title.toLowerCase())
-    );
+//     if (!populatedCourse || !populatedCourse.threads || populatedCourse.threads.length === 0) {
+//       return null;
+//     }
+//     const matchingThread = populatedCourse.threads.find((thread) =>
+//       thread.title.toLowerCase().includes(title.toLowerCase())
+//     );
 
-    return matchingThread || null;
-  }
+//     return matchingThread || null;
+//   }
 
   //delete thread from array of threads in courses/user
   async deleteThread(courseId: mongoose.Types.ObjectId, threadId: mongoose.Types.ObjectId): Promise<threadDocument | null> {
