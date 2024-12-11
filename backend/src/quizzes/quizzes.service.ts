@@ -77,67 +77,67 @@ export class QuizzesService {
 
 // Instructor generates the "imaginary" quiz
 //the quiz should be added to the module arrya of quizzes
-@UseGuards(AuthorizationGuard) // Additional guard for authorization
-@Roles(Role.Admin, Role.Instructor) // Restrict roles to admin and instructor
-async generateQuiz(
-  no_of_questions: number,
-  types_of_questions: 'mcq' | 't/f' | 'both',
-  moduleId: mongoose.Types.ObjectId,
-) {
- // let questions: []; //no need to specify type, will be inferred from getQuestionsByModuleId 
-  //as it returns an array of Object Id references to Question
-  //also only declare as Question if it's fully populated with whole question
-  //details but here its ObjectIds only
-  //note .populate('questions'), is used to populate field called questions
-  //can also add 2nd parameter t specify projectioin field names like ..,type created_by
+// @UseGuards(AuthorizationGuard) // Additional guard for authorization
+// @Roles(Role.Admin, Role.Instructor) // Restrict roles to admin and instructor
+// async generateQuiz(
+//   no_of_questions: number,
+//   types_of_questions: 'mcq' | 't/f' | 'both',
+//   moduleId: mongoose.Types.ObjectId,
+// ) {
+//  // let questions: []; //no need to specify type, will be inferred from getQuestionsByModuleId 
+//   //as it returns an array of Object Id references to Question
+//   //also only declare as Question if it's fully populated with whole question
+//   //details but here its ObjectIds only
+//   //note .populate('questions'), is used to populate field called questions
+//   //can also add 2nd parameter t specify projectioin field names like ..,type created_by
 
-  // Fetch all questions object ids related to the module
-  const moduleQuestions = await this.moduleService.getQuestionsForModule(moduleId)
+//   // Fetch all questions object ids related to the module
+//   const moduleQuestions = await this.moduleService.getQuestionsForModule(moduleId)
 
-  // //populate q,since get method of questions returns object ids 
-  //of all questions in the module, can just call populate questions
-  // let questions = await this.questionModel
-  //   .find({ _id: { $in: moduleQuestions } }) // Fetch all questions by their ObjectIds
-  //   .exec();
-// Fetch all questions based on the module's questions ObjectIds
-const popQuestions: QuestionsDocument[] = await this.questionModel
-.find({ _id: { $in: moduleQuestions } })
-.exec();
+//   // //populate q,since get method of questions returns object ids 
+//   //of all questions in the module, can just call populate questions
+//   // let questions = await this.questionModel
+//   //   .find({ _id: { $in: moduleQuestions } }) // Fetch all questions by their ObjectIds
+//   //   .exec();
+// // Fetch all questions based on the module's questions ObjectIds
+// const popQuestions: QuestionsDocument[] = await this.questionModel
+// .find({ _id: { $in: moduleQuestions } })
+// .exec();
 
-// Ensure we have questions
-if (!popQuestions.length) {
-  throw new Error('No questions found for the module');
-}
+// // Ensure we have questions
+// if (!popQuestions.length) {
+//   throw new Error('No questions found for the module');
+// }
 
-let questions: QuestionsDocument[]; //array of populated questions
+// let questions: QuestionsDocument[]; //array of populated questions
 
-  // Filter questions based on types, now questions has the fully populated quesitons document
-  if (types_of_questions! === 'both') {
-    questions = popQuestions; // Use all questions if both types are selected
-  } else {
-    questions = popQuestions.filter(q=> q.type === types_of_questions); // Filter by type
-  }
+//   // Filter questions based on types, now questions has the fully populated quesitons document
+//   if (types_of_questions! === 'both') {
+//     questions = popQuestions; // Use all questions if both types are selected
+//   } else {
+//     questions = popQuestions.filter(q=> q.type === types_of_questions); // Filter by type
+//   }
 
-  // Check if there are enough questions for the quiz
-  if (questions.length < no_of_questions) {
-    throw new Error('Not enough questions for the quiz');
-  }
+//   // Check if there are enough questions for the quiz
+//   if (questions.length < no_of_questions) {
+//     throw new Error('Not enough questions for the quiz');
+//   }
 
-  // "Imaginary" quiz: Store questions but do not randomize or select a subset here
-  const quiz = new this.quizModel({
-    no_of_questions,
-    types_of_questions,
-    questions: questions.map(q => q._id), // Store only the question IDs
-    created_by: popQuestions[0].created_by, // Assuming the instructor is the same for the questions
-    isOutdated: false, // Default value for outdated flag
-  });
+//   // "Imaginary" quiz: Store questions but do not randomize or select a subset here
+//   const quiz = new this.quizModel({
+//     no_of_questions,
+//     types_of_questions,
+//     questions: questions.map(q => q._id), // Store only the question IDs
+//     created_by: popQuestions[0].created_by, // Assuming the instructor is the same for the questions
+//     isOutdated: false, // Default value for outdated flag
+//   });
 
-  // Add the quiz to the module (linking it to the module)
-  await this.moduleService.addQuizToModule(moduleId, quiz._id);
+//   // Add the quiz to the module (linking it to the module)
+//   await this.moduleService.addQuizToModule(moduleId, quiz._id);
 
-  // Save and return the "imaginary" quiz
-  return await quiz.save();
-}
+//   // Save and return the "imaginary" quiz
+//   return await quiz.save();
+// }
 
  // Student prepares to take the quiz: Select questions randomly based on their score
   // IN FRONT END WHEN STUDENT CLICKS ON TAKE QUIZ: render selectedQuestions
