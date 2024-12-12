@@ -123,25 +123,21 @@ export default function InstructorPage (){
 
         const username = userData.payload.username;
 
-    try {
-        const updatedCourses = courseList.map((course) =>  //it creates new course again but with opposite outdated value
-            course.course_code === course_code? { ...course, isOutdated: !course.isOutdated }: course
-          );
+    
+        const response = await axiosInstance.get<Course[]>(
+          `${backend_url}/courses/coursesInstructor/${username}`
+        );
+        const courses = response.data;
+  
+        setCourseList(courses);
 
-      await axiosInstance.put(`${backend_url}/courses/upoutdated/${username}/${course_code}`, {
-        isOutdated: !courseList.find((course) => course.course_code === course_code)?.isOutdated,
-      });
-
-      setCourseList(updatedCourses);
-      setFilteredCourses(
-        updatedCourses.filter((course) =>
-          course.title.toLowerCase().includes(search)
-        )
-      );
-    } catch (err) {
-      console.error("Failed to update outdated status:", err);
-      setError("Failed to update course status.");
-    }
+     // setCourseList(updatedCourses);
+      // setFilteredCourses(
+      //   updatedCourses.filter((course) =>
+      //     course.title.toLowerCase().includes(search)
+      //   )
+      // );
+    
 } catch (err) {
     console.error("Error fetching data:", err);
     setError("Failed to load courses. Please try again.");
@@ -151,8 +147,8 @@ export default function InstructorPage (){
 
   };
 
-  const handleViewCourse = (id: string) => {
-    router.push(`/courses/${id}`);
+  const handleViewCourse = (courseCode: string) => {
+    router.push(`/components/instructor/courses/${courseCode}/viewCourse`);
   };
 
   if (loading) {
@@ -204,7 +200,7 @@ export default function InstructorPage (){
   
             {/* View Course Button */}
             <button
-              onClick={() => handleViewCourse(course._id)}
+              onClick={() => handleViewCourse(course.course_code)}
               className="w-full px-4 py-2 bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 text-white rounded-lg hover:opacity-90 transition-all"
             >
               View Course

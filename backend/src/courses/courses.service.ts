@@ -57,7 +57,7 @@ export class CoursesService {
    // GET /Course/:course code: Retrieve a specific instructor 
 
    async findCoursesforInstructor(username: string): Promise<courseDocument[]> {
-    return this.courseModel.find({ created_by: username }).exec();
+    return this.courseModel.find({ created_by: username , Unavailable:false}).exec();
    }
 
    // GET /Course/:course code: Retrieve a specific instructor 
@@ -178,23 +178,25 @@ if (!found ) {
 }
 
 
-//GET: modules for a course for an instructor
-async getModulesForCourseInstructor(course_code: string,user:any): Promise<moduleDocument[]> {
-  const course = await this.courseModel.findOne({course_code}).exec();
-   if (!course) {
-     throw new NotFoundException(`Course with Course code ${course_code} not found`);
-   }
-   const isInstructor = course.created_by === user.username;
-   const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
- 
-   if (!isInstructor && !isAdmin) {
-     throw new UnauthorizedException('You are not authorized to view questions of this module');
-   } 
+// GET: modules for a course for an instructor
+async getModulesForCourseInstructor(course_code: string, username: string): Promise<moduleDocument[]> {
+  // Find the course by course_code
+  const course = await this.courseModel.findOne({ course_code }).exec();
+  if (!course) {
+    throw new NotFoundException(`Course with course code ${course_code} not found`);
+  }
+
+  if (username !== course.created_by) {
+    throw new UnauthorizedException('You are not authorized to view modules of this course');
+  }
+
   // Fetch all modules by their ObjectIds
-  const modules = await this.moduleModel.find({_id: { $in: course.modules }}).exec();
- 
-  return modules;
+  const modules = await this.moduleModel.find({ _id: { $in: course.modules } }).exec();
+
+  // Return an empty array if no modules exist
+  return modules.length ? modules : [];
 }
+
 
 //PUT: add module to a course
 async addModuleToCourse(courseCode: string, createModuleDto: CreateModuleDto,user: any): Promise<courseDocument> {

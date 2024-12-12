@@ -109,15 +109,10 @@ async findCourseByModuleId(@Param('moduleId') moduleId: string):Promise<courseDo
   // Get modules for a instructor in a specific course
   @UseGuards(AuthGuard, AuthorizationGuard)
   @Roles(Role.Admin, Role.Instructor)
-  @Get(':course_code/modulesInstructor')
-  async getModulesForInstructor(@Param('course_code') course_code: string, @Req(){user}): Promise<moduleDocument[]> {
+  @Get(':username/:course_code/modulesInstructor')
+  async getModulesForInstructor(@Param('course_code') course_code: string, @Param ('username')username:string): Promise<moduleDocument[]> {
     // Call the service method to get the modules for the course
-    const modules = await this.coursesService.getModulesForCourseInstructor(course_code,user);
-    
-    if (!modules || modules.length === 0) {
-      throw new NotFoundException(`No modules found for course ${course_code}`);
-    }
-
+    const modules = await this.coursesService.getModulesForCourseInstructor(course_code,username);
     return modules;
   }
 
