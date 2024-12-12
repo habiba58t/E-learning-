@@ -34,10 +34,26 @@ export class CoursesController {
     return this.coursesService.findOne(course_code);
   }
 
+   // GET /Course/:course code: Retrieve a specific instructor 
+   @UseGuards(AuthGuard, AuthorizationGuard)
+   @Roles(Role.Admin, Role.Instructor)
+   @Get('coursesInstructor/:username')
+   async findCoursesforInstructor(@Param('username') username: string): Promise<courseDocument[]> {
+     return this.coursesService.findCoursesforInstructor(username);
+   }
+
+   // GET /Course/:course code: Retrieve a specific instructor 
+   @UseGuards(AuthGuard, AuthorizationGuard)
+   @Roles(Role.Admin, Role.Instructor)
+   @Get('coursesbytitle/:username/:title')
+   async findCoursesforInstructorByTitle(@Param('username') username: string,@Param('title') title: string): Promise<courseDocument[]> {
+     return this.coursesService.findCoursesforInstructorByTitle(username,title);
+   }
+
   // GET /Course/:course code: Retrieve a specific course by its title
   @Public() 
   @Get('title/:title')
-  async findCourseByTitle(@Param('title') title: string): Promise<courseDocument> {
+  async findCourseByTitle(@Param('title') title: string): Promise<courseDocument[]> {
     return this.coursesService.findCourseByTitle(title);
   }
 
@@ -130,9 +146,9 @@ async DeleteModuleFromCourse( @Req (){user},@Param('courseCode') courseCode: str
 
   @UseGuards(AuthGuard, AuthorizationGuard)
   @Roles(Role.Admin, Role.Instructor)
-  @Put('upoutdated/:course_code')
-  async toggleOutdated(@Param('course_code') course_code: string, @Req(){user}): Promise<Courses> {
-    return this.coursesService.toggleOutdated(course_code,user);
+  @Put('upoutdated/:username/:course_code')
+  async toggleOutdated(@Param('course_code') course_code: string, @Param('username') username: string): Promise<Courses> {
+    return this.coursesService.toggleOutdated(course_code,username);
   } 
 
 

@@ -54,9 +54,25 @@ export class CoursesService {
     return course;
   }
 
+   // GET /Course/:course code: Retrieve a specific instructor 
+
+   async findCoursesforInstructor(username: string): Promise<courseDocument[]> {
+    return this.courseModel.find({ created_by: username }).exec();
+   }
+
+   // GET /Course/:course code: Retrieve a specific instructor 
+   async findCoursesforInstructorByTitle(username: string, title: string): Promise<courseDocument[]> {
+    const course = await this.courseModel.find({title: { $regex: title, $options: 'i' },created_by: username}).exec();
+    if (!course) {
+      throw new NotFoundException(`Course with title ${title} not found`);
+    }
+    return course;
+   }
+
+
   //GET: find course by course titl
-  async findCourseByTitle(title: string): Promise<courseDocument> {
-    const course = await this.courseModel.findOne({title: { $regex: title, $options: 'i' },Unavailable: false}).exec();
+  async findCourseByTitle(title: string): Promise<courseDocument[]> {
+    const course = await this.courseModel.find({title: { $regex: title, $options: 'i' },Unavailable: false}).exec();
     if (!course) {
       throw new NotFoundException(`Course with title ${title} not found`);
     }
@@ -251,14 +267,14 @@ async findOutdated(course_code: string,user:any): Promise<boolean> {
 }
 
 //PUT: change outdated of course
-async toggleOutdated(course_code: string,user:any): Promise<courseDocument> {
+async toggleOutdated(course_code: string,username:string): Promise<courseDocument> {
   const course = await this.courseModel.findOne({ course_code }) ;
   if (!course) {
     throw new NotFoundException(`Course with course code ${course_code} not found`);
   }
-  const isInstructor = course.created_by === user.username;
-  const isAdmin = user.role === 'admin';
-  if (!isInstructor && !isAdmin) {
+  const user= await this .usersService.findUserByUsername(username);
+  
+  if (user.role ==="student") {
     throw new UnauthorizedException('You are not authorized');
   } 
   course.isOutdated = !course.isOutdated;

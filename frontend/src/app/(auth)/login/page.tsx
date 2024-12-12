@@ -24,7 +24,7 @@ const LoginPage = () => {
         if (user.role === "admin") {
           router.push("/components/Admin-sidebar");
         } else if (user.role === "instructor") {
-          router.push("/components/instructor-sidebar");
+          router.push("/components/instructor/instructor-sidebar");
         } else {
           router.push("/pages/home");
         }

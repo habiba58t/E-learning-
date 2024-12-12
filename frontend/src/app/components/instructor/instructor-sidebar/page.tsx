@@ -12,7 +12,7 @@ const InstructorSidebar = () => {
           </Link>
         </li>
         <li>
-          <Link href="/my-courses" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
+          <Link href="/components/instructor/courses" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
             My Courses
           </Link>
         </li>
