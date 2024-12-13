@@ -90,17 +90,18 @@ export class CoursesService {
 
 
   //CREATE: intructor create course
-  async create(createCourseDto: CreateCourseDto,user: any): Promise<courseDocument> {
+  async create(createCourseDto: CreateCourseDto): Promise<courseDocument> {
+    try {
+    const username = createCourseDto.created_by;
     const newCourse = new this.courseModel(createCourseDto); // Step 1: Create the new course
-    newCourse.Unavailable=false;
+   // newCourse.Unavailable=false;
     newCourse.created_at = new Date();
-    newCourse.created_by = user.username;
     const savedCourse = await newCourse.save();
-
+     
     // Step 2: Find the instructor by their username
-    const instructor = await this.userModel.findOne({  username: user.username }).exec();
+    const instructor = await this.userModel.findOne({ username}).exec();
     if (!instructor) {
-      throw new NotFoundException(`Instructor with username ${user.username} not found`);
+      throw new NotFoundException(`Instructor with username ${username} not found`);
     }
 
     // Step 3: Add the new course's ObjectId to the instructor's courses array
@@ -111,17 +112,22 @@ export class CoursesService {
 
     // Step 5: Return the newly created course
     return savedCourse;
+  } catch (err) {
+    console.error('Error creating course:', err);
+    throw new InternalServerErrorException('Failed to create course');
+  }
   }
 
  // Update an existing course by ID
-  async update(course_code: string, updateCourseDto: UpdateCourseDto,user: any): Promise<courseDocument> {
+  async update(course_code: string, updateCourseDto: UpdateCourseDto, username:string): Promise<courseDocument> {
+    const user= await this.usersService.findUserByUsername(username);
     const course = await this.courseModel.findOne({ course_code, Unavailable: false }).exec();
   
     if (!course) {
       throw new NotFoundException(  `Course with Course code${course_code} not found`);
     }
     // Check if the user is the instructor or an admin
-  const isInstructor = course.created_by === user.username;
+  const isInstructor = course.created_by === username;
   const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
 
   if (!isInstructor && !isAdmin) {
@@ -397,11 +403,12 @@ async getCourseForModule (moduleTitle:string): Promise<courseDocument>{
 
 
 //DELETE COURSE (MAKE IT UNAVAILABLE)
-async deleteCourse(course_code: string,user: any): Promise <courseDocument>{//Promise<{ message: string }> {
+async deleteCourse(course_code: string,username: string): Promise <courseDocument>{//Promise<{ message: string }> {
   const course = await this.courseModel.findOne({ course_code, Unavailable: false }).exec();
     if (!course) {
       throw new NotFoundException(  `Course with Course code${course_code} not found`);
     }
+    const user= await this.usersService.findUserByUsername(username);
     const isInstructor = course.created_by === user.username;
     const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
     if (!isInstructor && !isAdmin) {

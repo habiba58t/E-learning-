@@ -70,17 +70,17 @@ export class CoursesController {
 @UseGuards(AuthGuard, AuthorizationGuard)
 @Roles(Role.Admin, Role.Instructor)
    @Post('createCourse')
-  async create(@Req() {user}, @Body() createCourseDto: CreateCourseDto ): Promise<Courses> {
+  async create( @Body() createCourseDto: CreateCourseDto ): Promise<Courses> {
     // Pass the username and course data to the service to create the course and associate it with the instructor
-    return this.coursesService.create(createCourseDto,user);
+    return this.coursesService.create(createCourseDto);
   }
 
   // PUT /products/:id: Update an existing product by its ID
   @UseGuards(AuthGuard, AuthorizationGuard)
   @Roles(Role.Admin, Role.Instructor)
-  @Put(':course_code')
-  async update(@Req() {user},@Param('course_code') course_code: string, @Body() updateCourseDto: UpdateCourseDto): Promise<Courses> {
-    return this.coursesService.update(course_code, updateCourseDto,user);
+  @Put('updateCourse/:username/:course_code')
+  async update(@Param('course_code') course_code: string,@Param('username')username:string, @Body() updateCourseDto: UpdateCourseDto): Promise<Courses> {
+    return this.coursesService.update(course_code, updateCourseDto,username);
   }
 
 
@@ -195,8 +195,8 @@ async getNonOutdatedCoursesForStudent(@Param('username') username: string) {
 //DELETE COURSE (MAKE IT UNAVAILABLE)
 @UseGuards(AuthGuard, AuthorizationGuard)
 @Roles(Role.Admin, Role.Instructor)
-@Put(':course_code/delete')
-  async markCourseAsUnavailable(@Param('course_code') courseId: string, @Req(){user}) :Promise<courseDocument> {
-    return await this.coursesService.deleteCourse(courseId,user);
+@Put(':username/:course_code/delete')
+  async markCourseAsUnavailable(@Param('course_code') courseId: string, @Param('username')username:string) :Promise<courseDocument> {
+    return await this.coursesService.deleteCourse(courseId,username);
   }
 }
