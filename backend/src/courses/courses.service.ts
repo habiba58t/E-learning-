@@ -205,12 +205,13 @@ async getModulesForCourseInstructor(course_code: string, username: string): Prom
 
 
 //PUT: add module to a course
-async addModuleToCourse(courseCode: string, createModuleDto: CreateModuleDto,user: any): Promise<courseDocument> {
+async addModuleToCourse(courseCode: string, createModuleDto: CreateModuleDto,username: string): Promise<courseDocument> {
    // Find the course by course code
    const course = await this.courseModel.findOne({ course_code: courseCode ,Unavailable: false}).exec();
    if (!course) {
      throw new NotFoundException(`Course with Course code ${courseCode} not found`);
    }
+   const user= await this.usersService.findUserByUsername(username);
    const isInstructor = course.created_by === user.username;
   const isAdmin = user.role === 'admin';
 
@@ -240,8 +241,9 @@ async addModuleToCourse(courseCode: string, createModuleDto: CreateModuleDto,use
 }
 
 //PUT: remove module from array of modules in specific course
-async DeleteModuleFromCourse(user: any,courseCode: string, title:string): Promise<courseDocument> {
+async DeleteModuleFromCourse(username: string,courseCode: string, title:string): Promise<courseDocument> {
   const course= await this.findOne(courseCode);
+  const user= await this.usersService.findUserByUsername(username);
   const isInstructor = course.created_by === user.username;
   const isAdmin = user.role === 'admin';
 

@@ -145,11 +145,11 @@ async addQuestionToModule( @Req() {user},@Param('moduleId') moduleId: string, @P
   }
 
   //PUT: toggle outdated attributed of specific module
-  @UseGuards(AuthorizationGuard)
+  @UseGuards(AuthGuard,AuthorizationGuard)
 @Roles(Role.Admin,Role.Instructor)
-  @Put(':title')
-  async toggleOutdated(@Req() {user},@Param('title') title: string): Promise<moduleDocument> {
-    return this.modulesService.toggleOutdated(title,user);
+  @Put('toggle/:username/:title')
+  async toggleOutdated(@Param('username')username:string,@Param('title') title: string): Promise<moduleDocument> {
+    return this.modulesService.toggleOutdated(title,username);
   } 
 
 // Upload files to resourses array

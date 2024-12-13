@@ -81,16 +81,12 @@ export class ModulesService {
 
 
 // Create a new Module
-// @UseGuards(AuthorizationGuard)
-// @Roles(Role.Admin, Role.Instructor)
 async create(createModuleDto: CreateModuleDto): Promise<moduleDocument> {
   const newModule = new this.moduleModel(createModuleDto);
   newModule.created_at= new Date(); 
   return await newModule.save();
 }
 // Update an existing module by title
-// @UseGuards(AuthorizationGuard)
-// @Roles(Role.Admin,Role.Instructor)
 async update(title: string, updateModuleDto: UpdateModuleDto,user:any): Promise<moduleDocument> {
   const module = await this.moduleModel.findOne({title}).exec();
         if (!module) {
@@ -260,9 +256,8 @@ async findOutdated(title: string): Promise<boolean> {
 }
 
 //PUT: change outdated of module
-// @UseGuards(AuthorizationGuard)
-// @Roles(Role.Admin,Role.Instructor)
-async toggleOutdated(title: string,user:any): Promise<moduleDocument> {
+async toggleOutdated(title: string,username:string): Promise<moduleDocument> {
+  const user= await this.usersService.findUserByUsername(username);
   const module = await this.moduleModel.findOne({ title }).exec();
   if (!module) {
     throw new NotFoundException(`Course with module ${title} not found`);
@@ -285,8 +280,6 @@ async toggleOutdated(title: string,user:any): Promise<moduleDocument> {
 }
 
 // Method to add file metadata to a Module's resources
-// @UseGuards(AuthorizationGuard)
-// @Roles(Role.Admin,Role.Instructor)
 async addFileToModule(moduleId: string, fileUrl: string, originalName: string, fileType: string,contentTitle:string,user:any): Promise<moduleDocument> {
   const module = await this.moduleModel.findById(moduleId).exec();
   if (!module) {

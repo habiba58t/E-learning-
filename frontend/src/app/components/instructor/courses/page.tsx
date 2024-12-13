@@ -161,30 +161,34 @@ export default function InstructorPage (){
           credentials: "include",
         });
         const { userData } = await cookieResponse.json();
-
         if (!userData || !userData.payload?.username) {
           throw new Error("No valid user data found in cookies.");
         }
-
         const username = userData.payload.username;
-
-    
-        const response = await axiosInstance.get<Course[]>(
-          `${backend_url}/courses/coursesInstructor/${username}`
-        );
-        const courses = response.data;
-  
-        setCourseList(courses);
-    
+    try {
+        const updatedCourses = courseList.map((course) =>  //it creates new course again but with opposite outdated value
+            course.course_code === course_code? { ...course, isOutdated: !course.isOutdated }: course
+          );
+      await axiosInstance.put(`${backend_url}/courses/upoutdated/${username}/${course_code}`, {
+        isOutdated: !courseList.find((course) => course.course_code === course_code)?.isOutdated,
+      });
+      setCourseList(updatedCourses);
+      setFilteredCourses(
+        updatedCourses.filter((course) =>
+          course.title.toLowerCase().includes(search)
+        )
+      );
+    } catch (err) {
+      console.error("Failed to update outdated status:", err);
+      setError("Failed to update course status.");
+    }
 } catch (err) {
     console.error("Error fetching data:", err);
     setError("Failed to load courses. Please try again.");
   } finally {
     setLoading(false);
   }
-
   };
-
 
   const handleViewCourse = (courseCode: string) => {
     router.push(`/components/instructor/courses/${courseCode}/viewCourse`);

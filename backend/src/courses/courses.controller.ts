@@ -118,17 +118,17 @@ async findCourseByModuleId(@Param('moduleId') moduleId: string):Promise<courseDo
 
   @UseGuards(AuthGuard, AuthorizationGuard)
   @Roles(Role.Admin, Role.Instructor)
-  @Put(':courseCode/modules')
-  async addModuleToCourse(@Req() {user}, @Param('courseCode') courseCode: string,@Body() createModuleDto: CreateModuleDto): Promise<courseDocument> {
-    return this.coursesService.addModuleToCourse(courseCode, createModuleDto,user);
+  @Put(':username/:courseCode/modules')
+  async addModuleToCourse(@Param('username')username:string, @Param('courseCode') courseCode: string,@Body() createModuleDto: CreateModuleDto): Promise<courseDocument> {
+    return this.coursesService.addModuleToCourse(courseCode, createModuleDto,username);
 }
 
 
 @UseGuards(AuthGuard, AuthorizationGuard)
 @Roles(Role.Admin, Role.Instructor)
- @Put(':courseCode/modules/:title')
-async DeleteModuleFromCourse( @Req (){user},@Param('courseCode') courseCode: string , @Param ('title')title:string): Promise<Courses> {
-  return this.coursesService.DeleteModuleFromCourse(user,courseCode, title);
+ @Put(':username/:courseCode/modules/:title')
+async DeleteModuleFromCourse( @Param ('username')username:string,@Param('courseCode') courseCode: string , @Param ('title')title:string): Promise<Courses> {
+  return this.coursesService.DeleteModuleFromCourse(username,courseCode, title);
 }
 
 //GET: find outdated attributed of specific course

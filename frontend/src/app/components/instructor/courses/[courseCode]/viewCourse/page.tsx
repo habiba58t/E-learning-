@@ -28,9 +28,16 @@ export interface Module {
   _id: string;
   title: string;
   level: 'easy' | 'medium' | 'hard';
-  content?: Types.ObjectId[];
+  content?: Types.ObjectId[];  // Content ID array
   created_at: Date;
   isOutdated: boolean;
+}
+
+export interface Content {
+  _id: string
+  title: string;
+  isOutdated: boolean;
+  resources: { filePath: string; fileType: string; originalName: string }[];
 }
 
 const backend_url = "http://localhost:3002";
@@ -41,6 +48,7 @@ const CourseDetails = () => {
 
   const [course, setCourse] = useState<Course | null>(null);
   const [modules, setModules] = useState<Module[]>([]);
+  const [moduleContents, setModuleContents] = useState<Record<string, { resources: { filePath: string; fileType: string; originalName: string }[] }>>({});
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
@@ -51,6 +59,10 @@ const CourseDetails = () => {
     category: '',
     level: '',
   });
+  const [expandedModule, setExpandedModule] = useState<string | null>(null);
+  const [contentDetails, setContentDetails] = useState<Record<string, Content[]>>({});
+  
+
 
   const router = useRouter();
 
@@ -73,7 +85,6 @@ const CourseDetails = () => {
         setCourse(courseResponse.data);
       } catch (err: unknown) {
         if (axios.isAxiosError(err)) {
-          // Check for Axios-specific error
           if (err.response?.status === 404) {
             console.error("Course not found:", err);
             setError("Course not found. Please check the course code and try again.");
@@ -82,23 +93,16 @@ const CourseDetails = () => {
             setError("Failed to load the course. Please try again.");
           }
         } else if (err instanceof Error) {
-          // Handle other errors (non-Axios errors)
           console.error("Unknown error:", err);
           setError("An unknown error occurred.");
         }
-        // Set course to null or an empty object
         setCourse(null);
       }
-      
   
-      // Fetch modules data, but allow for the possibility of an empty module array
+      // Fetch modules data
       const modulesResponse = await axiosInstance.get<Module[]>(`${backend_url}/courses/${username}/${courseCode}/modulesInstructor`);
-  
-      if (modulesResponse.data && modulesResponse.data.length > 0) {
-        setModules(modulesResponse.data);
-      } else {
-        setModules([]); // No modules available, set empty array
-      }
+      setModules(modulesResponse.data);
+
     } catch (err) {
       console.error("Error fetching modules:", err);
       setError("Failed to load the modules. Please try again.");
@@ -106,7 +110,21 @@ const CourseDetails = () => {
       setLoading(false);
     }
   }
+
+  const fetchModuleContent = async (moduleId: string) => {
+    try {
+      const response = await axiosInstance.get(`${backend_url}/modules/${moduleId}/content`);
+      setModuleContents(prev => ({
+        ...prev,
+        [moduleId]: response.data,
+      }));
+    } catch (error) {
+      console.error("Error fetching module content:", error);
+      setError("Failed to fetch module content.");
+    }
+  };
   
+
   useEffect(() => {
     fetchCourseAndModules();
   }, []);
@@ -114,6 +132,7 @@ const CourseDetails = () => {
   const toggleDropdown = () => {
     setDropdownOpen((prev) => !prev);
   };
+
   const handleDelete = async () => {
     try {
       const cookieResponse = await fetch(`${backend_url}/auth/get-cookie-data`, {
@@ -126,14 +145,13 @@ const CourseDetails = () => {
       }
       const username = userData.payload.username;
       await axiosInstance.put(`${backend_url}/courses/${username}/${courseCode}/delete`);
-      console.log(`Course with course code ${courseCode} deleted successfully.`);
       router.push(`/components/instructor/courses`);
-
     } catch (err) {
       console.error("Error fetching data:", err);
       setError("Failed to get cookie. Please try again.");
     }
-  }
+  };
+
   const handleUpdateCourse = async () => {
     try {
       const cookieResponse = await fetch(`${backend_url}/auth/get-cookie-data`, {
@@ -179,21 +197,109 @@ const CourseDetails = () => {
       setError("Failed to get cookie. Please try again.");
     }
   };
-  
-  
 
-  if (loading) {
-    return <div>Loading course details...</div>;
+
+  const toggleModuleContent = (moduleId: string) => {
+    setModuleContents(prev => ({
+      ...prev,
+      [moduleId]: prev[moduleId]
+        ? { resources: [] }  // Reset to empty resources when hiding
+        : { resources: [{ filePath: '', fileType: '', originalName: '' }] }, // Set default content structure when showing
+    }));
+  };
+
+ // Handle module expand/collapse
+ const toggleModule = (moduleId: string, contentIds: Types.ObjectId[]) => {
+  const isExpanded = expandedModule === moduleId;
+  setExpandedModule(isExpanded ? null : moduleId);
+
+  if (!isExpanded && !contentDetails[moduleId]) {
+    fetchContentDetails(moduleId, contentIds);
   }
+};
+
+
+// Fetch content details for a specific module
+async function fetchContentDetails(moduleId: string, contentIds: Types.ObjectId[]) {
+  try {
+    const responses = await Promise.all(
+      contentIds.map((id) => axiosInstance.get<Content>(`${backend_url}/contents/${id}`))
+    );
+    setContentDetails((prev) => ({
+      ...prev,
+      [moduleId]: responses.map((res) => res.data),
+    }));
+  } catch (err) {
+    console.error("Error fetching content details:", err);
+  }
+}  
+
+const handleToggleOutdated = async (title: string) => {
+  try {
+      // Fetch user data from cookie
+      const cookieResponse = await fetch(`${backend_url}/auth/get-cookie-data`, {
+        credentials: "include",
+      });
+      const { userData } = await cookieResponse.json();
+
+      if (!userData || !userData.payload?.username) {
+        throw new Error("No valid user data found in cookies.");
+      }
+
+      const username = userData.payload.username;
+      
+  
+      await axiosInstance.put<Module>(`${backend_url}/modules/toggle/${username}/${title}`);
+      setModules((prevModules) =>
+        prevModules.map((module) =>
+          module.title === title
+            ? { ...module, isOutdated: !module.isOutdated } // Toggle the 'isOutdated' status
+            : module
+        )
+      );
+
+} catch (err) {
+  console.error("Error fetching data:", err);
+  setError("Failed to load courses. Please try again.");
+} finally {
+  setLoading(false);
+}
+};
+
+const handleDeleteModule = async (title:string) => {
+  try {
+    const cookieResponse = await fetch(`${backend_url}/auth/get-cookie-data`, {
+      credentials: "include",
+    });
+    const { userData } = await cookieResponse.json();
+
+    if (!userData || !userData.payload?.username) {
+      throw new Error("No valid user data found in cookies.");
+    }
+    const username = userData.payload.username;
+    await axiosInstance.put(`${backend_url}/courses/${username}/${courseCode}/modules/${title}`);
+    fetchCourseAndModules();
+  } catch (err) {
+    console.error("Error fetching data:", err);
+    setError("Failed to get cookie. Please try again.");
+  }
+};
+
+  const handleQuestion = (moduleId: string) => {
+    router.push(`/components/instructor/courses/${courseCode}/Question/${moduleId}`);
+  };
+
+  const handleQuiz = (moduleId: string) => {
+    router.push(`/components/instructor/courses/${courseCode}/Quiz/${moduleId}`);
+  };
 
   if (error) {
     return <div className="text-red-500">{error}</div>;
   }
-
+  
   return (
     <div className="container mx-auto px-4 py-8">
-
-      {updateMode ? (
+            {updateMode ? (
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg rounded-lg p-6 mb-6">
           <h2 className="text-2xl font-semibold text-blue-600 mb-4">Update Course</h2>
           <form>
@@ -238,7 +344,6 @@ const CourseDetails = () => {
     <option value="hard">Hard</option>
   </select>
 </div>
-
             <div className="flex gap-4">
               <button
                 type="button"
@@ -263,7 +368,7 @@ const CourseDetails = () => {
             </div>
           </form>
         </div>
-      ) :course ? (
+      ) : course ? (
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg rounded-lg p-6 mb-6">
           <h1 className="text-3xl font-semibold text-blue-600 mb-4">{course.title}</h1>
           <div className="text-gray-700 mb-6">
@@ -272,40 +377,26 @@ const CourseDetails = () => {
             <p><strong>Category:</strong> {course.category}</p>
             <p><strong>Level:</strong> {course.level}</p>
             <p><strong>Average Rating:</strong> {course.averageRating ?? 'N/A'}</p>
-           < p><strong>Number of Students Enrolled:</strong> {course.totalStudents ?? 'N/A'}</p>
+            <p><strong>Number of Students Enrolled:</strong> {course.totalStudents ?? 'N/A'}</p>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex flex-wrap gap-4">
-             <button
-              onClick={() => setUpdateMode(true)}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:opacity-90"
-            >
+            <button onClick={() => setUpdateMode(true)} className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:opacity-90">
               Update Course
             </button>
-            <button onClick={() => handleDelete()} // Call handleDelete with bookingId
-               className="px-4 py-2 bg-gradient-to-r from-red-400 via-red-500 to-red-600 text-white rounded-lg shadow-md hover:opacity-90 transition-all" >
-                    Delete Course
-              </button>
-            <button
-              onClick={() => router.push(`/courses/${courseCode}/create-module`)}
-              className="px-4 py-2 bg-gradient-to-r from-blue-400 via-purple-500 to-indigo-500 text-white rounded-lg shadow-md hover:opacity-90 transition-all"
-            >
+            <button onClick={handleDelete} className="px-4 py-2 bg-gradient-to-r from-red-400 via-red-500 to-red-600 text-white rounded-lg shadow-md hover:opacity-90 transition-all">
+              Delete Course
+            </button>
+            <button onClick={() => router.push(`/courses/${courseCode}/create-module`)} className="px-4 py-2 bg-gradient-to-r from-blue-400 via-purple-500 to-indigo-500 text-white rounded-lg shadow-md hover:opacity-90 transition-all">
               Create Module
             </button>
             <div className="relative">
-              <button
-                onClick={toggleDropdown}
-                className="px-4 py-2 bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 text-white rounded-lg shadow-md hover:opacity-90 transition-all"
-              >
+              <button onClick={toggleDropdown} className="px-4 py-2 bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 text-white rounded-lg shadow-md hover:opacity-90 transition-all">
                 Enrolled Students
               </button>
               {dropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-md">
-                  <button
-                    onClick={() => router.push(`/courses/${courseCode}/students`)}
-                    className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100"
-                  >
+                  <button onClick={() => router.push(`/courses/${courseCode}/students`)} className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100">
                     View Enrolled Students
                   </button>
                 </div>
@@ -318,22 +409,95 @@ const CourseDetails = () => {
       )}
 
       {/* Modules Section */}
-      <div className="bg-white shadow-lg rounded-lg p-6">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Modules</h2>
-        {modules.length > 0 ? (
-          modules.map((module) => (
-            <div key={module._id} className="border-b border-gray-300 py-4">
-              <div className="flex justify-between items-center">
-                <span className="text-lg font-medium text-gray-800">{module.title}</span>
-                <span className="text-sm text-gray-500">{module.level}</span>
+      <h2 className="text-2xl font-semibold text-gray-800 mb-4">Modules</h2>
+      {modules.length > 0 ? (
+        modules.map((module) => (
+          <div key={module._id} className="border-b border-gray-300 py-4">
+          {/* Module Header */}
+<div className="flex justify-between items-center">
+  <div className="flex items-center gap-2">
+    <h3 className="text-xl text-blue-600">{module.title}</h3>
+    <span className="text-sm text-gray-500 bg-gray-200 px-2 py-1 rounded-md">{module.level}</span>
+  </div>
+  <div className="flex gap-2 ml-auto">
+    <button
+      onClick={() => toggleModule(module._id, module.content ?? [])}
+      className="px-2 py-1 bg-gradient-to-r from-teal-400 to-teal-600 text-white rounded-lg shadow-md hover:opacity-80"
+    >
+      {expandedModule === module._id ? 'Hide Content' : 'Show Content'}
+    </button>
+
+    {/* Outdated Toggle */}
+    <button
+      onClick={() => handleToggleOutdated(module.title)}
+      className={`px-2 py-1 rounded-lg text-white ${module.isOutdated ? 'bg-red-500' : 'bg-green-500'} mb-4`}
+    >
+      {module.isOutdated ? 'Outdated' : 'Up-to-date'}
+    </button>
+
+    <button
+      className="px-2 py-1 rounded-lg bg-green-500 text-white shadow-md hover:opacity-80"
+    >
+      Update Module
+    </button>
+    <button
+      className="px-2 py-1 rounded-lg bg-blue-500 text-white shadow-md hover:opacity-80"
+    >
+      Add Content
+    </button>
+    <button
+      className="px-2 py-1 rounded-lg bg-red-500 text-white shadow-md hover:opacity-80"
+    >
+      Delete Content
+    </button>
+    <button
+     onClick={() => handleQuestion(module.title)}
+      className="px-2 py-1 rounded-lg bg-red-500 text-white shadow-md hover:opacity-80"
+    >
+      Question Bank
+    </button>
+    <button
+     onClick={() => handleQuiz(module.title)}
+      className="px-2 py-1 rounded-lg bg-red-500 text-white shadow-md hover:opacity-80"
+    >
+      Create Quiz
+    </button>
+    <button
+     onClick={() => handleDeleteModule(module.title)}
+      className="px-2 py-1 rounded-lg bg-red-500 text-white shadow-md hover:opacity-80"
+    >
+      Delete Module
+    </button>
+  </div>
+</div>
+
+            {/* Module Content */}
+            {expandedModule === module._id && contentDetails[module._id] && (
+              <div className="mt-4">
+                {contentDetails[module._id].map((content) => (
+                  <div key={content._id} className="mb-4">
+                    <p>{content.title}</p>
+                    <p>{content.isOutdated ? 'Outdated' : 'Up-to-date'}</p>
+                    <div>
+                      {content.resources.map((resource, index) => (
+                        <div key={index}>
+                          <a href={resource.filePath} download>
+                            {resource.originalName} ({resource.fileType})
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
-            </div>
-          ))
-        ) : (
-          <p>No modules available.</p>
-        )}
-      </div>
+            )}
+          </div>
+        ))
+      ) : (
+        <p>No modules available.</p>
+      )}
     </div>
   );
 };
+
 export default CourseDetails;
