@@ -26,7 +26,7 @@ const LoginPage = () => {
         } else if (user.role === "instructor") {
           router.push("/components/instructor-sidebar");
         } else {
-          router.push("/pages/home");
+          router.push("/components/home");
         }
       }
     } catch (error) {

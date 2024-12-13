@@ -132,7 +132,7 @@ async findModuleByQuizId(quizId: mongoose.Types.ObjectId): Promise<moduleDocumen
 // Add question to modules array
 // @UseGuards(AuthorizationGuard)
 // @Roles(Role.Admin,Role.Instructor)
-async addQuestionToModule(moduleId: mongoose.Types.ObjectId, questionId: mongoose.Types.ObjectId,user:any): Promise<moduleDocument> {
+async addQuestionToModule(moduleId: mongoose.Types.ObjectId, questionId: mongoose.Types.ObjectId): Promise<moduleDocument> {
   // Find the module by ID
   const module = await this.moduleModel.findById(moduleId).exec();
   if (!module) {
@@ -141,12 +141,12 @@ async addQuestionToModule(moduleId: mongoose.Types.ObjectId, questionId: mongoos
 
   const course = await this.coursesService.findCourseByModuleId(module._id)
 
-  const isInstructor = course.created_by === user.username;
-  const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
+  // const isInstructor = course.created_by === user.username;
+  // const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
 
-  if (!isInstructor && !isAdmin) {
-    throw new UnauthorizedException('You are not authorized to add quiz to module');
-  }
+  // if (!isInstructor && !isAdmin) {
+  //   throw new UnauthorizedException('You are not authorized to add quiz to module');
+  // }
 
   // Check if the quiz is already in the array
   if (module.quizzes.some((existingQuizId) => existingQuizId.equals(questionId))) {

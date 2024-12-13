@@ -16,11 +16,11 @@ import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
 export class QuestionsController {
   constructor(private readonly questionsService: QuestionsService) {}
 
-  // @Post()
-  // async create(@Param('moduleId') moduleId: string, @Body() createQuestionDto: CreateQuestionDto) {
-  //   const mid = new Types.ObjectId(moduleId);
-  //   return await this.questionsService.create(createQuestionDto, mid);
-  // }
+  @Post()
+  async create(@Param('moduleId') moduleId: string, @Body() createQuestionDto: CreateQuestionDto) {
+    const mid = new Types.ObjectId(moduleId);
+    return await this.questionsService.create(createQuestionDto, mid);
+  }
 
 //for search purpose, instructor can find a question by difficulty or 
 //keyword/title that they add when creating the question

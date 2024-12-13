@@ -23,12 +23,17 @@ const Sidebar = () => {
         </li>
         <li>
           <Link href="/progress" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
-            Progress
+           My Progress
           </Link>
         </li>
         <li>
           <Link href="/forum" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
-            Forum
+            Discussions
+          </Link>
+        </li>
+        <li>
+          <Link href="/forum" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
+            Chats
           </Link>
         </li>
       </ul>

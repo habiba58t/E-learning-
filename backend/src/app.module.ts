@@ -16,9 +16,10 @@ import { NotificationModule } from './notification/notification.module';
 import { ChatModule } from './chat/chat.module';
 import { MessageModule } from './message/message.module';
 import { ForumModule } from './forum/forum.module';
+import { AdapterModule } from './adapter/adapter.module';
 
 @Module({
-  imports: [ProgressModule, UsersModule, CoursesModule, ModulesModule, ResponsesModule, QuizzesModule, QuestionsModule,StudentModule,NotesModule,LogModule,MongooseModule.forRoot('mongodb+srv://projectdb:12345@e-learning.6bu6g.mongodb.net/E-learning-'), NotificationModule, ChatModule, MessageModule, ForumModule],
+  imports: [ProgressModule, UsersModule, CoursesModule, ModulesModule, ResponsesModule, QuizzesModule, QuestionsModule,StudentModule,NotesModule,LogModule,MongooseModule.forRoot('mongodb+srv://projectdb:12345@e-learning.6bu6g.mongodb.net/E-learning-'), NotificationModule, ChatModule, MessageModule, ForumModule, AdapterModule],
   controllers: [AppController],
   providers: [AppService],
 })

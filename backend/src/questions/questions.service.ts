@@ -35,17 +35,17 @@ export class QuestionsService {
 
   // Create a question and add it to a module's quiz array (only for instructors)
 
-  // async create(questionData: CreateQuestionDto, moduleId: mongoose.Types.ObjectId): Promise<QuestionsDocument> {
-  //   const newQuestion = new this.questionModel(questionData);
+  async create(questionData: CreateQuestionDto, moduleId: mongoose.Types.ObjectId): Promise<QuestionsDocument> {
+    const newQuestion = new this.questionModel(questionData);
     
-  //   // Save the question first
-  //   await newQuestion.save();
+    // Save the question first
+    await newQuestion.save();
 
-  //   // Add question ID to the module's quiz array via the ModuleService
-  //   await this.moduleService.addQuestionToModule(moduleId, newQuestion._id);
+    // Add question ID to the module's quiz array via the ModuleService
+    await this.moduleService.addQuestionToModule(moduleId, newQuestion._id);
 
-  //   return newQuestion; // Return the saved document (of type `QuestionsDocument`)
-  // }
+    return newQuestion; // Return the saved document (of type `QuestionsDocument`)
+  }
 
   // Get all questions for a specific module (accessible by instructors and admins)
     async findAllByModuleId(moduleId: mongoose.Types.ObjectId): Promise<QuestionsDocument[]> {

@@ -23,17 +23,17 @@ const InstructorSidebar = () => {
         </li>
         <li>
           <Link href="/manage-students" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
-            Manage Students
+          Question Bank
           </Link>
         </li>
         <li>
-          <Link href="/question-bank" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
-            Question Bank
+          <Link href="/components/instructor/questions" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
+            Analytics
           </Link>
         </li>
-        <li>
+        <li>n
           <Link href="/feedback" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
-            Student Feedback
+            Discussions
           </Link>
         </li>
       </ul>

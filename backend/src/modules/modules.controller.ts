@@ -128,8 +128,7 @@ async addQuestionToModule( @Req() {user},@Param('moduleId') moduleId: string, @P
 ) {
   const updatedModule = await this.modulesService.addQuestionToModule(
     new mongoose.Types.ObjectId(moduleId), 
-    new mongoose.Types.ObjectId(questionId), 
-    user);
+    new mongoose.Types.ObjectId(questionId));
   return {
     message: 'Question successfully added to the module.',
     module: updatedModule,
