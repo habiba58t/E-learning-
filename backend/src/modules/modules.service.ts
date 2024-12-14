@@ -293,6 +293,7 @@ async addContentToModule(
     if (!module) {
       throw new NotFoundException(`Module with ID ${moduleId} not found.`);
     }
+    console.log(`Module with ID ${moduleId}`, module);
 
     const course = await this.coursesService.findCourseByModuleId(module._id);
     if (!course) {

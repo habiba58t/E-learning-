@@ -221,15 +221,15 @@ const CourseDetails = () => {
   };
 
 
- // Handle module expand/collapse
- const toggleModule = (moduleId: string, contentIds: Types.ObjectId[]) => {
-  const isExpanded = expandedModule === moduleId;  //stor module id the one that are expanded
-  setExpandedModule(isExpanded ? null : moduleId);  //if it's already expanded set it b false and vise verca
+//  // Handle module expand/collapse
+//  const toggleModule = (moduleId: string, contentIds: Types.ObjectId[]) => {
+//   const isExpanded = expandedModule === moduleId;  //stor module id the one that are expanded
+//   setExpandedModule(isExpanded ? null : moduleId);  //if it's already expanded set it b false and vise verca
 
-  if (!isExpanded && !contentDetails[moduleId]) {
-    fetchContentDetails(moduleId, contentIds);
-  }
-};
+//   if (!isExpanded && !contentDetails[moduleId]) {
+//     fetchContentDetails(moduleId, contentIds);
+//   }
+// };
 
 
 // Fetch content details for a specific module
@@ -372,7 +372,7 @@ const handleDeleteModule = async (title:string) => {
     }
   };
 
-  const handleUpload = async (moduleId:string) => {
+  const handleUpload = async (moduleId: string) => {
     try {
       const cookieResponse = await fetch(`${backend_url}/auth/get-cookie-data`, {
         credentials: "include",
@@ -383,50 +383,63 @@ const handleDeleteModule = async (title:string) => {
         throw new Error("No valid user data found in cookies.");
       }
       const username = userData.payload.username;
-    if (!contentTitle || !file) {
-      setError("Please provide a title and select a file.");
-      return;
-    }
-
-    setError(null);
-    setIsUploading(true);
-
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("contentTitle", contentTitle);
-
-    try {
-      const response = await axios.post(
-        `${backend_url}/modules/${username}/${moduleId}/upload`,
-        formData );
-
-      alert(response.data.message); // Show success message
-       try {
-        const response = await axios.get(
-          `${backend_url}/modules/${username}/${moduleId}/content`,
-          { withCredentials: true }
-        );
-        setContentList(response.data); // Populate content list
-        setIsExpanded(true);
-      } catch (err) {
-        console.error("Error fetching content:", err);
-        setError("Failed to fetch content. Please try again.");
-      } finally {
-        setLoading(false);
+  
+      // Validate inputs
+      if (!contentTitle || !file) {
+        setError("Please provide a title and select a file.");
+        return;
       }
-      setShowModal(false); // Close the modal
-      setContentTitle("");
-      setFile(null);
+  
+      setError(null);
+      setIsUploading(true);
+  
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("contentTitle", contentTitle);
+     console.log("module id:", moduleId);
+      try {
+        const response = await axios.post(
+          `${backend_url}/modules/${username}/${moduleId}/upload`,
+          formData,
+          { withCredentials: true } // Ensure credentials are sent
+        );
+  
+        alert(response.data.message); // Show success message
+  
+        // Fetch updated content list after successful upload
+        try {
+          const contentResponse = await axios.get(
+            `${backend_url}/modules/${username}/${moduleId}/content`,
+            { withCredentials: true }
+          );
+          setContentList(contentResponse.data); // Populate content list
+          setIsExpanded(true);
+        } catch (err) {
+          console.error("Error fetching content:", err);
+          setError("Failed to fetch content. Please try again.");
+        } finally {
+          setLoading(false);
+        }
+        setShowModal(false); // Close the modal
+        setContentTitle("");
+        setFile(null);
+      } catch (err: unknown) {
+        console.error("Error uploading content:", err);
+        // Check if the error is an AxiosError
+        if (err instanceof AxiosError) {
+          // If the error is an AxiosError, check for a response and set the error message
+          setError(err.response?.data.message || "Failed to upload content. Please try again.");
+        } else {
+          // For other types of errors, set a generic error message
+          setError("Failed to upload content. Please try again.");
+        }
+      } finally {
+        setIsUploading(false);
+      }
     } catch (err) {
-      console.error("Error uploading content:", err);
-      setError("Failed to upload content. Please try again.");
-    } finally {
-      setIsUploading(false);
+      console.error("Error fetching data:", err);
+      setError("Failed to get cookie. Please try again.");
     }
-  } catch (err) {
-    console.error("Error fetching data:", err);
-    setError("Failed to get cookie. Please try again.");
-  }
   };
 
   if (error) {
@@ -559,7 +572,7 @@ const handleDeleteModule = async (title:string) => {
   <div className="flex gap-2 ml-auto">
     {/* Show Content Button */}
       <button
-         onClick={() => toggleContentDisplay(module._id)}
+         onClick={() => toggleContentDisplay(module._id)}   //here maybe the problem should take id of module im in
         className="px-3 py-1 bg-teal-500 text-white rounded-lg shadow-md hover:opacity-80"
       >
         {isExpanded ? "Hide Content" : "Show Content"}
@@ -684,9 +697,9 @@ const handleDeleteModule = async (title:string) => {
   </div>
 </div>
 
-            {/* Module Content */}
+            {/* Module Content */}  
             {expandedModule === module._id && contentDetails[module._id] && (
-              <div className="mt-4">
+              <div className="mt-4"> 
                 {contentDetails[module._id].map((content) => (
                   <div key={content._id} className="mb-4">
                     <p>{content.title}</p>
