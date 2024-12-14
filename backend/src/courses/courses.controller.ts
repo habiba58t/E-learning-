@@ -27,8 +27,8 @@ export class CoursesController {
   }
 
   // GET /Course/:course code: Retrieve a specific course by its course_code
-  @UseGuards(AuthGuard, AuthorizationGuard)
-  @Roles(Role.Admin, Role.Instructor,Role.User)
+   @UseGuards(AuthGuard, AuthorizationGuard)
+   @Roles(Role.Admin, Role.Instructor,Role.User)
   @Get(':course_code')
   async findOne(@Param('course_code') course_code: string): Promise<courseDocument> {
     return this.coursesService.findOne(course_code);
@@ -80,11 +80,22 @@ async findCourseByModuleId(@Param('moduleId') moduleId: string):Promise<courseDo
   // Get modules for a student in a specific course
   @UseGuards(AuthGuard, AuthorizationGuard)
  @Roles(Role.Admin, Role.User)
-  @Get(':course_code/modules')
-  async getModulesForCourseStudent(@Param('course_code') course_code: string,@Req(){user}): Promise<moduleDocument[]> {
+  @Get('/:username/:course_code/modules')
+  async getModulesForCourseStudent(@Param('course_code') course_code: string,@Param('username') username: string,): Promise<moduleDocument[]> {
     try {
       // Call the service method to get the filtered modules for the student
-      return await this.coursesService.getModulesForCourseStudent(course_code, user);
+      return await this.coursesService.getModulesForCourseStudent(course_code,username);
+    } catch (error) {
+      throw new NotFoundException(error.message);
+    }
+  }
+//   @UseGuards(AuthGuard, AuthorizationGuard)
+//  @Roles(Role.Admin, Role.User, Role.Instructor)
+  @Get(':username/courses')
+  async getcourseforuser(@Param('username') username: string): Promise<courseDocument[]> {
+    try {
+      // Call the service method to get the filtered modules for the student
+      return await this.coursesService.getcoursesforuser(username);
     } catch (error) {
       throw new NotFoundException(error.message);
     }

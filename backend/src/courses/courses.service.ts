@@ -46,7 +46,8 @@ export class CoursesService {
 
  //FIND COURSE BY COURSE_CODE 
   async findOne(course_code: string): Promise<courseDocument> {
-    const course = await this.courseModel.findOne({ course_code, Unavailable: false }).exec();
+    const course = await this.courseModel.findOne({ course_code, Unavailable: false}).exec();
+    
     if (!course) {
       throw new NotFoundException(`Course with course code ${course_code} not found or unavailable`);
     }
@@ -128,21 +129,18 @@ async findCourseByModuleId(moduleId:mongoose.Types.ObjectId):Promise<courseDocum
 }
 
 //GET: modules for a course for a student
-async getModulesForCourseStudent(course_code: string, user: any): Promise<moduleDocument[]> {
-  const students= await this.progressService.findAllByCourse(course_code);
-  const found = students.some(student => student.Username === user.username);
-if (!found ) {
-    throw new Error(`User with username ${user.username}not enrolled in the course`);
-}
-  // Step 1: Fetch the student by their username
-  const student = await this.userModel.findOne({ username:user.username }).exec();
+async getModulesForCourseStudent(course_code: string,username: string,): Promise<moduleDocument[]> {
+
+  const student = await this.userModel.findOne({username }).exec();
+  console.log('Student fetched:', student);
   if (!student) {
-    throw new NotFoundException(`Student with username ${user.username} not found`);
+    throw new NotFoundException(`Student with username ${username} not found`);
   }
 
   // Step 2: Fetch the course by its code
   const course = await this.courseModel.findOne({ course_code: course_code,Unavailable: false }).exec();
  // await this.findOne(course_code);
+ console.log('Course fetched:', course);
   if (!course) {
     throw new NotFoundException(`Course with code ${course_code} not found`);
   }
@@ -152,13 +150,31 @@ if (!found ) {
     _id: { $in: course.modules }, // Match ObjectIds in `course.modules`
   }).exec();
 
+  console.log('Modules fetched:', modules);
+
   // Step 4: Filter the modules based on the student's level and outdated status
   const validModules = modules.filter(module => {
     const studentLevel = student.studentLevel.get(course._id); // Get the student's level for the current course using the course _id
-    return studentLevel === module.level && !module.isOutdated; // Return modules that match the student's level and are not outdated
-});
+    return studentLevel === module.level && !module.isOutdated;
+   } // Return modules that match the student's level and are not outdated
+);
+
+
+//console.log('Valid modules:', validModules);
 
   return validModules;
+}
+async getcoursesforuser(username: string): Promise<courseDocument[]> {
+  const students= await this.usersService.findUserByUsername(username);
+  // Step 1: Fetch the student by their username
+  const student = await this.userModel.findOne({ username}).exec();
+  if (!student) {
+    throw new NotFoundException(`Student with username ${username} not found`);
+  }
+
+  const courses = await this.courseModel.find({_id: { $in: student.courses }}).exec();
+
+  return courses;
 }
 
 
