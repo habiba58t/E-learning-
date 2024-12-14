@@ -15,17 +15,17 @@ export interface Course {
   created_by: string;
   created_at: Date;
   Unavailable?: boolean;
-  modules:  mongoose.Types.ObjectId[]; // Updated for simplicity
+  modules: mongoose.Types.ObjectId[]; // Updated for simplicity
   totalRating?: number;
   totalStudents?: number;
   averageRating?: number;
   isOutdated: boolean;
-  threads:  mongoose.Types.ObjectId[];
+  threads: mongoose.Types.ObjectId[];
 }
 
 const backend_url = "http://localhost:3002";
 
-export default function InstructorPage (){
+export default function Homepage() {
   const [search, setSearch] = useState<string>('');
   const [courseList, setCourseList] = useState<Course[]>([]);
   const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
@@ -42,8 +42,8 @@ export default function InstructorPage (){
 
   const router = useRouter();
 
- // Fetch courses for the instructor on load
- async function fetchCookieData() {
+  // Fetch courses on load
+  async function fetchCookieData() {
     try {
       const cookieResponse = await fetch(`${backend_url}/auth/get-cookie-data`, {
         credentials: "include",
@@ -56,9 +56,7 @@ export default function InstructorPage (){
 
       const username = userData.payload.username;
 
-      const response = await axiosInstance.get<Course[]>(
-        `${backend_url}/courses/coursesInstructor/${username}`
-      );
+      const response = await axiosInstance.get<Course[]>(`${backend_url}/courses/coursesInstructor/${username}`);
       const courses = response.data;
 
       setCourseList(courses);
@@ -75,47 +73,38 @@ export default function InstructorPage (){
     fetchCookieData();
   }, []);
 
-
   // Handle search
   const handleSearchChange = async () => {
-    
-  
     if (search === "") {
       setFilteredCourses(courseList); // Reset filtered list
       return;
     }
+
     try {
-        const cookieResponse = await fetch(`${backend_url}/auth/get-cookie-data`, {
-          credentials: "include",
-        });
-        const { userData } = await cookieResponse.json();
-  
-        if (!userData || !userData.payload?.username) {
-          throw new Error("No valid user data found in cookies.");
-        }
-  
-        const username = userData.payload.username;
-    try {
+      const cookieResponse = await fetch(`${backend_url}/auth/get-cookie-data`, {
+        credentials: "include",
+      });
+      const { userData } = await cookieResponse.json();
+
+      if (!userData || !userData.payload?.username) {
+        throw new Error("No valid user data found in cookies.");
+      }
+
+      const username = userData.payload.username;
+
       // Perform search based on search term
-      const response = await axiosInstance.get<Course[]>( `${backend_url}/courses/coursesbytitle/${username}/${search}`  // Adjust search endpoint
-      );
-  
+      const response = await axiosInstance.get<Course[]>(`${backend_url}/courses/coursesbytitle/${username}/${search}`);
       const filteredCourses = response.data.filter((course) =>
         course.title.toLowerCase().includes(search)
       );
-  
+
       setFilteredCourses(filteredCourses);
     } catch (err) {
       console.error("Error searching courses:", err);
       setError("Failed to search for courses. Please try again.");
+    } finally {
+      setLoading(false);
     }
-} catch (err) {
-    console.error("Error fetching data:", err);
-    setError("Failed to load courses. Please try again.");
-  } finally {
-    setLoading(false);
-  }
-
   };
 
   const handleCreateCourse = async () => {
@@ -156,35 +145,29 @@ export default function InstructorPage (){
 
   const handleToggleOutdated = async (course_code: string) => {
     try {
-        // Fetch user data from cookie
-        const cookieResponse = await fetch(`${backend_url}/auth/get-cookie-data`, {
-          credentials: "include",
-        });
-        const { userData } = await cookieResponse.json();
+      // Fetch user data from cookie
+      const cookieResponse = await fetch(`${backend_url}/auth/get-cookie-data`, {
+        credentials: "include",
+      });
+      const { userData } = await cookieResponse.json();
 
-        if (!userData || !userData.payload?.username) {
-          throw new Error("No valid user data found in cookies.");
-        }
+      if (!userData || !userData.payload?.username) {
+        throw new Error("No valid user data found in cookies.");
+      }
 
-        const username = userData.payload.username;
+      const username = userData.payload.username;
 
-    
-        const response = await axiosInstance.get<Course[]>(
-          `${backend_url}/courses/coursesInstructor/${username}`
-        );
-        const courses = response.data;
-  
-        setCourseList(courses);
-    
-} catch (err) {
-    console.error("Error fetching data:", err);
-    setError("Failed to load courses. Please try again.");
-  } finally {
-    setLoading(false);
-  }
+      const response = await axiosInstance.get<Course[]>(`${backend_url}/courses/coursesInstructor/${username}`);
+      const courses = response.data;
 
+      setCourseList(courses);
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      setError("Failed to load courses. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
-
 
   const handleViewCourse = (courseCode: string) => {
     router.push(`/components/instructor/courses/${courseCode}/viewCourse`);
@@ -202,10 +185,11 @@ export default function InstructorPage (){
   if (error) {
     return <div className="text-red-500">{error}</div>;
   }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-semibold text-center mb-8 text-blue-600">Courses</h1>
-  
+
       {/* Search Bar */}
       <div className="mb-6 flex items-center">
         <input
@@ -228,7 +212,8 @@ export default function InstructorPage (){
           {showCreateForm ? "Cancel" : "Create Course"}
         </button>
       </div>
-           {/* Create Course Form */}
+
+      {/* Create Course Form */}
       {showCreateForm && (
         <div className="bg-white p-6 rounded-lg shadow-lg mb-6">
           <h2 className="text-2xl font-bold mb-4 text-blue-600">Create New Course</h2>
@@ -277,18 +262,18 @@ export default function InstructorPage (){
             </select>
           </div>
           <div className="mt-4 flex justify-end gap-4">
-          <button
-  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:opacity-90 transition-all"
-  onClick={() => {
-    if (!newCourse.course_code || !newCourse.title || !newCourse.description || !newCourse.category || !newCourse.level) {
-      alert("All fields are required to create a course.");
-      return; // Exit if any field is missing
-    }
-    handleCreateCourse(); // Call the function to create the course
-  }}
->
-  Confirm Create
-</button>
+            <button
+              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:opacity-90 transition-all"
+              onClick={() => {
+                if (!newCourse.course_code || !newCourse.title || !newCourse.description || !newCourse.category || !newCourse.level) {
+                  alert("All fields are required to create a course.");
+                  return; // Exit if any field is missing
+                }
+                handleCreateCourse(); // Call the function to create the course
+              }}
+            >
+              Confirm Create
+            </button>
             <button
               className="px-4 py-2 bg-red-500 text-white rounded-lg hover:opacity-90 transition-all"
               onClick={() => setShowCreateForm(false)}
@@ -298,32 +283,19 @@ export default function InstructorPage (){
           </div>
         </div>
       )}
-  
+
       {/* Courses List */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {filteredCourses.map((course) => (
           <div
             key={course._id}
-            className="bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg rounded-lg p-6 hover:shadow-2xl transition-transform transform hover:-translate-y-1"
+            className="bg-white p-4 rounded-lg shadow-lg transition transform hover:scale-105 cursor-pointer"
+            onClick={() => handleViewCourse(course.course_code)}
           >
-            <h2 className="text-xl font-bold text-blue-700 mb-2">{course.title}</h2>
-           
-  
-            {/* Outdated Toggle */}
-            <button
-              onClick={() => handleToggleOutdated(course.course_code)}
-              className={`w-full px-4 py-2 rounded-lg text-white ${course.isOutdated ? 'bg-red-500' : 'bg-green-500'} mb-4`}
-            >
-              {course.isOutdated ? 'Outdated' : 'Up-to-date'}
-            </button>
-  
-            {/* View Course Button */}
-            <button
-              onClick={() => handleViewCourse(course.course_code)}
-              className="w-full px-4 py-2 bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 text-white rounded-lg hover:opacity-90 transition-all"
-            >
-              View Course
-            </button>
+            <h2 className="text-xl font-semibold mb-2 text-blue-600">{course.title}</h2>
+            <p className="text-gray-600 mb-2">{course.description}</p>
+            <p className="text-sm text-gray-500">Category: {course.category}</p>
+            <p className="text-sm text-gray-500">Difficulty: {course.level}</p>
           </div>
         ))}
       </div>
