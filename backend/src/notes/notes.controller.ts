@@ -28,7 +28,7 @@ export class NotesController {
   // }
 
   // CREATE NOTE
-  @Post()
+  @Post(`/note`)
   async createNote(@Body() createNoteDto: CreateNoteDto): Promise<Notes> {
     return await this.notesService.createNote(createNoteDto);
   }

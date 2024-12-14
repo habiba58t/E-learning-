@@ -3,10 +3,16 @@
 import axiosInstance from '@/app/utils/axiosInstance';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import router from 'next/router';
+
+
 
 interface CourseParams {
     course: string;
 }
+
+
 
 interface Course {
     course_code: string;
@@ -33,6 +39,8 @@ const CourseDetails = () => {
     const [error, setError] = useState<string | null>(null); // State to handle errors
     const [loading, setLoading] = useState<boolean>(true); // State for loading status
     const [modules, setModules] = useState<Module[] | null>(null); // State to hold fetched modules
+    const router = useRouter();
+     const [isClient, setIsClient] = useState(false);
 
     useEffect(() => {
         const fetchCourseDetails = async () => {
@@ -47,7 +55,7 @@ const CourseDetails = () => {
         };
 
         fetchCourseDetails();
-    }, [courseCode]);
+        setIsClient(true);}, [courseCode]);
 
     const fetchUsernameFromCookies = async (): Promise<string | null> => {
         try {
@@ -79,6 +87,13 @@ const CourseDetails = () => {
             setError('Failed to load modules for this course.');
         }
     };
+
+    const handleViewModuleDetails = (module_title: string) => {
+        if (isClient) {
+            router.push(`${courseCode}/${module_title}`);
+          }
+      };
+  
 
     if (loading) {
         return <div>Loading...</div>;
@@ -142,7 +157,7 @@ const CourseDetails = () => {
                                     <h3 className="text-lg font-bold text-blue-700 mb-2">{module.title}</h3>
                                     <p className="text-gray-700 mb-4">{module.level}</p>
                                     <button
-                                       // onClick={() => handleViewModuleDetails(module)}
+                                        onClick={() => handleViewModuleDetails(module.title)}
                                         className="bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 text-white font-semibold py-2 px-4 rounded-full hover:opacity-90 transition-all"
                                     >
                                         View Module

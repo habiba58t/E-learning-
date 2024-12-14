@@ -44,6 +44,7 @@ interface Course {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
+    
 
     const handleViewCourse = (courseCode: string) => {
       router.push(`${courseCode}`);
