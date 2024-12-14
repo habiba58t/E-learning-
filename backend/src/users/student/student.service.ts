@@ -90,6 +90,18 @@ async enrollStudentInCourse(user: any, courseId: string): Promise<userDocument> 
         return student;
       }
 
+  
+      
+      async getisEnrolled(username:string, objectId:string): Promise<string>{  // i have course objectid 
+        const cid = new mongoose.Types.ObjectId(objectId)
+        const student =await this.userModel.findOne({username})
+        if (!student || !student.courses) {
+          return "no"; // User not found or no courses array
+        }
+        const isEnrolled = student.courses.includes(cid);
+      
+        return isEnrolled? "yes": "no";
+      }
       
 
 //GET STUDENT SCORE

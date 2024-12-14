@@ -36,10 +36,17 @@ export class CoursesService {
     
   //GET ALL COURSES //PUBLIC  
   
-  async findAll(): Promise<{ title: string; description: string }[]> {
+  async findAllInstructor(): Promise<{ title: string; description: string }[]> {
     return this.courseModel
       .find({ Unavailable: false }) // Filter to get only available courses
       .select('title description')  // Select only title and description fields
+      .exec();
+  }
+
+  async findAllStudent(): Promise<courseDocument[]> {
+    return this.courseModel
+      .find({ Unavailable: false, isOutdated: false }) // Filter to get only available courses
+    //  .select('title description')  // Select only title and description fields
       .exec();
   }
     
@@ -161,24 +168,35 @@ if (!found ) {
   return validModules;
 }
 
-
-//GET: modules for a course for an instructor
-async getModulesForCourseInstructor(course_code: string,user:any): Promise<moduleDocument[]> {
-  const course = await this.courseModel.findOne({course_code}).exec();
-   if (!course) {
-     throw new NotFoundException(`Course with Course code ${course_code} not found`);
-   }
-   const isInstructor = course.created_by === user.username;
-   const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
- 
-   if (!isInstructor && !isAdmin) {
-     throw new UnauthorizedException('You are not authorized to view questions of this module');
-   } 
-  // Fetch all modules by their ObjectIds
-  const modules = await this.moduleModel.find({_id: { $in: course.modules }}).exec();
- 
-  return modules;
+async findCoursesforInstructor(username: string): Promise<courseDocument[]> {
+  // Return an empty array if no courses are found (this is more predictable for the frontend)
+  const courses = await this.courseModel.find({ created_by: username }).exec();
+  return courses || []; // Avoid returning null
 }
+
+
+async getModulesForCourseInstructor(course_code: string, user: any): Promise<moduleDocument[]> {
+  const course = await this.courseModel.findOne({ course_code }).exec();
+  
+  if (!course) {
+    throw new NotFoundException(`Course with Course code ${course_code} not found`);
+  }
+
+  // Authorization check: Ensure the user is the instructor or an admin
+  const isInstructor = course.created_by === user.username;
+  const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
+  
+  if (!isInstructor && !isAdmin) {
+    throw new UnauthorizedException('You are not authorized to view modules for this course');
+  }
+
+  // Fetch modules by their ObjectIds from the course's modules array
+  const modules = await this.moduleModel.find({ _id: { $in: course.modules } }).exec();
+  
+  // If no modules are found, you could return an empty array instead of null for consistency
+  return modules || []; // Return an empty array if no modules are found
+}
+
 
 //PUT: add module to a course
 async addModuleToCourse(courseCode: string, createModuleDto: CreateModuleDto,user: any): Promise<courseDocument> {
@@ -349,7 +367,7 @@ course.averageRating = course.totalRating / course.totalStudents;
  }
 
  //GET courses for student   //admin not implemented i think?
-async getNonOutdatedCoursesForStudent(username: string): Promise<Courses[]> {
+async getNonOutdatedCoursesForStudent(username: string): Promise<courseDocument[]> {
   // Find the student by username
   const student = await this.userModel.findOne({ username }).exec();
   if (!student) {
@@ -357,7 +375,7 @@ async getNonOutdatedCoursesForStudent(username: string): Promise<Courses[]> {
   }
 
   // Retrieve courses based on their ObjectIds
-  const courses: Courses[] = [];
+  const courses: courseDocument[] = [];
   for (const courseId of student.courses) {
     const course = await this.getcoursebyid(courseId); // Use existing method
     if (course && !course.isOutdated && !course.Unavailable) {

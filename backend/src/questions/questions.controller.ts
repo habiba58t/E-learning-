@@ -7,6 +7,7 @@ import { Role, Roles } from 'src/auth/decorators/role.decorator';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/auth/guards/authentication.guard';
 import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
+import { Question, QuestionsDocument } from './questions.schema';
 
 @Controller('questions')
 
@@ -16,12 +17,25 @@ import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
 export class QuestionsController {
   constructor(private readonly questionsService: QuestionsService) {}
 
-  // @Post()
-  // async create(@Param('moduleId') moduleId: string, @Body() createQuestionDto: CreateQuestionDto) {
-  //   const mid = new Types.ObjectId(moduleId);
-  //   return await this.questionsService.create(createQuestionDto, mid);
-  // }
+  // Get all questions created by a specific user (username from query parameter)
+  @Get(':username')
+  async findAllByCreator(@Param('username') username: string): Promise<QuestionsDocument[]> {
+    if (!username) {
+      throw new Error('Username is required');
+    }
+    return await this.questionsService.findAllByCreator(username);
+  }
 
+  @Post(':username/:moduleId')
+  async create(
+    @Param('moduleId') moduleId: string,
+    @Param('username') username: string,
+    @Body() createQuestionDto: CreateQuestionDto
+  ) {
+    const moduleObjectId = new Types.ObjectId(moduleId);
+    return await this.questionsService.create(username, createQuestionDto, moduleObjectId);
+  }
+  
 //for search purpose, instructor can find a question by difficulty or 
 //keyword/title that they add when creating the question
   @Get(':difficulty_level')

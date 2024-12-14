@@ -5,4 +5,5 @@ export class UpdateQuestionDto {
     correct_answer?: string;
     type?:string;
     keywordTitle?: string;
+    options?: string[];
 }

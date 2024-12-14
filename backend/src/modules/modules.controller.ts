@@ -8,7 +8,7 @@ import { ModulesService } from './modules.service';
 import * as mongoose from 'mongoose';
 import { Controller, Get, Post, Body, Param, Put, Delete,NotFoundException, InternalServerErrorException,UseGuards ,Req} from '@nestjs/common';
 import { Module } from './modules.schema';
-import { Quiz } from '../quizzes/quizzes.schema';
+import { Quiz, QuizzesDocument } from '../quizzes/quizzes.schema';
 import { CreateModuleDto } from './dto/CreateModule.dto';
 import { UpdateModuleDto } from './dto/UpdateModule.dto';
 import {Question} from '../questions/questions.schema'
@@ -100,7 +100,7 @@ async getQuestionsForModule(@Req() {user},@Param('ObjectId') ObjectId: string): 
 @UseGuards(AuthorizationGuard)
 @Roles(Role.Admin,Role.Instructor)
 @Get('id/:ObjectId')             
-async getQuizzesForModule(@Param('ObjectId') ObjectId: string): Promise<Quiz[]> {
+async getQuizzesForModule(@Param('ObjectId') ObjectId: string): Promise<QuizzesDocument[]> {
   const objectId = new mongoose.Types.ObjectId(ObjectId);
   return this.modulesService.getQuizzesForModule(objectId);
 } 
@@ -124,12 +124,12 @@ async getQuizzesForModule(@Param('ObjectId') ObjectId: string): Promise<Quiz[]> 
   @UseGuards(AuthorizationGuard)
 @Roles(Role.Admin,Role.Instructor)
 @Put(':moduleId/add-question/:quizId')
-async addQuestionToModule( @Req() {user},@Param('moduleId') moduleId: string, @Param('questionId') questionId: string, // Quiz ID as string
+async addQuestionToModule(@Param('moduleId') moduleId: string, @Param('questionId') questionId: string, // Quiz ID as string
 ) {
   const updatedModule = await this.modulesService.addQuestionToModule(
     new mongoose.Types.ObjectId(moduleId), 
     new mongoose.Types.ObjectId(questionId), 
-    user);
+);
   return {
     message: 'Question successfully added to the module.',
     module: updatedModule,

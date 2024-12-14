@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, UseGuards,Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete, UseGuards,Req, HttpException, HttpStatus } from '@nestjs/common';
 import * as mongoose from 'mongoose';
 import { StudentService } from './student.service';
 import { userDocument, UsersSchema } from '../users.schema';
@@ -28,6 +28,19 @@ export class StudentController {
     return this.studentService.enrollStudentInCourse(user, courseId);
   }
 
+
+   //GETT IF A USER IS ENROLLED IN A COURSE
+ @UseGuards(AuthorizationGuard)
+ @Roles(Role.Admin, Role.Instructor, Role.User)
+ @Get('/isenrolled/:objectId') 
+ async getisEnrolled(@Req() req, @Param('objectId') objectId: string): Promise<string> {
+   const username = req.user?.username;  // Get the username from the request
+   if (!username) {
+     throw new HttpException('User not found', HttpStatus.UNAUTHORIZED);
+   }
+   return this.studentService.getisEnrolled(username, objectId);
+ }
+ 
 
   // GET STUDENT SCORE
   @UseGuards(AuthorizationGuard)
@@ -62,6 +75,8 @@ export class StudentController {
     await this.studentService.deleteStudentAndRelatedData(username);
     return { message: 'Student and related data deleted successfully.' };
   }
+
+  
 }
 
 

@@ -41,6 +41,9 @@ return await this.progressService.findAllStudentsEnrolled(course.course_code);
 }//get all username where they didn't finish course
 
 
+
+
+  
 // CREATE NEW User FOR REGISTER
 
 async create(createUserDto: CreateUserDto): Promise<userDocument> {
@@ -62,41 +65,38 @@ async create(createUserDto: CreateUserDto): Promise<userDocument> {
 }
 
 //GET: search for intstructor
-@Public()
-async searchUsers(loggedInUserId: string | null, searchUserDto: SearchUserDto): Promise<userDocument[]> {
+async searchUsers(
+  loggedInUserId: string | null, 
+  searchUserDto: SearchUserDto
+): Promise<userDocument[]> {
+  console.log('SearchUsers method called'); // Debugging line
   const query: any = {};
 
-  // If the user is logged in (loggedInUserId exists), allow them to search both students and instructors
+  // If the user is logged in, allow flexible searches
   if (loggedInUserId) {
-    // If role filter is provided, use it
     if (searchUserDto.role) {
-      query['role'] = searchUserDto.role;
+      query['role'] = searchUserDto.role; // Filter by role
     }
-
-    // If name filter is provided, apply it to the query
     if (searchUserDto.name) {
-      query['name'] = { $regex: searchUserDto.name, $options: 'i' }; // Case-insensitive search
+      query['name'] = { $regex: searchUserDto.name, $options: 'i' }; // Filter by name
     }
-
-    // Allow filtering for both students and instructors
-    if (searchUserDto.role && searchUserDto.role === 'student') {
-      query['role'] = 'student';
-    } else if (searchUserDto.role && searchUserDto.role === 'instructor') {
-      query['role'] = 'instructor';
-    }
-
   } else {
-    // If the user is not logged in, restrict the search to instructors only
-    if (searchUserDto.role && searchUserDto.role !== 'instructor') {
-      throw new Error('You are not logged in to search for students.');
-    }
-    
-    // Only allow instructors to be returned if not logged in
+    // For unauthenticated users, restrict to instructors only
     query['role'] = 'instructor';
+    if (searchUserDto.name) {
+      query['name'] = { $regex: searchUserDto.name, $options: 'i' }; // Name filter for public searches
+    }
   }
 
-  return this.userModel.find(query).exec();
+  console.log('MongoDB query:', query); // Log the constructed query
+  return this.userModel.find(query).exec(); // Execute the query in MongoDB
 }
+
+
+
+
+
+
 //for admin (Hagar)
 async findUsers(username?: string, role?: Role): Promise<Users[]> {
   const query: any = {};

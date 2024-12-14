@@ -32,19 +32,25 @@ export class UsersController {
      return this.usersService.getEnrolledStudents(objectId);
    }
 
-  // GET API to search users
-  @Get('search')
- // @UseGuards(JwtAuthGuard)  // Use the JwtAuthGuard to protect the route (if you want to allow only authenticated users to search)
-  async searchUsers(
-    @Req() req,  // Request object to access the authenticated user's data
-    @Query() searchUserDto: SearchUserDto,  // Search filters
-  ) {
-    const loggedInUserId = req.user._id;
 
-    // Perform search with the filters and the logged-in user context
+  //doesn;t work?
+  // GET API to search users
+  @UseGuards(AuthGuard)
+  @Get('search/private')
+ // Apply AuthGuard to handle token validation
+  async searchUsers(
+    @Req() req, // Access the authenticated user's data if logged in
+    @Query() searchUserDto: SearchUserDto, // Query parameters for filters
+  ) {
+    console.log('SearchUsers endpoint hit'); // Debugging line
+    console.log(req.user.username)
+    // Check if the user is logged in; req.user will be undefined if no token
+    const loggedInUserId = req.user?.username || null;
+
+    // Pass the user ID and search filters to the service
     return this.usersService.searchUsers(loggedInUserId, searchUserDto);
   }
-
+  
 
   // GET API to search users without authentication (public search for instructors only)
   @Get('search/public')
