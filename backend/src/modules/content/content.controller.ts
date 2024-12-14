@@ -9,7 +9,7 @@ import { CreateContentDto } from './dto/CreateContent.dto';
 export class ContentController {
     constructor(private readonly contentService: ContentService) {}
     @Get('id/:ObjectId')
-    async findById(@Param('ObjectId') ObjectId: mongoose.Schema.Types.ObjectId): Promise<Content> {
+    async findById(@Param('ObjectId') ObjectId: mongoose.Types.ObjectId): Promise<Content> {
       return this.contentService.findById(ObjectId);
     }
 

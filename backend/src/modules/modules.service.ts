@@ -280,17 +280,81 @@ async toggleOutdated(title: string,username:string): Promise<moduleDocument> {
 }
 
 // Method to add file metadata to a Module's resources
-async addFileToModule(moduleId: string, fileUrl: string, originalName: string, fileType: string,contentTitle:string,user:any): Promise<moduleDocument> {
+async addContentToModule(
+  moduleId: string,
+  fileUrl: string,
+  originalName: string,
+  fileType: string,
+  contentTitle: string,
+  username: string,
+): Promise<moduleDocument> {
+  try {
+    const module = await this.moduleModel.findById(moduleId).exec();
+    if (!module) {
+      throw new NotFoundException(`Module with ID ${moduleId} not found.`);
+    }
+
+    const course = await this.coursesService.findCourseByModuleId(module._id);
+    if (!course) {
+      throw new NotFoundException(`Course with ID ${module._id} not found.`);
+    }
+
+    const user = await this.usersService.findUserByUsername(username);
+    if (!user) {
+      throw new NotFoundException(`User with username ${username} not found.`);
+    }
+
+    const isInstructor = course.created_by === user.username;
+    const isAdmin = user.role === 'admin';
+
+    if (!isInstructor && !isAdmin) {
+      throw new UnauthorizedException(
+        'You are not authorized to upload files to this module.',
+      );
+    }
+
+    // File metadata
+    const fileMetadata = {
+      filePath: fileUrl,
+      fileType: fileType,
+      originalName: originalName,
+    };
+
+    // Content DTO
+    const contentDto = {
+      title: contentTitle,
+      resources: [fileMetadata],
+    };
+
+    const content = await this.contentService.createContent(contentDto);
+    if (!content) {
+      throw new InternalServerErrorException('Failed to create content.');
+    }
+
+    // Add content ID to the module
+    module.content.push(content._id);
+
+    // Save the updated module
+    await module.save();
+    return module;
+  } catch (error) {
+    console.error('Error in addContentToModule service:', error);
+    throw new InternalServerErrorException('Failed to update the module.');
+  }
+}
+
+
+//get content for a speicifc module
+async getContentForModule( username: string, moduleId: string): Promise<Content[]> {
   const module = await this.moduleModel.findById(moduleId).exec();
   if (!module) {
-    throw new Error(`Module with ID ${moduleId} not found`);
+    throw new NotFoundException(`Module with ID ${moduleId} not found`);
   }
-
   const course = await this.coursesService.findCourseByModuleId(module._id)
   if (!course) {
     throw new NotFoundException(`course with code ${module._id} not found`);
   }
-
+  const user = await this.usersService.findUserByUsername(username);
   const isInstructor = course.created_by === user.username;
   const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
 
@@ -298,34 +362,34 @@ async addFileToModule(moduleId: string, fileUrl: string, originalName: string, f
     throw new UnauthorizedException('You are not authorized to upload files to this module');
   }
 
+  const contentIds= module.content;
+  if (!contentIds || contentIds.length === 0) {
+    console.log("empty", contentIds);
+    return []; // Return an empty array if no content IDs are provided
+  }
+  console.log("not empty", contentIds);
 
-  // Create metadata for the uploaded file
-  const fileMetadata = {
-    filePath: fileUrl,
-    fileType: fileType,
-    originalName: originalName,
-  };
-// Create contentDto to match the CreateContentDto structure
-// Create contentDto to match the CreateContentDto structure
-const contentDto = {
-  title: contentTitle, // The title field should match 'title' in CreateContentDto
-  resources: [fileMetadata], // resources should be an array of file metadata objects
-};
+  try {
+    // Use Promise.all to resolve all async calls
+    const contents = await Promise.all(
+      contentIds.map(async (id) => {
+        const content = await this.contentService.findById(id);
+        console.log("content:", content);
+        if (!content) {
+          throw new NotFoundException(`Content with ID ${id} not found`);
+        }
+        return content; // Return the content object
+      })
+    );
 
-// Create content and pass it to the content service
-const contents = await this.contentService.createContent(contentDto);
- module.content.push(contents._id);
- 
-  // Save the updated module
-  await module.save();
-
-  return module;
+    return contents; // Return the resolved array of contents
+  } catch (error) {
+    console.error("Error fetching contents:", error);
+    throw new InternalServerErrorException("Failed to retrieve contents");
+  }
 }
-
 // delete module and all related quizzes and questions 
-// @UseGuards(AuthorizationGuard)
-// @Roles(Role.Admin,Role.Instructor)
-async deleteModule(moduleId: mongoose.Types.ObjectId,user:any): Promise<any> {
+async deleteModule(moduleId: mongoose.Types.ObjectId,username:string): Promise<any> {
   // Step 1: Find the module to delete
   const module = await this.moduleModel.findById(moduleId).exec();
   if (!module) {
@@ -335,7 +399,7 @@ const course = await this.coursesService.findCourseByModuleId(module._id)
   if (!course) {
     throw new NotFoundException(`course with code ${module._id} not found`);
   }
-
+const user = await this.usersService.findUserByUsername(username);
   const isInstructor = course.created_by === user.username;
   const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
 
@@ -380,16 +444,12 @@ const course = await this.coursesService.findCourseByModuleId(module._id)
 }
 
 //GET AVERAGE RATING
-// @UseGuards(AuthorizationGuard)
-// @Roles(Role.Admin,Role.Instructor,Role.User)
 async getAverageRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
   const course = await this.moduleModel.findById(ObjectId);
   return course.averageRating;
  }
  
  //SET RATING,TOTAL,AVERAGE
-//  @UseGuards(AuthorizationGuard)
-//  @Roles(Role.User)
  async setRating(ObjectId: mongoose.Types.ObjectId,score:number): Promise<void> {
    const module = await this.moduleModel.findById(ObjectId);
    module.totalRating = module.totalRating + score;
@@ -398,8 +458,6 @@ async getAverageRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
  }
 
  //GET NOTES FOR A SPECIFIC USER
-//  @UseGuards(AuthorizationGuard)
-//  @Roles(Role.User)
  async getNotesForUserAndNote(username: string, title: string): Promise<notesDocument[]> {
   const module = await this.findByTitle(title) as moduleDocument;
   if (!module || !module._id) {
@@ -421,15 +479,11 @@ async getAverageRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
 }
 
 //GET A SPECIFIC NOTE FOR A SPEICIFC MODULE
-// @UseGuards(AuthorizationGuard)
-// @Roles(Role.User)
 async getNoteForUser(notetId: mongoose.Types.ObjectId): Promise<notesDocument>{
  return await this.notesService.findByIdNote(notetId);
 }
 
 //Delete NOTE FOR A SPECIFIC NOTE
-// @UseGuards(AuthorizationGuard)
-// @Roles(Role.User)
 async deleteNote(title:string,username:string,notetId: mongoose.Types.ObjectId): Promise<void>{
   const module = await this.findByTitle(title) as moduleDocument;
   if (!module || !module._id) {
@@ -451,10 +505,7 @@ async deleteNote(title:string,username:string,notetId: mongoose.Types.ObjectId):
 
 }
 
-
  //CREATE NOTE FOR A SPECIFIC NOTE
-//  @UseGuards(AuthorizationGuard)
-//  @Roles(Role.User)
  async createNote(title:string,username:string,content: string): Promise<notesDocument>{
   const course = await this.coursesService.getCourseForModule(title);
   const module= await this.findByTitle(title) as moduleDocument;
@@ -472,8 +523,6 @@ async deleteNote(title:string,username:string,notetId: mongoose.Types.ObjectId):
  }
 
  //UPDATE NOTE FOR A SPECIFIC NOTE
-//  @UseGuards(AuthorizationGuard)
-//  @Roles(Role.User)
 async UpdateNote(notetId: mongoose.Types.ObjectId,contentNew:string): Promise<notesDocument>{
   const notesDto = {
     content:contentNew,

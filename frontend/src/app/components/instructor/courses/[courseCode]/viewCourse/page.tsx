@@ -39,6 +39,15 @@ export interface Content {
   isOutdated: boolean;
   resources: { filePath: string; fileType: string; originalName: string }[];
 }
+interface ContentWithDownload {
+  title: string;
+  resources: {
+    filePath: string;
+    fileType: string;
+    originalName: string;
+  }[];
+  download?: () => void; // Make download optional
+}
 
 const backend_url = "http://localhost:3002";
 
@@ -61,7 +70,12 @@ const CourseDetails = () => {
   });
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
   const [contentDetails, setContentDetails] = useState<Record<string, Content[]>>({});
-  
+  const [contentList, setContentList] = useState<{ title: string; resources: any[] }[] | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [contentTitle, setContentTitle] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
 
   const router = useRouter();
@@ -110,20 +124,6 @@ const CourseDetails = () => {
       setLoading(false);
     }
   }
-
-  const fetchModuleContent = async (moduleId: string) => {
-    try {
-      const response = await axiosInstance.get(`${backend_url}/modules/${moduleId}/content`);
-      setModuleContents(prev => ({
-        ...prev,
-        [moduleId]: response.data,
-      }));
-    } catch (error) {
-      console.error("Error fetching module content:", error);
-      setError("Failed to fetch module content.");
-    }
-  };
-  
 
   useEffect(() => {
     fetchCourseAndModules();
@@ -202,16 +202,29 @@ const CourseDetails = () => {
   const toggleModuleContent = (moduleId: string) => {
     setModuleContents(prev => ({
       ...prev,
-      [moduleId]: prev[moduleId]
-        ? { resources: [] }  // Reset to empty resources when hiding
+      [moduleId]: prev[moduleId]  //if module already exist in previous list (shown)in make it not shown and vise verca
+        ? { resources: [] }  
         : { resources: [{ filePath: '', fileType: '', originalName: '' }] }, // Set default content structure when showing
     }));
   };
+  const fetchModuleContent = async (moduleId: string) => {
+    try {
+      const response = await axiosInstance.get(`${backend_url}/modules/${moduleId}/content`);
+      setModuleContents(prev => ({
+        ...prev,
+        [moduleId]: response.data,
+      }));
+    } catch (error) {
+      console.error("Error fetching module content:", error);
+      setError("Failed to fetch module content.");
+    }
+  };
+
 
  // Handle module expand/collapse
  const toggleModule = (moduleId: string, contentIds: Types.ObjectId[]) => {
-  const isExpanded = expandedModule === moduleId;
-  setExpandedModule(isExpanded ? null : moduleId);
+  const isExpanded = expandedModule === moduleId;  //stor module id the one that are expanded
+  setExpandedModule(isExpanded ? null : moduleId);  //if it's already expanded set it b false and vise verca
 
   if (!isExpanded && !contentDetails[moduleId]) {
     fetchContentDetails(moduleId, contentIds);
@@ -291,6 +304,129 @@ const handleDeleteModule = async (title:string) => {
 
   const handleQuiz = (moduleId: string) => {
     router.push(`/components/instructor/courses/${courseCode}/Quiz/${moduleId}`);
+  };
+
+  const toggleContentDisplay = async (moduleId: string) => {
+    try {
+      const cookieResponse = await fetch(`${backend_url}/auth/get-cookie-data`, {
+        credentials: "include",
+      });
+      const { userData } = await cookieResponse.json();
+  
+      if (!userData || !userData.payload?.username) {
+        throw new Error("No valid user data found in cookies.");
+      }
+      const username = userData.payload.username;
+  
+      if (isExpanded) {
+        // Collapse content
+        setIsExpanded(false);
+        setContentList(null);
+      } else {
+        // Expand content and fetch data
+        setLoading(true);
+        setError(null);
+        try {
+          const response = await axios.get(
+            `${backend_url}/modules/${username}/${moduleId}/content`,
+            { withCredentials: true }
+          );
+  
+          const contents = response.data;
+  
+          // Ensure each content item has the `download` function if resources exist
+          const modifiedContent: ContentWithDownload[] = contents.map((item: any) => ({
+            ...item, // Keep all the existing properties from the content
+            download: item.resources && item.resources.length > 0
+              ? () => downloadFile(item.resources[0].filePath, item.resources[0].originalName)
+              : undefined, // Set to undefined if no resources
+          }));
+  
+          // Now, set the modified content
+          setContentList(modifiedContent);
+          setIsExpanded(true);
+        } catch (err) {
+          console.error("Error fetching content:", err);
+          setError("Failed to fetch content. Please try again.");
+        } finally {
+          setLoading(false);
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      setError("Failed to get cookie. Please try again.");
+    }
+  };
+  
+  const downloadFile = (filePath: string, fileName: string) => {
+    const anchor = document.createElement("a");
+    anchor.href = `${backend_url}${filePath}`; // Combine backend URL and file path
+    anchor.download = fileName; // Suggest filename for download
+    anchor.click();
+  };
+  
+  
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      setFile(event.target.files[0]);
+    }
+  };
+
+  const handleUpload = async (moduleId:string) => {
+    try {
+      const cookieResponse = await fetch(`${backend_url}/auth/get-cookie-data`, {
+        credentials: "include",
+      });
+      const { userData } = await cookieResponse.json();
+  
+      if (!userData || !userData.payload?.username) {
+        throw new Error("No valid user data found in cookies.");
+      }
+      const username = userData.payload.username;
+    if (!contentTitle || !file) {
+      setError("Please provide a title and select a file.");
+      return;
+    }
+
+    setError(null);
+    setIsUploading(true);
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("contentTitle", contentTitle);
+
+    try {
+      const response = await axios.post(
+        `${backend_url}/modules/${username}/${moduleId}/upload`,
+        formData );
+
+      alert(response.data.message); // Show success message
+       try {
+        const response = await axios.get(
+          `${backend_url}/modules/${username}/${moduleId}/content`,
+          { withCredentials: true }
+        );
+        setContentList(response.data); // Populate content list
+        setIsExpanded(true);
+      } catch (err) {
+        console.error("Error fetching content:", err);
+        setError("Failed to fetch content. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+      setShowModal(false); // Close the modal
+      setContentTitle("");
+      setFile(null);
+    } catch (err) {
+      console.error("Error uploading content:", err);
+      setError("Failed to upload content. Please try again.");
+    } finally {
+      setIsUploading(false);
+    }
+  } catch (err) {
+    console.error("Error fetching data:", err);
+    setError("Failed to get cookie. Please try again.");
+  }
   };
 
   if (error) {
@@ -419,14 +555,40 @@ const handleDeleteModule = async (title:string) => {
     <h3 className="text-xl text-blue-600">{module.title}</h3>
     <span className="text-sm text-gray-500 bg-gray-200 px-2 py-1 rounded-md">{module.level}</span>
   </div>
-  <div className="flex gap-2 ml-auto">
-    <button
-      onClick={() => toggleModule(module._id, module.content ?? [])}
-      className="px-2 py-1 bg-gradient-to-r from-teal-400 to-teal-600 text-white rounded-lg shadow-md hover:opacity-80"
-    >
-      {expandedModule === module._id ? 'Hide Content' : 'Show Content'}
-    </button>
 
+  <div className="flex gap-2 ml-auto">
+    {/* Show Content Button */}
+      <button
+         onClick={() => toggleContentDisplay(module._id)}
+        className="px-3 py-1 bg-teal-500 text-white rounded-lg shadow-md hover:opacity-80"
+      >
+        {isExpanded ? "Hide Content" : "Show Content"}
+      </button>
+
+      {/* Loading State */}
+      {loading && <p className="text-gray-500 mt-2">Loading content...</p>}
+
+      {/* Error Message */}
+      {error && <p className="text-red-500 mt-2">{error}</p>}
+
+      {/* Content List */}
+      {isExpanded && contentList && (
+  <ul>
+  {contentList.map((content: ContentWithDownload, index) => (
+    <li key={index}>
+      <strong>{content.title}</strong>
+      {content.resources && content.resources.length > 0 && content.download && (
+        <button onClick={content.download}>Download File</button>
+      )}
+    </li>
+  ))}
+</ul>
+      )}
+
+      {/* No Content Message */}
+      {isExpanded && contentList?.length === 0 && (
+        <p className="text-gray-500 mt-2">No content available for this module.</p>
+      )}
     {/* Outdated Toggle */}
     <button
       onClick={() => handleToggleOutdated(module.title)}
@@ -440,11 +602,62 @@ const handleDeleteModule = async (title:string) => {
     >
       Update Module
     </button>
-    <button
-      className="px-2 py-1 rounded-lg bg-blue-500 text-white shadow-md hover:opacity-80"
-    >
-      Add Content
-    </button>
+    {/* Add Content Button */}
+      <button
+        className="px-3 py-1 rounded-lg bg-blue-500 text-white shadow-md hover:opacity-80"
+        onClick={() => setShowModal(true)}
+      >
+        Add Content
+      </button>
+
+      {/* Modal for Adding Content */}
+      {showModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-1/3">
+            <h2 className="text-lg font-bold mb-4">Add Content to Module</h2>
+
+            {/* Title Input */}
+            <label className="block mb-2 text-sm font-medium">Content Title:</label>
+            <input
+              type="text"
+              value={contentTitle}
+              onChange={(e) => setContentTitle(e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+              placeholder="Enter content title"
+            />
+
+            {/* File Upload */}
+            <label className="block mb-2 text-sm font-medium">Select File:</label>
+            <input
+              type="file"
+              onChange={handleFileChange}
+              className="mb-4"
+              accept=".jpg,.png,.pdf,.docx,.mp4,.zip" // Optional: restrict allowed file types
+            />
+
+            {/* Error Message */}
+            {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+                disabled={isUploading}
+              >
+                Cancel
+              </button>
+              <button
+                 onClick={() => handleUpload(module._id)}
+                className={`px-4 py-2 rounded-lg text-white ${isUploading ? "bg-gray-400" : "bg-blue-500 hover:bg-blue-600"}`}
+                disabled={isUploading}
+              >
+                {isUploading ? "Uploading..." : "Upload"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     <button
       className="px-2 py-1 rounded-lg bg-red-500 text-white shadow-md hover:opacity-80"
     >

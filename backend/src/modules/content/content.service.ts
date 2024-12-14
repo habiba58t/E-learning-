@@ -13,7 +13,7 @@ export class ContentService {
         @InjectModel(Content.name) private readonly contentModel: Model<contentDocument>,) {}
 
   //get content by objectId
-  async findById(ObjectId: mongoose.Schema.Types.ObjectId): Promise<Content> {
+  async findById(ObjectId: mongoose.Types.ObjectId): Promise<Content> {
     const content = await this.contentModel.findById(ObjectId).exec();
     if (!content) {
       throw new NotFoundException(`content with Object id ${ObjectId} not found`);

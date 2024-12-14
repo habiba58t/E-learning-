@@ -6,7 +6,7 @@ import { extname } from 'path';
 import { v4 as uuidv4 } from 'uuid'; // to generate unique file names
 import { ModulesService } from './modules.service';
 import * as mongoose from 'mongoose';
-import { Controller, Get, Post, Body, Param, Put, Delete,NotFoundException, InternalServerErrorException,UseGuards ,Req} from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete,NotFoundException, InternalServerErrorException,UseGuards ,Req,BadRequestException} from '@nestjs/common';
 import { Module } from './modules.schema';
 import { Quiz } from '../quizzes/quizzes.schema';
 import { CreateModuleDto } from './dto/CreateModule.dto';
@@ -153,53 +153,76 @@ async addQuestionToModule( @Req() {user},@Param('moduleId') moduleId: string, @P
   } 
 
 // Upload files to resourses array
-@UseGuards(AuthorizationGuard)
-@Roles(Role.Admin,Role.Instructor)
-  @Post(':moduleId/upload')
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: diskStorage({
-        destination: './uploads', // Folder to store uploaded files
-        filename: (req, file, callback) => {
-          const fileExtName = extname(file.originalname);
-          const fileName = `${uuidv4()}${fileExtName}`;
-          callback(null, fileName);
-        },
-      }),
+@UseGuards(AuthGuard, AuthorizationGuard)
+@Roles(Role.Admin, Role.Instructor)
+@Post(':username/:moduleId/upload')
+@UseInterceptors(
+  FileInterceptor('file', {
+    storage: diskStorage({
+      destination: './uploads', // Save in uploads folder
+      filename: (req, file, callback) => {
+        const fileExtName = extname(file.originalname);
+        const fileName = `${uuidv4()}${fileExtName}`;
+        callback(null, fileName);
+      },
     }),
-  )
-  async addFileToModule(@Req() {user},
-    @Param('moduleId') moduleId: string, @Param('contentTitle') contentTitle: string,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
-    // Save the file metadata (e.g., file path) in the module
-    const fileUrl = `/uploads/${file.filename}`; // Assuming files are served from '/uploads' folder
+  })
+)
+async addContentToModule(
+  @Param('username') username: string,
+  @Param('moduleId') moduleId: string,
+  @Body('contentTitle') contentTitle: string,
+  @UploadedFile() file: Express.Multer.File,
+) {
+  if (!username) throw new BadRequestException('Username is required.');
+  if (!moduleId) throw new BadRequestException('Module ID is required.');
+  if (!contentTitle) throw new BadRequestException('Content title is required.');
+  if (!file) throw new BadRequestException('File is required.');
+
+  try {
+    const fileUrl = `/uploads/${file.filename}`;
     const fileType = file.mimetype;
     const originalName = file.originalname;
 
-    // Add the file metadata to the Module's resources array
-    const updatedModule = await this.modulesService.addFileToModule(moduleId, fileUrl, originalName, fileType,contentTitle,user);
+    const updatedModule = await this.modulesService.addContentToModule(
+      moduleId,
+      fileUrl,
+      originalName,
+      fileType,
+      contentTitle,
+      username,
+    );
 
     return {
       message: 'File uploaded successfully!',
       file: fileUrl,
       module: updatedModule,
     };
+  } catch (error) {
+    console.error('Error in addContentToModule:', error);
+    throw new InternalServerErrorException('Failed to upload content.');
+  }
+}
+
+//get content for specific module
+@UseGuards(AuthGuard,AuthorizationGuard)
+@Roles(Role.Admin,Role.Instructor)
+  @Get(':username/:moduleId/content')
+  async getContentForModule(@Param('username') username: string,@Param('moduleId') moduleId: string): Promise<Content[]> {
+    return this.modulesService.getContentForModule(username, moduleId);
   }
 
 
-
-
 // Delete modules and all related quizzes and questions 
-@UseGuards(AuthorizationGuard)
+@UseGuards(AuthGuard,AuthorizationGuard)
 @Roles(Role.Admin,Role.Instructor)
-  @Delete(':moduleId')
-  async deleteModule(@Req() {user},@Param('moduleId') moduleId: string) {
+  @Delete(':username/:moduleId/deleteModule')
+  async deleteModule(@Param('username')username:string,@Param('moduleId') moduleId: string) {
     try {
       const moduleObjectId = new mongoose.Types.ObjectId(moduleId); // Convert moduleId to ObjectId
 
       // Call the service to delete the module and its related data
-      const result = await this.modulesService.deleteModule(moduleObjectId,user);
+      const result = await this.modulesService.deleteModule(moduleObjectId,username);
 
       return {
         message: result.message, // Return success message from service
