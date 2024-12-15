@@ -579,6 +579,25 @@ if (!quiz.responses.includes(response._id)) {
 }
 
 
+//update quiz
+async updateQuiz(no_of_questions?: number, types_of_questions?: string) {
+  const quiz = await this.quizModel.findOneAndUpdate(
+    { no_of_questions, types_of_questions },
+    { new: true } // Return the updated document
+  );
+
+  if (!quiz) {
+    throw new Error('Quiz not found');
+  }
+
+  // Check if the responses array is empty
+  for (const response of quiz.responses) {
+    if (!quiz.responses || quiz.responses.length === 0) {
+      console.log('Responses array is empty. Implement your logic here.');
+    }
+  }
+  return quiz;
+}
 
 
 // Delete quiz by ID
@@ -593,6 +612,7 @@ async deleteQuiz(quizId: mongoose.Types.ObjectId): Promise<{ message: string }> 
   if (!quiz) {
     throw new Error('Quiz not found');
   }
+
 
   // Step 2: Delete all responses associated with the quiz
   // Loop through the quiz's responses array and delete each response

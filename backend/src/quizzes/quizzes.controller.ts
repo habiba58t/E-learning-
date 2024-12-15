@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Request, NotFoundException, BadRequestException, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Request, NotFoundException, BadRequestException, UseGuards, Put, HttpException, HttpStatus } from '@nestjs/common';
 import { QuizzesService } from './quizzes.service';
 import { CreateQuizDto } from './dto/create-quiz.dto';
 import mongoose, {Types} from 'mongoose';
@@ -245,8 +245,20 @@ async submitQuiz(
      }
    }
 
+   @UseGuards(AuthorizationGuard)
+   @Roles(Role.Instructor)
+   @Put('update')
+   async updateQuiz(@Param('no_of_questions') no_of_questions?: number,@Param('types_of_questions') types_of_questions?: string,) {
+   
+       const updatedQuiz = await this.quizzesService.updateQuiz(no_of_questions, types_of_questions);
+ 
+       if (!updatedQuiz.responses || updatedQuiz.responses.length === 0) {
+         console.log('Responses array is empty. Implement your logic here.');
+       }
+ 
+       return updatedQuiz;
 
-
-
+    
+}
 }
   

@@ -168,52 +168,121 @@ export default function Quiz() {
     }
   };
 
+  const handleDeleteQuiz = async (quizId: string) => {
+    try {
+      const response = await axiosInstance.delete(`${backend_url}/quizzes/${quizId}`);
+      alert(response.data.message || "Quiz deleted successfully");
+  
+      // Refresh quizzes after deletion
+      if (selectedModule) await fetchQuizzes(selectedModule);
+    } catch (err) {
+      console.error("Error deleting quiz:", err);
+      alert("Failed to delete quiz. Please try again.");
+    }
+  };
+  
+  const handleUpdateQuiz = async (quizId: string) => {
+    const numQuestions = prompt("Enter the new number of questions:");
+    const questionType = prompt("Enter the new question type (mcq/t/f/both):");
+  
+    if (!numQuestions || !questionType) {
+      alert("Both fields are required for updating the quiz.");
+      return;
+    }
+  
+    const payload = {
+      no_of_questions: parseInt(numQuestions),
+      types_of_questions: questionType,
+    };
+  
+    try {
+      const response = await axiosInstance.put(`${backend_url}/quizzes/update`, payload);
+      alert("Quiz updated successfully");
+      console.log(response.data);
+  
+      // Refresh quizzes after update
+      if (selectedModule) await fetchQuizzes(selectedModule);
+    } catch (err) {
+      console.error("Error updating quiz:", err);
+      alert("Failed to update quiz. Please try again.");
+    }
+  };
+  
+
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4">
       <div className="max-w-4xl mx-auto bg-white shadow-md rounded-lg p-6">
         <h1 className="text-2xl font-bold text-black mb-4">Create a Quiz</h1>
-
+  
         <div className="mb-6">
-          <label htmlFor="course" className="block text-black font-medium mb-2">Choose Course</label>
+          <label htmlFor="course" className="block text-black font-medium mb-2">
+            Choose Course
+          </label>
           <select
             id="course"
-            value={selectedCourse || ''}
+            value={selectedCourse || ""}
             onChange={(e) => handleCourseChange(e.target.value)}
             className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
           >
-            <option value="" disabled>Select a course</option>
-            {courseList.map(course => (
-              <option key={course.course_code} value={course.course_code}>{course.title}</option>
+            <option value="" disabled>
+              Select a course
+            </option>
+            {courseList.map((course) => (
+              <option key={course.course_code} value={course.course_code}>
+                {course.title}
+              </option>
             ))}
           </select>
         </div>
-
+  
         <div className="mb-6">
-          <label htmlFor="module" className="block text-black font-medium mb-2">Choose Module</label>
+          <label htmlFor="module" className="block text-black font-medium mb-2">
+            Choose Module
+          </label>
           <select
             id="module"
-            value={selectedModule || ''}
+            value={selectedModule || ""}
             onChange={(e) => handleModuleChange(e.target.value)}
-            className={`w-full border-2 ${selectedModule ? 'border-indigo-600' : 'border-gray-300'} rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500`}
+            className={`w-full border-2 ${
+              selectedModule ? "border-indigo-600" : "border-gray-300"
+            } rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500`}
           >
-            <option value="" disabled>Select a module</option>
-            {moduleList.map(module => (
+            <option value="" disabled>
+              Select a module
+            </option>
+            {moduleList.map((module) => (
               <option
                 key={module._id}
                 value={module._id}
-                className={selectedModule === module._id ? 'bg-indigo-100 text-black' : 'text-black'}
+                className={
+                  selectedModule === module._id
+                    ? "bg-indigo-100 text-black"
+                    : "text-black"
+                }
               >
                 {module.name}
               </option>
             ))}
           </select>
         </div>
-
+  
         <div className="mb-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-3">Quiz Details</h2>
-          <form onSubmit={(e) => { e.preventDefault(); handleGenerateQuiz(); }}>
+          <h2 className="text-xl font-semibold text-gray-800 mb-3">
+            Quiz Details
+          </h2>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleGenerateQuiz();
+            }}
+          >
             <div className="mb-4">
-              <label htmlFor="numQuestions" className="block text-gray-700 font-medium mb-2">Number of Questions</label>
+              <label
+                htmlFor="numQuestions"
+                className="block text-gray-700 font-medium mb-2"
+              >
+                Number of Questions
+              </label>
               <input
                 type="number"
                 id="numQuestions"
@@ -225,9 +294,14 @@ export default function Quiz() {
                 required
               />
             </div>
-
+  
             <div className="mb-4">
-              <label htmlFor="questionType" className="block text-gray-700 font-medium mb-2">Question Type</label>
+              <label
+                htmlFor="questionType"
+                className="block text-gray-700 font-medium mb-2"
+              >
+                Question Type
+              </label>
               <select
                 id="questionType"
                 name="questionType"
@@ -242,7 +316,7 @@ export default function Quiz() {
                 <option value="both">Both</option>
               </select>
             </div>
-
+  
             <button
               type="submit"
               className="w-full bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-indigo-500"
@@ -251,20 +325,38 @@ export default function Quiz() {
             </button>
           </form>
         </div>
-
+  
         <div className="mt-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-3">Manage Quizzes</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-3">
+            Manage Quizzes
+          </h2>
           <div className="bg-gray-50 p-4 rounded-lg shadow">
             {quizzes.length > 0 ? (
               quizzes.map((quiz) => (
-                <div key={quiz._id} className="flex items-center justify-between mb-3">
+                <div
+                  key={quiz._id}
+                  className="flex items-center justify-between mb-3"
+                >
                   <div>
                     <h3 className="font-medium text-gray-800">{quiz.title}</h3>
                     <p className="text-sm text-gray-600">
                       Questions: {quiz.numQuestions} | Type: {quiz.questionType}
                     </p>
                   </div>
-                  <button className="text-red-600 hover:underline">Delete</button>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => handleUpdateQuiz(quiz._id)}
+                      className="text-blue-600 hover:underline"
+                    >
+                      Update
+                    </button>
+                    <button
+                      onClick={() => handleDeleteQuiz(quiz._id)}
+                      className="text-red-600 hover:underline"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               ))
             ) : (
@@ -275,4 +367,4 @@ export default function Quiz() {
       </div>
     </div>
   );
-}
+}  
