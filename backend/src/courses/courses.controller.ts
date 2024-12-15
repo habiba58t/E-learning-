@@ -49,6 +49,14 @@ export class CoursesController {
     return this.coursesService.getcoursebyid(id);
   }
 
+    // GET /Course/:course code: Retrieve a specific instructor 
+    @UseGuards(AuthGuard, AuthorizationGuard)
+    @Roles(Role.Admin, Role.Instructor)
+    @Get('coursesInstructor/:username')
+    async findCoursesforInstructor(@Param('username') username: string): Promise<courseDocument[]> {
+      return this.coursesService.findCoursesforInstructor(username);
+    }
+
 
 //Create: course created by instructor
 @UseGuards(AuthGuard, AuthorizationGuard)

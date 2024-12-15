@@ -75,7 +75,7 @@ const InstructorSidebar = () => {
           <li>
             <a
               className="flex items-center gap-x-3.5 py-2 px-2.5 text-sky-200 rounded-lg hover:bg-sky-700"
-              href="#quizzes"
+              href="/components/instuctor/quiz"
             >
               <svg
                 className="size-4"

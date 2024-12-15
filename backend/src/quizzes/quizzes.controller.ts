@@ -18,37 +18,37 @@ export class QuizzesController {
   constructor(private readonly quizzesService: QuizzesService) {}
 
 
-  // @UseGuards(AuthorizationGuard) // Additional guard for authorization
-  // @Roles(Role.Admin, Role.Instructor) // Restrict roles to admin and instructor
-  // @Post('generate/:moduleId')
-  // async generateQuiz( //instructor creates quiz
-  //   @Param('moduleId') moduleId: string,
-  //   @Body('no_of_questions') noOfQuestions: number,
-  //   @Body('types_of_questions') typesOfQuestions: 'mcq' | 't/f' | 'both',
-  // ) {
-  //   try {
-  //     // Validate and convert the moduleId to an ObjectId
-  //     const moduleObjectId = new Types.ObjectId(moduleId);
+  @UseGuards(AuthorizationGuard) // Additional guard for authorization
+  @Roles(Role.Admin, Role.Instructor) // Restrict roles to admin and instructor
+  @Post('generate/:moduleId')
+  async generateQuiz( //instructor creates quiz
+    @Param('moduleId') moduleId: string,
+    @Body('no_of_questions') noOfQuestions: number,
+    @Body('types_of_questions') typesOfQuestions: 'mcq' | 't/f' | 'both',
+  ) {
+    try {
+      // Validate and convert the moduleId to an ObjectId
+      const moduleObjectId = new Types.ObjectId(moduleId);
 
-  //     // Call the service method to generate the quiz
-  //     const quiz = await this.quizzesService.generateQuiz(
-  //       noOfQuestions,
-  //       typesOfQuestions,
-  //       moduleObjectId,
-  //     );
+      // Call the service method to generate the quiz
+      const quiz = await this.quizzesService.generateQuiz(
+        noOfQuestions,
+        typesOfQuestions,
+        moduleObjectId,
+      );
 
-  //     // Return the generated quiz
-  //     return {
-  //       message: 'Quiz generated successfully',
-  //       quiz,
-  //     };
-  //   } catch (error) {
-  //     return {
-  //       message: 'Error generating quiz',
-  //       error: error.message,
-  //     };
-  //   }
-  // }
+      // Return the generated quiz
+      return {
+        message: 'Quiz generated successfully',
+        quiz,
+      };
+    } catch (error) {
+      return {
+        message: 'Error generating quiz',
+        error: error.message,
+      };
+    }
+  }
 
  
     @Get(':quizId')
@@ -77,28 +77,54 @@ export class QuizzesController {
 
 @UseGuards(AuthorizationGuard) // Additional guard for authorization
 @Roles(Role.Admin, Role.Instructor) // Restrict roles to admin and instructor
-    @Get(':instructorId')
-    async getQuizzesByInstructorId(@Param('instructorId') instructorId: string) {
-      try {
-        // Convert instructorId to a valid ObjectId
-        const quizObjectId = new Types.ObjectId(instructorId); // Convert to ObjectId
-        
-        const quizzes = await this.quizzesService.getQuizzesByInstructorId(quizObjectId);
-        
-        // Check if quizzes are empty
-        if (!quizzes || quizzes.length === 0) {
-          throw new NotFoundException('No quizzes found for this instructor');
-        }
-    
-        return {
-          message: 'Quizzes fetched successfully',
-          quizzes,
-        };
-      } catch (error) {
-        // Log the actual error message
-        throw new NotFoundException(error.message || 'Error fetching quizzes');
-      }
+@Get('instructor/:instructorId')
+async getQuizzesByInstructorId(@Param('instructorId') instructorId: string) {
+  try {
+    // Ensure that instructorId is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(instructorId)) {
+      throw new NotFoundException('Invalid instructor ID format');
     }
+
+    // Find quizzes created by the instructor
+    const quizzes = await this.quizzesService.getQuizzesByInstructorId(new mongoose.Types.ObjectId(instructorId));
+
+    if (!quizzes || quizzes.length === 0) {
+      throw new NotFoundException('No quizzes found for this instructor');
+    }
+    console.log('Instructor ID:', instructorId);  // Check the input ID
+console.log('Querying for quizzes with:', { created_by: instructorId });
+
+
+    return {
+      message: 'Quizzes fetched successfully',
+      quizzes,
+    };
+  } catch (error) {
+    console.error(error); // Log the error for debugging
+    throw new NotFoundException(error.message || 'Error fetching quizzes');
+  }
+}
+@Get('instructorusername/:username')
+async getQuizzesByInstructorUsername(@Param('username') username: string) {
+  try {
+    // Find quizzes created by the instructor using username
+    const quizzes = await this.quizzesService.getQuizzesByInstructorUsername(username);
+
+    if (!quizzes || quizzes.length === 0) {
+      throw new NotFoundException('No quizzes found for this instructor');
+    }
+    
+
+    return {
+      message: 'Quizzes fetched successfully',
+      quizzes,
+    };
+  } catch (error) {
+    console.error(error); // Log the error for debugging
+    throw new NotFoundException(error.message || 'Error fetching quizzes');
+  }
+}
+
     
     @Get('student/:username')
   async getQuizzesForStudent(@Param('username') username: string) {

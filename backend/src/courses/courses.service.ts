@@ -72,6 +72,21 @@ export class CoursesService {
     return course;
   }
 
+     // GET /Course/:course code: Retrieve a specific instructor 
+
+     async findCoursesforInstructor(username: string): Promise<courseDocument[]> {
+      return this.courseModel.find({ created_by: username , Unavailable:false}).exec();
+     }
+  
+     // GET /Course/:course code: Retrieve a specific instructor 
+     async findCoursesforInstructorByTitle(username: string, title: string): Promise<courseDocument[]> {
+      const course = await this.courseModel.find({title: { $regex: title, $options: 'i' },created_by: username}).exec();
+      if (!course) {
+        throw new NotFoundException(`Course with title ${title} not found`);
+      }
+      return course;
+     }
+
 
   //CREATE: intructor create course
   async create(createCourseDto: CreateCourseDto,user: any): Promise<courseDocument> {
