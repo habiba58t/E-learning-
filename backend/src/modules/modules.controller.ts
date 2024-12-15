@@ -36,7 +36,7 @@ constructor(private readonly modulesService: ModulesService) {}
   }
 
 //GET: get one module by objectId
-@UseGuards(AuthorizationGuard)
+@UseGuards(AuthGuard,AuthorizationGuard)
 @Roles(Role.Admin,Role.Instructor, Role.User)
   @Get('id/:ObjectId')
   async findById(@Param('ObjectId') ObjectId: string): Promise<moduleDocument> {
@@ -53,7 +53,7 @@ async findByTitle(@Param('title') title: string): Promise<moduleDocument> {
 } 
 
  // POST /module: Create a new module
- @UseGuards(AuthorizationGuard)
+ @UseGuards(AuthGuard,AuthorizationGuard)
 @Roles(Role.Admin, Role.Instructor)
  @Post('/create')
  async create(@Body() createModuleDto: CreateModuleDto): Promise<moduleDocument> {
@@ -61,14 +61,14 @@ async findByTitle(@Param('title') title: string): Promise<moduleDocument> {
  }
  
  // PUT /module/:title: Update an existing module by its title
- @UseGuards(AuthorizationGuard)
+ @UseGuards(AuthGuard,AuthorizationGuard)
 @Roles(Role.Admin,Role.Instructor)
  @Put(':title')
  async update(@Req() {user},@Param('title') title: string, @Body() updateModuleDto: UpdateModuleDto): Promise<moduleDocument> {
    return this.modulesService.update(title, updateModuleDto,user);
  }
 // DELETE /modules/:title: Delete a module by its title
-@UseGuards(AuthorizationGuard)
+@UseGuards(AuthGuard,AuthorizationGuard)
 @Roles(Role.Admin, Role.Instructor)
 @Delete(':title')
 async delete(@Param('title') title: string): Promise<moduleDocument> {
@@ -137,7 +137,7 @@ async addQuestionToModule( @Req() {user},@Param('moduleId') moduleId: string, @P
 }
   
 //GET: find outdated attributed of specific module
-@UseGuards(AuthorizationGuard)
+@UseGuards(AuthGuard,AuthorizationGuard)
 @Roles(Role.Admin,Role.Instructor)
 @Get(':title')
   async findOutdated(@Param('title') title: string): Promise<boolean> {

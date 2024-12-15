@@ -70,13 +70,15 @@ export class ModulesService {
         return module;
       }
  //get module by title 
-      async findByTitle(title: string): Promise<moduleDocument> {
-        const module = await this.moduleModel.findOne({title}).exec();
-        if (!module) {
-          throw new NotFoundException(`Module with title ${title} not found`);
-        }
-        return module;
-      }
+ async findByTitle(title: string): Promise<moduleDocument> {
+  console.log("Searching for module with title:", title);
+  const module = await this.moduleModel.findOne({ title });
+  if (!module) {
+    console.log("Module not found for title:", title);
+    return null;
+  }
+  return module;
+}
 
 
 

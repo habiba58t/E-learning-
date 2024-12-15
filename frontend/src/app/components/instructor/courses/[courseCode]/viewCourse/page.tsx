@@ -279,25 +279,6 @@ const handleToggleOutdated = async (title: string) => {
 }
 };
 
-const handleDeleteModule = async (title:string) => {
-  console.log(title);
-  try {
-    const cookieResponse = await fetch(`${backend_url}/auth/get-cookie-data`, {
-      credentials: "include",
-    });
-    const { userData } = await cookieResponse.json();
-
-    if (!userData || !userData.payload?.username) {
-      throw new Error("No valid user data found in cookies.");
-    }
-    const username = userData.payload.username;
-    await axiosInstance.put(`${backend_url}/courses/${username}/${courseCode}/modules/${title}`);
-    fetchCourseAndModules();
-  } catch (err) {
-    console.error("Error fetching data:", err);
-    setError("Failed to get cookie. Please try again.");
-  }
-};
 
   const handleQuestion = (moduleId: string) => {
     router.push(`/components/instructor/courses/${courseCode}/Question/${moduleId}`);
@@ -446,6 +427,10 @@ const handleDeleteModule = async (title:string) => {
     }
   };
 
+  const handleViewModule = (title: string) => {
+    router.push(`/components/instructor/courses/${courseCode}/viewCourse/${title}/module`);
+  };
+
   if (error) {
     return <div className="text-red-500">{error}</div>;
   }
@@ -564,170 +549,29 @@ const handleDeleteModule = async (title:string) => {
       {/* Modules Section */}
       <h2 className="text-2xl font-semibold text-gray-800 mb-4">Modules</h2>
       {modules.length > 0 ? (
-        modules.map((module) => (
-          <div key={module._id} className="border-b border-gray-300 py-4">
-          {/* Module Header */}
-<div className="flex justify-between items-center">
-  <div className="flex items-center gap-2">
-    <h3 className="text-xl text-blue-600">{module.title}</h3>
-    <span className="text-sm text-gray-500 bg-gray-200 px-2 py-1 rounded-md">{module.level}</span>
-  </div>
-
-  <div className="flex gap-2 ml-auto">
-    {/* Show Content Button */}
-      <button
-         onClick={() => toggleContentDisplay(module._id)}   //here maybe the problem should take id of module im in
-        className="px-3 py-1 bg-teal-500 text-white rounded-lg shadow-md hover:opacity-80"
-      >
-        {isExpanded ? "Hide Content" : "Show Content"}
-      </button>
-
-      {/* Loading State */}
-      {loading && <p className="text-gray-500 mt-2">Loading content...</p>}
-
-      {/* Error Message */}
-      {error && <p className="text-red-500 mt-2">{error}</p>}
-
-      {/* Content List */}
-      {isExpanded && contentList && (
-  <ul>
-  {contentList.map((content: ContentWithDownload, index) => (
-    <li key={index}>
-      <strong>{content.title}</strong>
-      {content.resources && content.resources.length > 0 && content.download && (
-        <button onClick={content.download}>Download File</button>
-      )}
-    </li>
-  ))}
-</ul>
-      )}
-
-      {/* No Content Message */}
-      {isExpanded && contentList?.length === 0 && (
-        <p className="text-gray-500 mt-2">No content available for this module.</p>
-      )}
-    {/* Outdated Toggle */}
-    <button
-      onClick={() => handleToggleOutdated(module.title)}
-      className={`px-2 py-1 rounded-lg text-white ${module.isOutdated ? 'bg-red-500' : 'bg-green-500'} mb-4`}
-    >
-      {module.isOutdated ? 'Outdated' : 'Up-to-date'}
-    </button>
-
-    <button
-      className="px-2 py-1 rounded-lg bg-green-500 text-white shadow-md hover:opacity-80"
-    >
-      Update Module
-    </button>
-    {/* Add Content Button */}
-      <button
-        className="px-3 py-1 rounded-lg bg-blue-500 text-white shadow-md hover:opacity-80"
-        onClick={() => setShowModal(true)}
-      >
-        Add Content
-      </button>
-
-      {/* Modal for Adding Content */}
-      {showModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-1/3">
-            <h2 className="text-lg font-bold mb-4">Add Content to Module</h2>
-
-            {/* Title Input */}
-            <label className="block mb-2 text-sm font-medium">Content Title:</label>
-            <input
-              type="text"
-              value={contentTitle}
-              onChange={(e) => setContentTitle(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
-              placeholder="Enter content title"
-            />
-
-            {/* File Upload */}
-            <label className="block mb-2 text-sm font-medium">Select File:</label>
-            <input
-              type="file"
-              onChange={handleFileChange}
-              className="mb-4"
-              accept=".jpg,.png,.pdf,.docx,.mp4,.zip" 
-            />
-
-            {/* Error Message */}
-            {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-
-            {/* Action Buttons */}
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
-                disabled={isUploading}
-              >
-                Cancel
-              </button>
-              <button
-                 onClick={() => handleUpload(module._id)}
-                className={`px-4 py-2 rounded-lg text-white ${isUploading ? "bg-gray-400" : "bg-blue-500 hover:bg-blue-600"}`}
-                disabled={isUploading}
-              >
-                {isUploading ? "Uploading..." : "Upload"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    <button
-      className="px-2 py-1 rounded-lg bg-red-500 text-white shadow-md hover:opacity-80"
-    >
-      Delete Content
-    </button>
-    <button
-     onClick={() => handleQuestion(module.title)}
-      className="px-2 py-1 rounded-lg bg-red-500 text-white shadow-md hover:opacity-80"
-    >
-      Question Bank
-    </button>
-    <button
-     onClick={() => handleQuiz(module.title)}
-      className="px-2 py-1 rounded-lg bg-red-500 text-white shadow-md hover:opacity-80"
-    >
-      Create Quiz
-    </button>
-    <button
-     onClick={() => handleDeleteModule(module.title)}
-      className="px-2 py-1 rounded-lg bg-red-500 text-white shadow-md hover:opacity-80"
-    >
-      Delete Module
-    </button>
-  </div>
-</div>
-
-            {/* Module Content */}  
-            {expandedModule === module._id && contentDetails[module._id] && (
-              <div className="mt-4"> 
-                {contentDetails[module._id].map((content) => (
-                  <div key={content._id} className="mb-4">
-                    <p>{content.title}</p>
-                    <p>{content.isOutdated ? 'Outdated' : 'Up-to-date'}</p>
-                    <div>
-                      {content.resources.map((resource, index) => (
-                        <div key={index}>
-                          <a href={resource.filePath} download>
-                            {resource.originalName} ({resource.fileType})
-                          </a>
-                        </div>
-                      ))}
+               modules.map((module) => (
+                <div key={module._id} className="border-b border-gray-300 py-4">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-xl text-blue-600">{module.title}</h3>
+                      <span className="text-sm text-gray-500 bg-gray-200 px-2 py-1 rounded-md">{module.level}</span>
+                    </div>
+                    <div className="flex gap-2 ml-auto">
+                      <button
+                        onClick={() => handleViewModule(module.title)}
+                        className="px-3 py-1 bg-teal-500 text-white rounded-lg shadow-md hover:opacity-80"
+                      >
+                        View Module
+                      </button>
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))
+            ) : (
+              <p>No modules available.</p>
             )}
           </div>
-        ))
-      ) : (
-        <p>No modules available.</p>
-      )}
-    </div>
-  );
+        );
 };
 
 export default CourseDetails;
