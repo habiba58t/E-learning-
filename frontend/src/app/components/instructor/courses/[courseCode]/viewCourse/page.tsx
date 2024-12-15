@@ -280,6 +280,7 @@ const handleToggleOutdated = async (title: string) => {
 };
 
 const handleDeleteModule = async (title:string) => {
+  console.log(title);
   try {
     const cookieResponse = await fetch(`${backend_url}/auth/get-cookie-data`, {
       credentials: "include",
@@ -307,6 +308,7 @@ const handleDeleteModule = async (title:string) => {
   };
 
   const toggleContentDisplay = async (moduleId: string) => {
+    console.log(moduleId);
     try {
       const cookieResponse = await fetch(`${backend_url}/auth/get-cookie-data`, {
         credentials: "include",
@@ -318,7 +320,7 @@ const handleDeleteModule = async (title:string) => {
       }
       const username = userData.payload.username;
   
-      if (isExpanded) {
+      if (isExpanded) {  //global variables bug
         // Collapse content
         setIsExpanded(false);
         setContentList(null);
@@ -396,7 +398,9 @@ const handleDeleteModule = async (title:string) => {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("contentTitle", contentTitle);
-     console.log("module id:", moduleId);
+      
+     console.log("module id from this:", moduleId);
+     console.log("Yalhwy!")
       try {
         const response = await axios.post(
           `${backend_url}/modules/${username}/${moduleId}/upload`,
@@ -645,7 +649,7 @@ const handleDeleteModule = async (title:string) => {
               type="file"
               onChange={handleFileChange}
               className="mb-4"
-              accept=".jpg,.png,.pdf,.docx,.mp4,.zip" // Optional: restrict allowed file types
+              accept=".jpg,.png,.pdf,.docx,.mp4,.zip" 
             />
 
             {/* Error Message */}
