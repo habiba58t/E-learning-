@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ChatController } from './chat.controller';
+import { GroupChatController } from './group-chat.controller';
 
-describe('ChatController', () => {
-  let controller: ChatController;
+describe('GroupChatController', () => {
+  let controller: GroupChatController;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [ChatController],
+      controllers: [GroupChatController],
     }).compile();
 
-    controller = module.get<ChatController>(ChatController);
+    controller = module.get<GroupChatController>(GroupChatController);
   });
 
   it('should be defined', () => {

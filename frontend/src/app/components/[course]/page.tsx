@@ -123,6 +123,12 @@ const CourseDetails = () => {
                     </p>
                 </div>
                 <div className="flex justify-center mt-6">
+                <button
+                       // onClick={handleViewModules}
+                        className="bg-white text-blue-600 font-bold py-2 px-6 rounded-full shadow-md hover:bg-gray-100 transition-all"
+                    >
+                        View Other Students
+                    </button>
                     <button
                         onClick={handleViewModules}
                         className="bg-white text-blue-600 font-bold py-2 px-6 rounded-full shadow-md hover:bg-gray-100 transition-all"
@@ -132,12 +138,12 @@ const CourseDetails = () => {
                 </div>
 
                 <div className="flex justify-center mt-6">
-                    <button
-                       // onClick={handleViewModules}
-                        className="bg-white text-blue-600 font-bold py-2 px-6 rounded-full shadow-md hover:bg-gray-100 transition-all"
-                    >
-                        View Other Students
-                    </button>
+                <button
+                    onClick={() => router.push(`/chat/${course?.course_code}`)}
+                    className="bg-white text-purple-700 font-bold py-2 px-6 rounded-full shadow-md hover:bg-gray-100 transition-all"
+                >
+                  Chat
+                </button>
                 </div>
             </div>
             

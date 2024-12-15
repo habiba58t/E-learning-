@@ -13,13 +13,20 @@ import {NotesModule} from './notes/notes.module'
 import { LogModule } from './log/log.module';
 import { StudentModule } from './users/student/student.module';
 import { NotificationModule } from './notification/notification.module';
-import { ChatModule } from './chat/chat.module';
+
 import { MessageModule } from './message/message.module';
 import { ForumModule } from './forum/forum.module';
+import { GroupChatController } from './group-chat/group-chat.controller';
+import { GroupChatService } from './group-chat/group-chat.service';
+import { GroupChatModule } from './group-chat/group-chat.module';
+import { PrivateChatController } from './private-chat/private-chat.controller';
+import { PrivateChatService } from './private-chat/private-chat.service';
+import { PrivateChatModule } from './private-chat/private-chat.module';
 
 @Module({
-  imports: [ProgressModule, UsersModule, CoursesModule, ModulesModule, ResponsesModule, QuizzesModule, QuestionsModule,StudentModule,NotesModule,LogModule,MongooseModule.forRoot('mongodb+srv://projectdb:12345@e-learning.6bu6g.mongodb.net/E-learning-'), NotificationModule, ChatModule, MessageModule, ForumModule],
+  imports: [ProgressModule, UsersModule, CoursesModule, ModulesModule, ResponsesModule, QuizzesModule, QuestionsModule,StudentModule,NotesModule,LogModule,MessageModule,GroupChatModule,PrivateChatModule,MongooseModule.forRoot('mongodb+srv://projectdb:12345@e-learning.6bu6g.mongodb.net/E-learning-'), NotificationModule, ForumModule],
   controllers: [AppController],
   providers: [AppService],
+  
 })
 export class AppModule {}
