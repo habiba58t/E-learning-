@@ -8,15 +8,15 @@ import { useState, useEffect } from 'react';
 import { Course } from "../components/instructor/courses/[courseCode]/viewCourse/page";
 import axiosInstance from "../utils/axiosInstance";
 
-
 // Register chart components
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
 const backend_url = "http://localhost:3002";
+
 export interface AnalyticsData {
     _id: string;
     course_code: string;
-    enrolledStudents:number;
+    enrolledStudents: number;
     completedStudents: number;
     avgCompletion: number;
     avgScore: number;
@@ -26,7 +26,6 @@ export interface AnalyticsData {
     numberOfStudentsAvg: number;
     numberOfStudentsAboveAvg: number;
 }
-
 
 const Analytics = () => {
     const [analytics, setAnalytics] = useState<AnalyticsData[]>([]);
@@ -46,53 +45,52 @@ const Analytics = () => {
             }
 
             const username = userData.payload.username;
-            
+
             // Fetch courses
             const apiGetCourses = `${backend_url}/courses/coursesInstructor/${username}`;
-            const coursesResponse = await axios.get(apiGetCourses);
+            const coursesResponse = await axiosInstance.get(apiGetCourses);
             const coursesData: Course[] = coursesResponse.data;
 
             // Fetch additional data for each course
-            const coursesWithAnalytics = await Promise.all(
-                coursesData.map(async (course) => {
-                    const [
-                        enrolledStudentsResponse,
-                        completedStudentsResponse,
-                        avgCompletionResponse, //done
-                        avgScoreResponse, //done
-                        ratingResponse,//done
-                        studentsBelowAvgResponse,
-                        studentsAvgResponse,
-                        studentsAboveAvgResponse,
-                    ] = await Promise.all([
-                        axiosInstance.get(`${backend_url}/progress/enrolled/${course.course_code}`),
-                        axiosInstance.get(`${backend_url}/progress/completedNumber/${course.course_code}`),
-                        axiosInstance.get(`${backend_url}/progress/avgCompletion/${course.course_code}`),
-                        axiosInstance.get(`${backend_url}/courses/${course.course_code}/average-score`),
-                        axiosInstance.get(`${backend_url}/instructor/${username}`),
-                        axiosInstance.get(`${backend_url}/student/levelEasy/${course._id}`),
-                        axiosInstance.get(`${backend_url}/student/levelMedium/${course._id}`),
-                        axiosInstance.get(`${backend_url}/student/levelHard/${course._id}`),
-                    ]);
+            const coursesWithAnalytics = [];
 
-                    // Combine course data with the additional fetched analytics data
-                    return {
-                        _id: course._id,
-                        course_code: course.course_code,
-                        enrolledStudents: enrolledStudentsResponse.data.count,
-                        completedStudents: completedStudentsResponse.data.count,
-                        avgCompletion: avgCompletionResponse.data.avgCompletion,
-                        avgScore: avgScoreResponse.data.avgScore,
-                        avgRatingInstructor: ratingResponse.data.avgInstructorRating,
-                        avgRatingCourse: ratingResponse.data.avgCourseRating,
-                        numberOfStudentsbelowAvg: studentsBelowAvgResponse.data.count,
-                        numberOfStudentsAvg: studentsAvgResponse.data.count,
-                        numberOfStudentsAboveAvg: studentsAboveAvgResponse.data.count,
-                    };
-                })
-            );
+for (let i = 0; i < coursesData.length; i++) {
+    const course = coursesData[i];
 
+    try {
+        const enrolledStudentsResponse = await axiosInstance.get(`${backend_url}/progress/enrolled/${course.course_code}`);
+        const completedStudentsResponse = await axiosInstance.get(`${backend_url}/progress/completedNumber/${course.course_code}`);
+        const avgCompletionResponse = await axiosInstance.get(`${backend_url}/progress/completedNumber/${course.course_code}`);
+        const avgScoreResponse = await axiosInstance.get(`${backend_url}/courses/${course.course_code}/average-score`);
+        const ratingResponse = await axiosInstance.get(`${backend_url}/instructor/rating/${username}`);
+        const studentsBelowAvgResponse = await axiosInstance.get(`${backend_url}/student/levelEasy/${course._id}`);
+        const studentsAvgResponse = await axiosInstance.get(`${backend_url}/student/mediumLevel/${course._id}`);
+        const studentsAboveAvgResponse = await axiosInstance.get(`${backend_url}/student/hardLevel/${course._id}`);
+
+        console.log("Enrolled Students Response:", enrolledStudentsResponse.data);
+
+        // Combine course data with the additional fetched analytics data
+        coursesWithAnalytics.push({
+            _id: course._id,
+            course_code: course.course_code,
+            enrolledStudents: enrolledStudentsResponse.data,
+            completedStudents: completedStudentsResponse.data,
+            avgCompletion: avgCompletionResponse.data,
+            avgScore: avgScoreResponse.data.avgScore,
+            avgRatingInstructor: ratingResponse.data,
+            avgRatingCourse: ratingResponse.data, //nesheel rating instructor and call rating from course
+            numberOfStudentsbelowAvg: studentsBelowAvgResponse.data,
+            numberOfStudentsAvg: studentsAvgResponse.data,
+            numberOfStudentsAboveAvg: studentsAboveAvgResponse.data,
+        });
+    } catch (error) {
+        console.error(`Error fetching data for course ${course.course_code}:`, error);
+    }
+}
+
+             console.log("Courses With Analytics:", coursesWithAnalytics);
             setAnalytics(coursesWithAnalytics); // Set the final analytics data
+            console.log(analytics)
         } catch (err) {
             console.error("Error fetching data:", err);
             setError("Failed to load analytics data. Please try again.");
@@ -141,7 +139,7 @@ const Analytics = () => {
                                             {
                                                 label: "Completion Levels",
                                                 data: [
-                                                    data.avgCompletion,  // Adjusted values based on your course data
+                                                    data.avgCompletion, // Adjusted values based on your course data
                                                     data.avgCompletion,
                                                     data.avgCompletion,
                                                 ],

@@ -201,7 +201,7 @@ async getnumberMediumLevel(courseId: mongoose.Types.ObjectId): Promise<number> {
 
   // Iterate over each student
   for (const student of students) {
-    const username = student; // Assuming `username` is a property of student
+    const username = student; 
     const level = await this.getStudentLevel(username, courseId); // Pass ObjectId
 
     // Check if the level is "easy"

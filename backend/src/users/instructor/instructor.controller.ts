@@ -18,19 +18,17 @@ export class InstructorController {
 
   @Public()
    // //Get AverageRating  of Instructor
-  @Get(':instructorId')
-  async getAvgRating(@Param('ObjectId') ObjectId: string): Promise<number> {
-    const objectId = new mongoose.Types.ObjectId(ObjectId)
-   return await this.instructorService.getAvgRating(objectId);
+  @Get('/rating/:username')
+  async getAvgRating(@Param('username') username: string): Promise<number> {
+   return await this.instructorService.getAvgRating(username);
   }
 
 //SET TOTALRATING TOTALSTUDENTS AVERAGE RATING
 @UseGuards(AuthorizationGuard)
 @Roles(Role.User)
-@Put()
-async setRating(@Param('ObjectId') ObjectId: string, @Param('score')score:number): Promise<void> {
- const objectId = new mongoose.Types.ObjectId(ObjectId)
- await this.instructorService.setRating(objectId,score);
+@Put(':username/:score')
+async setRating(@Param('username') username: string, @Param('score')score:number): Promise<void> {
+ await this.instructorService.setRating(username,score);
 }
 
 @UseGuards(AuthorizationGuard)

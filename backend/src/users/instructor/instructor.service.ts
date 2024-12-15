@@ -30,17 +30,17 @@ export class InstructorService {
  
 
     //GET AVERAGE RATING
-  @Public()
-async getAvgRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
-    const instructor = await this.userModel.findById(ObjectId);
+  //@Public()
+async getAvgRating( username: string): Promise<number> {
+    const instructor = await this.userModel.findOne({username});
     return instructor.averageRating;
    }
    
-@UseGuards(AuthorizationGuard)
-@Roles(Role.User)
+// @UseGuards(AuthorizationGuard)
+// @Roles(Role.User)
    //SET RATING,TOTAL,AVERAGE
-   async setRating(ObjectId: mongoose.Types.ObjectId,score:number): Promise<void> {
-     const instructor = await this.userModel.findById(ObjectId);
+   async setRating(username: string,score:number): Promise<void> {
+     const instructor = await this.userModel.findById(username);
      instructor.totalRating = instructor.totalRating + score;
      instructor.totalStudents += 1;
      instructor.averageRating = instructor.totalRating/instructor.totalStudents;
