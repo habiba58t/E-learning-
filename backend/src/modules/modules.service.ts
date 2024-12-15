@@ -462,21 +462,21 @@ async deleteNote(title:string,username:string,notetId: mongoose.Types.ObjectId):
  //CREATE NOTE FOR A SPECIFIC NOTE
 //  @UseGuards(AuthorizationGuard)
 //  @Roles(Role.User)
- async createNote(title:string,username:string,content: string): Promise<notesDocument>{
-  const course = await this.coursesService.getCourseForModule(title);
-  const module= await this.findByTitle(title) as moduleDocument;
+//  async createNote(title:string,username:string,content: string): Promise<notesDocument>{
+//   const course = await this.coursesService.getCourseForModule(title);
+//   const module= await this.findByTitle(title) as moduleDocument;
 
-  const notesDto = {
-    username: username, 
-    course_code: course.course_code,
-    content: content,
-  };
-  const note = await this.notesService.createNote(notesDto) as notesDocument;
-  const user = await this.usersService.findUserByUsername(username);
-  user.notes.get(module._id)?.push(note._id);
-  await user.save();
-  return note;
- }
+//   const notesDto = {
+//     username: username, 
+//     course_code: course.course_code,
+//     content: content,
+//   };
+//   const note = await this.notesService.createNote(notesDto) as notesDocument;
+//   const user = await this.usersService.findUserByUsername(username);
+//   user.notes.get(module._id)?.push(note._id);
+//   await user.save();
+//   return note;
+//  }
 
  //UPDATE NOTE FOR A SPECIFIC NOTE
 //  @UseGuards(AuthorizationGuard)

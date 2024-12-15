@@ -96,7 +96,7 @@ const moduleDetails = () => {
         };
     
         // Call your backend to create a new note
-        const response = await axiosInstance.post(`http://localhost:3002/notes/note`,noteData)
+        const response = await axiosInstance.post(`http://localhost:3002/notes/note/${module_title}`,noteData)
     
         console.log('Note saved successfully:', response.data);
         

@@ -256,12 +256,12 @@ async setRating(@Param('ObjectId') ObjectId: string, @Param('score')score:number
     }
 
  //CREATE NOTE FOR A SPECIFIC NOTE
- @UseGuards(AuthorizationGuard)
- @Roles(Role.User)
-@Post(':username')
-async createNote(@Param('username')username:string,@Body('title')title:string,@Body('content')content:string): Promise<notesDocument>{
-   return await this.modulesService.createNote(title,username,content);
-  }
+//  @UseGuards(AuthorizationGuard)
+//  @Roles(Role.User)
+// @Post(':username')
+// async createNote(@Param('username')username:string,@Body('title')title:string,@Body('content')content:string): Promise<notesDocument>{
+//    return await this.modulesService.createNote(title,username,content);
+//   }
 
   //UPDATE NOTE FOR A SPECIFIC NOTE
   @UseGuards(AuthorizationGuard)

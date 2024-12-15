@@ -28,9 +28,9 @@ export class NotesController {
   // }
 
   // CREATE NOTE
-  @Post(`/note`)
-  async createNote(@Body() createNoteDto: CreateNoteDto): Promise<Notes> {
-    return await this.notesService.createNote(createNoteDto);
+  @Post(`/note/:module_title`)
+  async createNote(@Param('module_title') module_title: string,  @Body() createNoteDto: CreateNoteDto,): Promise<Notes> {
+    return await this.notesService.createNote(createNoteDto,module_title);
   }
 
   //DELETE NOTE

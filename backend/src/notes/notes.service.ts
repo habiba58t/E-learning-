@@ -11,10 +11,14 @@ import { UsersModule } from 'src/users/users.module';
 import {userDocument} from 'src/users/users.schema';
 import { Users } from 'src/users/users.schema';
 import { UsersService } from 'src/users/users.service';
+import { moduleDocument } from 'src/modules/modules.schema';
+import { ModulesService } from 'src/modules/modules.service';
 
 @Injectable()
 export class NotesService {
-  constructor(@InjectModel(Notes.name) private readonly noteModel: Model<notesDocument>
+  constructor(@InjectModel(Notes.name) private readonly noteModel: Model<notesDocument>,
+  @InjectModel(Notes.name) private readonly moduleModel: Model<moduleDocument>,
+   @Inject(forwardRef(() => ModulesService)) private readonly moduleService: ModulesService
   
 ) 
   {}
@@ -37,12 +41,40 @@ async findAll(): Promise<Notes[]> {
    }
 
   // Create a new note
-  async createNote(createNoteDto: CreateNoteDto): Promise<notesDocument> {
+  // async createNote(createNoteDto: CreateNoteDto): Promise<notesDocument> {
+  //   const newNote = new this.noteModel(createNoteDto);
+  //   newNote.createdAt=new Date();
+  //   newNote.lastUpdated=new Date();
+  //   return newNote.save();
+  // }
+
+  async createNote(
+    createNoteDto: CreateNoteDto,
+    module_title: string,
+  ): Promise<notesDocument> {
+    // Create the note
     const newNote = new this.noteModel(createNoteDto);
-    newNote.createdAt=new Date();
-    newNote.lastUpdated=new Date();
-    return newNote.save();
+    newNote.createdAt = new Date();
+    newNote.lastUpdated = new Date();
+
+    // Save the note
+    const savedNote = await newNote.save();
+  const module = await this.moduleService.findByTitle(module_title)
+    // Add the note to the module's notes array
+    
+    if (!module) {
+      throw new 
+      Error(`Module with ID ${module_title} not found`);
+    }
+    module.notes.push(savedNote._id);
+
+    // Save the updated module
+    await module.save();
+  
+    return savedNote;
+
   }
+
 
   //DELETE a note by username,coursecode,last updated
   async deleteNote(noteId: mongoose.Types.ObjectId){
