@@ -35,6 +35,12 @@ export class QuestionsController {
     const moduleObjectId = new Types.ObjectId(moduleId);
     return await this.questionsService.create(username, createQuestionDto, moduleObjectId);
   }
+
+  @Roles(Role.Admin, Role.Instructor, Role.User)
+  @Get('/get-question/:questionId')
+  async getQuestionById(@Param('questionId') questionId: string){
+    return await this.questionsService.getQuestionById(questionId)
+  }
   
 //for search purpose, instructor can find a question by difficulty or 
 //keyword/title that they add when creating the question

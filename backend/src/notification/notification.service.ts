@@ -6,6 +6,7 @@ import { CreateNotificationDto } from './dto/createNotification.dto';
 import { CoursesService } from 'src/courses/courses.service';
 import { UsersService } from 'src/users/users.service';
 import { Users } from 'src/users/users.schema';
+import { ProgressService } from 'src/progress/progress.service';
 
 @Injectable()
 export class NotificationService {
@@ -14,6 +15,8 @@ export class NotificationService {
         @InjectModel(Users.name) private readonly userModel: Model<Users>,
         @Inject(forwardRef(() => CoursesService)) private readonly coursesService: CoursesService,
         @Inject(forwardRef(() => UsersService)) private readonly usersService: UsersService,
+        @Inject(forwardRef(() => ProgressService)) private readonly progressService: UsersService,
+
     ){}
 
  //GET: 
@@ -79,7 +82,7 @@ async createForumNotification(user:any,course_code:string,dto:CreateNotification
 }
 
 //create notification for chat one to one
-async createChatNotification(user,recieverUsername:string): Promise<notificationDocument>{
+async createPrivateChatNotification(user,recieverUsername:string): Promise<notificationDocument>{
     const title = `${user} sent you a private message `;
     const NotificationDto = {
         message: title
@@ -89,4 +92,27 @@ async createChatNotification(user,recieverUsername:string): Promise<notification
        return notification;
 }
 
+
+//create notification for chat one to one
+async createPublicChatNotification(user,course_code:string): Promise<notificationDocument>{
+  const title = `${user} created a group `;
+  const NotificationDto = {
+      message: title
+    };
+     const notification= await this.progressService.
+     await this.userModel.updateOne({ username: },{ $push: { notification: notification._id}}); //add notifcation id to array of notifcation in user
+     return notification;
+}
+
+
+//create notification for chat one to one
+async sendPublicChatNotification(user,recieverUsername:string): Promise<notificationDocument>{
+  const title = `${user} sent you a private message `;
+  const NotificationDto = {
+      message: title
+    };
+     const notification= await this.notificationModel.create(NotificationDto) as notificationDocument ;
+     await this.userModel.updateOne({ username: recieverUsername},{ $push: { notification: notification._id}}); //add notifcation id to array of notifcation in user
+     return notification;
+}
 }

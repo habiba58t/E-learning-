@@ -23,7 +23,7 @@ import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
 
 
 @Controller('modules')
-
+@UseGuards(AuthGuard)
 export class ModulesController {
 constructor(private readonly modulesService: ModulesService) {}
 
@@ -77,19 +77,18 @@ async delete(@Param('title') title: string): Promise<moduleDocument> {
 
 
 
-@Get(':quizId')
+@Get('/find-module/:quizId')
 //implemented by farah for use in quiz
 @UseGuards(AuthorizationGuard)
-@Roles(Role.Admin,Role.Instructor)
+@Roles(Role.Admin,Role.Instructor, Role.User)
 async findModuleByQuizId(@Param('quizId') quizId: string): Promise<moduleDocument>{
-  const qid = new mongoose.Types.ObjectId(quizId);
-  return this.modulesService.findModuleByQuizId(qid)
+  return this.modulesService.findModuleByQuizId(quizId)
 }
 
 //GET: find array of questions by moduleId
 @UseGuards(AuthorizationGuard)
 @Roles(Role.Admin,Role.Instructor)
-@Get('id/:ObjectId')             
+@Get('/question/:ObjectId')             
 async getQuestionsForModule(@Req() {user},@Param('ObjectId') ObjectId: string): Promise<Question[]> {
   const objectId = new mongoose.Types.ObjectId(ObjectId);
   return this.modulesService.getQuestionsForModule(objectId,user);
@@ -97,10 +96,10 @@ async getQuestionsForModule(@Req() {user},@Param('ObjectId') ObjectId: string): 
 
 
 //GET: find array of queizzes  by moduleId
-@UseGuards(AuthorizationGuard)
-@Roles(Role.Admin,Role.Instructor)
-@Get('id/:ObjectId')             
-async getQuizzesForModule(@Param('ObjectId') ObjectId: string): Promise<QuizzesDocument[]> {
+// @UseGuards(AuthorizationGuard)
+// @Roles(Role.Admin,Role.Instructor, Role.User)
+@Get('/quiz/id/:ObjectId')             
+async getQuizzesForModule( @Param('ObjectId') ObjectId: string): Promise<QuizzesDocument[]> {
   const objectId = new mongoose.Types.ObjectId(ObjectId);
   return this.modulesService.getQuizzesForModule(objectId);
 } 

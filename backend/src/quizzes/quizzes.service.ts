@@ -143,126 +143,112 @@ export class QuizzesService {
   // IN FRONT END WHEN STUDENT CLICKS ON TAKE QUIZ: render selectedQuestions
   // and calc score using length of answers array as it changes dynamically if length of this < no of questions
   // specified by the instructor*
+// Updated `prepareQuizForStudent` method
 async prepareQuizForStudent(
-  quizId: mongoose.Types.ObjectId,
+  qId: string,
   username: string,
 ): Promise<QuestionsDocument[]> {
-  // Step 1: Fetch the student record
-  const student = await this.studentModel.findOne({ username: username }).exec();
+  const quizId = new mongoose.Types.ObjectId(qId);
+
+  // Fetch the student and validate
+  const student = await this.studentModel.findOne({ username }).exec();
   if (!student) {
     throw new Error('Student not found');
   }
 
-  // Step 2: Locate the course containing the quiz via its modules
-  const course = await this.courseModel.findOne({
-    'modules.quizzes': quizId,
-  })
-  .populate('modules.quizzes')
-  .exec();
-
-  if (!course) {
-    throw new Error('Course or module not found for this quiz');
-  }
-
-  // Step 3: Fetch the quiz
+  // Fetch the quiz
   const quiz = await this.quizModel.findById(quizId).exec();
   if (!quiz) {
     throw new Error('Quiz not found');
   }
 
-  // Step 4: Find the student's level for the course
+  // Fetch course details for determining student level
+  const module = await this.moduleService.findModuleByQuizId(qId);
+  const course = module ? await this.courseService.findCourseByModuleId(module._id) : null;
+
+  if (!course) {
+    throw new Error('Course not found');
+  }
+
   const studentLevel = await this.studentService.getStudentLevel(username, course._id);
   if (!studentLevel) {
     throw new Error('Student level not found for this course');
   }
 
-  // Step 5: Filter questions based on the student's level
-  const filteredQuestions = await this.filterQuestionsByDifficulty(
-    quiz.questions,
-    studentLevel,
-  );
-
-  // Step 6: Ensure there are enough filtered questions
-  if (filteredQuestions.length < quiz.no_of_questions) {
-    throw new Error('Not enough questions available for the quiz after filtering by difficulty');
-  }
-
-  // Step 7: Randomly select the required number of questions
-  const selectedQuestions = this.randomizeQuestions(
+  // Filter questions and ensure sufficient quantity
+  const filteredQuestions = await this.filterQuestionsByDifficulty(quiz.questions, studentLevel);
+  const selectedQuestions = this.randomizeAndSelectQuestions(
     filteredQuestions,
     quiz.no_of_questions,
   );
 
-  return selectedQuestions; // Return selected questions to the frontend
+  return selectedQuestions;
 }
 
-  
+// Improved filterQuestionsByDifficulty
+private async filterQuestionsByDifficulty(
+  questionIds: mongoose.Types.ObjectId[],
+  studentLevel: string,
+): Promise<QuestionsDocument[]> {
+  const allQuestions = await this.questionModel.find({ _id: { $in: questionIds } });
 
+  // Classify questions into difficulty buckets
+  const questionBuckets = {
+    easy: allQuestions.filter(q => q.difficulty_level === 'easy'),
+    medium: allQuestions.filter(q => q.difficulty_level === 'medium'),
+    hard: allQuestions.filter(q => q.difficulty_level === 'hard'),
+  };
 
+  // Define difficulty ratios based on student level
+  const difficultyDistribution = {
+    easy: 0.7,
+    medium: 0.25,
+    hard: 0.05,
+  };
 
- // Helper to filter questions based on student's score (difficulty level)
- //still didn't consider no of questions instructor wants
- private async filterQuestionsByDifficulty(questions: mongoose.Types.ObjectId[], studentLevel: string): Promise<QuestionsDocument[]> {
-  let easyQuestions: QuestionsDocument[] = [];
-  let mediumQuestions: QuestionsDocument[] = [];
-  let hardQuestions: QuestionsDocument[] = [];
+  if (studentLevel === 'medium') {
+    difficultyDistribution.easy = 0.2;
+    difficultyDistribution.medium = 0.6;
+    difficultyDistribution.hard = 0.2;
+  } else if (studentLevel === 'hard') {
+    difficultyDistribution.easy = 0.1;
+    difficultyDistribution.medium = 0.45;
+    difficultyDistribution.hard = 0.45;
+  }
 
-  // Fetch all questions for the quiz, populated 
-  const allQuestions = await this.questionModel.find({ _id: { $in: questions } });
+  // Calculate required question counts for each difficulty
+  const requiredCounts = {
+    easy: Math.round(difficultyDistribution.easy * questionIds.length),
+    medium: Math.round(difficultyDistribution.medium * questionIds.length),
+    hard: Math.round(difficultyDistribution.hard * questionIds.length),
+  };
 
-  // Classify questions based on difficulty
-  allQuestions.forEach(q => {
-    if (q.difficulty_level === 'easy') {
-      easyQuestions.push(q);
-    } else if (q.difficulty_level === 'medium') {
-      mediumQuestions.push(q);
-    } else if (q.difficulty_level === 'hard') {
-      hardQuestions.push(q);
-    }
-  });
-
-  // Distribute questions based on student score
-  let easyCount = 0;
-  let mediumCount = 0;
-  let hardCount = 0;
-
- // Logic to distribute questions based on the student's score (you can adjust this)
- if (studentLevel === 'easy') {
-  easyCount = Math.floor(0.7 * questions.length);  // 70% easy
-  mediumCount = Math.floor(0.25 * questions.length);  // 25% medium
-  hardCount = Math.floor(0.05 * questions.length);  // 5% hard
-} else if (studentLevel === 'medium') {
-  easyCount = Math.floor(0.20 * questions.length);  // 50% easy
-  mediumCount = Math.floor(0.60 * questions.length);  // 40% medium
-  hardCount = Math.floor(0.20 * questions.length);  // 10% hard
-} else if (studentLevel === 'hard') {
-  easyCount = Math.floor(0.1 * questions.length);  // 30% easy
-  mediumCount = Math.floor(0.45 * questions.length);  // 40% medium
-  hardCount = Math.floor(0.45 * questions.length);  // 30% hard
-}
-
-  // Return filtered questions based on score 
+  // Adjust counts dynamically if insufficient questions in any category
   return [
-    ...easyQuestions.slice(0, easyCount),
-    ...mediumQuestions.slice(0, mediumCount),
-    ...hardQuestions.slice(0, hardCount),
+    ...questionBuckets.easy.slice(0, requiredCounts.easy),
+    ...questionBuckets.medium.slice(0, requiredCounts.medium),
+    ...questionBuckets.hard.slice(0, requiredCounts.hard),
   ];
 }
 
-// Helper to randomly select questions
-private randomizeQuestions(questions: QuestionsDocument[], numberOfQuestions: number): QuestionsDocument[] {
-  // If the available questions are less than the desired number, return the entire array
-  if (questions.length <= numberOfQuestions) {
-    return questions; //now problem is quiz score calculation becomes more complex
-  }
-  // Otherwise, shuffle and return the required number of questions
-  const shuffled = [...questions];
+// Improved randomizeAndSelectQuestions with Fisher-Yates Shuffle
+private randomizeAndSelectQuestions(
+  questions: QuestionsDocument[], //ex 2
+  numberOfQuestions: number, //ex 4
+): QuestionsDocument[] {
+  if (numberOfQuestions > questions.length) {
+    numberOfQuestions = questions.length //ex instructor wants 4 questions but only 2 are found
+   }
+
+  const shuffled = [...questions]; // Clone the array to avoid modifying the original
   for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]; // Swap
+    const j = Math.floor(Math.random() * (i + 1)); // Random index
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]; // Swap elements
   }
-  return shuffled.slice(0, numberOfQuestions);
+
+  return shuffled.slice(0, numberOfQuestions); // Select the first 'numberOfQuestions' after shuffle
 }
+
 
 
 //not useful..

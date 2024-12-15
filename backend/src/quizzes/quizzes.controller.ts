@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Request, NotFoundException, BadRequestException, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Request, NotFoundException, BadRequestException, UseGuards, Req, Res } from '@nestjs/common';
 import { QuizzesService } from './quizzes.service';
 import { CreateQuizDto } from './dto/create-quiz.dto';
 import mongoose, {Types} from 'mongoose';
@@ -6,6 +6,7 @@ import { QuizzesDocument } from './quizzes.schema';
 import { Role, Roles } from 'src/auth/decorators/role.decorator';
 import { AuthGuard } from 'src/auth/guards/authentication.guard';
 import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
+import { QuestionsDocument } from 'src/questions/questions.schema';
 //import { Types } from 'mongoose';
 
 
@@ -73,6 +74,22 @@ export class QuizzesController {
         throw error;
       }
     }
+  
+
+    @Get('prepare/:quizId/:username')
+    async prepareQuizForStudent(
+      @Param('quizId') quizId: string,
+      @Param('username') username: string,
+    ): Promise<QuestionsDocument[]> {
+
+        // Call the service to prepare the quiz for the student
+        const preparedQuiz = await this.quizzesService.prepareQuizForStudent(
+          quizId,
+          username,
+        );
+        return preparedQuiz      
+    }
+    
   
 
 @UseGuards(AuthorizationGuard) // Additional guard for authorization
@@ -184,7 +201,7 @@ async submitQuiz(
   @Param('quizId') quizId: string,  // Extract quizId from params
   @Param('username') username: string,  // Extract username from params
   @Body() studentAnswersObject: Record<string, string>  // Extract student answers from the request body
-) {
+) { //with question id and answer
   try {
     // Convert quizId to ObjectId if needed, assuming you're working with mongoose Types
     const quizObjectId = new mongoose.Types.ObjectId(quizId);

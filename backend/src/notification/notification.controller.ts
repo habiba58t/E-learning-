@@ -38,13 +38,32 @@ async createForumNotification( @Req() user,@Param('course_code')course_code:stri
     return this.notificationService.createForumNotification(user,course_code,dto);
 }
 
-//create notification for chat
+//create notification for chat inform receiver
 @UseGuards(AuthGuard, AuthorizationGuard)
 @Roles(Role.Admin, Role.User)
-@Post('chatadded/:senderUsername')
-async createChatNotification(@Req() user, @Param('recieverUsername')recieverUsername:string): Promise<notificationDocument>{
-    return this.notificationService.createChatNotification(user,recieverUsername);
+@Post('private-chatsent/:recieverUsername')
+async createPrivateChatNotification(@Req() user, @Param('recieverUsername')recieverUsername:string): Promise<notificationDocument>{
+    return this.notificationService.createPrivateChatNotification(user,recieverUsername);
 }
+
+//create notification for chat inform everyone taking course with this course_code public chat is created
+@UseGuards(AuthGuard, AuthorizationGuard)
+@Roles(Role.Admin, Role.User, Role.Instructor)
+@Post('chatcreated/:course_code')
+async createPublicChatNotification(@Req() user, @Param('course_code') course_code:string): Promise<notificationDocument>{
+    return this.notificationService.createPublicChatNotification(user,course_code);
+}
+
+
+//create notification for chat inform members of this chat message is sent
+@UseGuards(AuthGuard, AuthorizationGuard)
+@Roles(Role.Admin, Role.User, Role.Instructor) 
+@Post('public-chatsent/:chatId')
+async sendPublicChatNotification(@Req() user, @Param('chatId') chatId:string): Promise<notificationDocument>{
+    return this.notificationService.sendPublicChatNotification(user, chatId );
+}
+
+
 
 
 

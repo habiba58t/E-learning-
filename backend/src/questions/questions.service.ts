@@ -33,6 +33,13 @@ export class QuestionsService {
 
   ) {}
 
+
+
+  async getQuestionById(questionId: string):Promise<QuestionsDocument>{
+    const qid = new mongoose.Types.ObjectId(questionId);
+    const question = await this.questionModel.findOne({_id: qid});
+    return question;
+  }
 //  Create a question and add it to a module's quiz array (only for instructors)
 async create(
   username: string,

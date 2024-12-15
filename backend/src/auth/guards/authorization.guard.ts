@@ -29,6 +29,7 @@ export class AuthorizationGuard implements CanActivate {
 
         // If no user is attached to the request, throw an error
         if (!user) {
+            console.log(request)
             throw new UnauthorizedException('No user attached to the request');
         }
 

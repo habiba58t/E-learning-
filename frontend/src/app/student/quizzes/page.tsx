@@ -1,23 +1,54 @@
-"use client"
+'use client';
 
+import React, { useState, useEffect, useCallback } from "react";
+import { useRouter } from 'next/navigation'; // Import useRouter for navigation
+import axiosInstance from "@/app/utils/axiosInstance";
 
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+// Arrow Icon Component with Animation
+const ArrowIcon = ({ isOpen }: { isOpen: boolean }) => (
+  <span
+    className={`ml-2 text-xl transition-transform duration-300 ${isOpen ? "rotate-180 transform" : ""}`}
+    style={{ transformOrigin: "center" }}
+  >
+    ▼
+  </span>
+);
+
+// Interfaces for TypeScript
+interface QuizData {
+  _id: string;
+}
+
+interface CourseData {
+  _id: string;
+  title: string;
+  modules: ModuleData[];
+}
+
+interface ModuleData {
+  _id: string;
+  title: string;
+  quizzes: QuizData[];
+}
 
 const StudentCourses = () => {
-  const [courseData, setCourseData] = useState<any[]>([]);
+  const [courseData, setCourseData] = useState<CourseData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [openCourses, setOpenCourses] = useState<{ [id: string]: boolean }>({});
+  const [openModule, setOpenModule] = useState<string | null>(null);
+  const [quizStatuses, setQuizStatuses] = useState<{ [quizId: string]: string }>({});
+  const [username, setUsername] = useState<string | null>(null);
 
+  const router = useRouter(); // Initialize the router for navigation
+
+  // Fetch course data from the API
   const fetchCourseData = async () => {
     try {
-      // Fetch cookie data to get the username
-      const cookieDataResponse = await axios.get("http://localhost:3002/auth/get-cookie-data", {
+      const cookieDataResponse = await axiosInstance.get("http://localhost:3002/auth/get-cookie-data", {
         withCredentials: true,
       });
-
       const result = cookieDataResponse.data;
-
       if (!result?.userData?.payload?.username) {
         setError("No valid username found");
         setLoading(false);
@@ -25,52 +56,35 @@ const StudentCourses = () => {
       }
 
       const username = result.userData.payload.username;
-
-      // Fetch courses for the student
-      const coursesResponse = await axios.get(
+      setUsername(username);
+      const coursesResponse = await axiosInstance.get<CourseData[]>(
         `http://localhost:3002/courses/studcour/${username}/courses`,
         { withCredentials: true }
       );
-
       const courses = coursesResponse.data;
 
-      // Fetch modules and quizzes for each course
-      const courseData = await Promise.all(
+      const courseData: CourseData[] = await Promise.all(
         courses.map(async (course: any) => {
-          try {
-            // Fetch modules for the course
-            const modulesResponse = await axios.get(
-              `http://localhost:3002/courses/${course.courseCode}/modules`,
-              { withCredentials: true }
-            );
-            const modules = modulesResponse.data;
+          const modulesResponse = await axiosInstance.get<ModuleData[]>(
+            `http://localhost:3002/courses/${course.course_code}/modules`,
+            { withCredentials: true }
+          );
+          const modules = modulesResponse.data;
 
-            // Fetch quizzes for each module
-            const populatedModules = await Promise.all(
-              modules.map(async (module: any) => {
-                try {
-                  const quizzesResponse = await axios.get(
-                    `http://localhost:3002/modules/id/${module._id}`,
-                    { withCredentials: true }
-                  );
-                  const quizzes = quizzesResponse.data;
-                  return { ...module, quizzes };
-                } catch (error) {
-                  console.error(`Failed to fetch quizzes for module ${module._id}`, error);
-                  return { ...module, quizzes: [] }; // Default to empty quizzes
-                }
-              })
-            );
+          const populatedModules = await Promise.all(
+            modules.map(async (module: any) => {
+              const quizzesResponse = await axiosInstance.get<QuizData[]>(
+                `http://localhost:3002/modules/quiz/id/${module._id}`,
+                { withCredentials: true }
+              );
+              const quizzes = quizzesResponse.data;
+              return { ...module, quizzes };
+            })
+          );
 
-            return { ...course, modules: populatedModules };
-          } catch (error) {
-            console.error(`Failed to fetch modules for course ${course.courseCode}`, error);
-            return { ...course, modules: [] }; // Default to empty modules
-          }
+          return { ...course, modules: populatedModules };
         })
       );
-
-      // Update state with the fetched data
       setCourseData(courseData);
       setLoading(false);
     } catch (error) {
@@ -80,46 +94,136 @@ const StudentCourses = () => {
     }
   };
 
+  // Fetch quiz statuses for the student
+  const fetchQuizStatuses = async () => {
+    try {
+      const statuses: { [quizId: string]: string } = {};
+      for (const course of courseData)
+        for (const module of course.modules) {
+          for (const quiz of module.quizzes) {
+            const response = await axiosInstance.get(
+              `http://localhost:3002/quizzes/check-status/${quiz._id}/${username}`
+            );
+            statuses[quiz._id] = response.data.message;
+          }
+        }
+      setQuizStatuses(statuses);
+    } catch (error) {
+      console.error("Error fetching quiz statuses:", error);
+    }
+  };
+
   useEffect(() => {
     fetchCourseData();
   }, []);
 
-  if (loading) return <div>Loading...</div>;
+  useEffect(() => {
+    if (courseData.length > 0 && username) {
+      fetchQuizStatuses();
+    }
+  }, [courseData, username]);
 
-  if (error) return <div>Error: {error}</div>;
+  const toggleCourse = (id: string) => {
+    setOpenCourses((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
+  const toggleModule = (id: string) => {
+    setOpenModule(openModule === id ? null : id);
+  };
+
+  // Handle click for taking the quiz
+  const handleClick = (quizId: string) => {
+    alert(`Taking quiz: ${quizId}`);
+    router.push(`/student/quizzes/${quizId}`);
+  };
+
+  if (loading) return <div className="text-center text-xl text-red-500">Loading...</div>;
+
+  if (error) return <div className="text-center text-xl text-red-500">Error: {error}</div>;
 
   return (
-    <div>
-      <h1>Student Courses</h1>
-      {courseData.length === 0 ? (
-        <p>No courses found.</p>
-      ) : (
-        courseData.map((course) => (
-          <div key={course.courseCode} style={{ marginBottom: "20px", border: "1px solid #ccc", padding: "10px" }}>
-            <h2>Course: {course.title}</h2>
-            {course.modules.length === 0 ? (
-              <p>No modules found for this course.</p>
-            ) : (
-              course.modules.map((module: any) => (
-                <div key={module._id} style={{ marginLeft: "20px", marginBottom: "10px" }}>
-                  <h3>Module: {module.title}</h3>
-                  {module.quizzes.length === 0 ? (
-                    <p>No quizzes found for this module.</p>
+    <div className="bg-gradient-to-r from-teal-500 to-indigo-600 min-h-screen py-10">
+      <div className="container mx-auto p-6 bg-white rounded-xl shadow-2xl max-w-4xl">
+        <h1 className="text-4xl font-extrabold text-black mb-8 text-center">
+          📚 My Quizzes
+        </h1>
+
+        {courseData.length === 0 ? (
+          <p className="text-xl text-center text-gray-400">No courses found.</p>
+        ) : (
+          <>
+            {courseData.map((course) => (
+              <div
+                key={course._id}
+                className="mb-6 p-6 bg-gradient-to-r from-blue-200 to-blue-300 rounded-lg shadow-lg cursor-pointer hover:shadow-2xl transition-shadow duration-300"
+              >
+                <h2
+                  className="text-2xl font-semibold text-blue-800 flex items-center justify-between"
+                  onClick={() => toggleCourse(course._id)}
+                >
+                  {course.title}
+                  <ArrowIcon isOpen={openCourses[course._id]} />
+                </h2>
+
+                <div className={`mt-4 ${openCourses[course._id] ? "block" : "hidden"}`}>
+                  {course.modules.length === 0 ? (
+                    <p className="text-lg text-gray-600">No modules found for this course.</p>
                   ) : (
-                    <ul>
-                      {module.quizzes.map((quiz: any) => (
-                        <li key={quiz.quizId}>
-                          <strong>Quiz Title:</strong> {quiz.quizTitle}
-                        </li>
-                      ))}
-                    </ul>
+                    course.modules.map((module) => (
+                      <div key={module._id} className="mb-4 p-4 bg-gray-50 rounded-lg shadow-sm hover:bg-gray-100 transition-all duration-300">
+                        <h3
+                          className="text-xl text-blue-600 font-medium flex items-center justify-between cursor-pointer"
+                          onClick={() => toggleModule(module._id)}
+                        >
+                          {module.title}
+                          <ArrowIcon isOpen={openModule === module._id} />
+                        </h3>
+
+                        <div className={`mt-2 ${openModule === module._id ? "block" : "hidden"}`}>
+                          {module.quizzes.length === 0 ? (
+                            <p className="text-lg text-gray-600">No quizzes found for this module.</p>
+                          ) : (
+                            module.quizzes.map((quiz) => (
+                              <div key={quiz._id} className="mt-3">
+                                {quizStatuses[quiz._id] === "Student has responded to the quiz" ? (
+                                  <div className="flex space-x-4">
+                                    <button
+                                      onClick={() => alert(`See response: ${quiz._id}`)}
+                                      className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-800 transition-all"
+                                    >
+                                      📄 See Response
+                                    </button>
+                                    <button
+                                      onClick={() => handleClick(quiz._id)}
+                                      className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-pink-800 transition-all"
+                                    >
+                                      🔁 Retake Quiz
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <button
+                                    onClick={() => handleClick(quiz._id)}
+                                    className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-pink-800 transition-all"
+                                  >
+                                    🚀 Take Quiz
+                                  </button>
+                                )}
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    ))
                   )}
                 </div>
-              ))
-            )}
-          </div>
-        ))
-      )}
+              </div>
+            ))}
+          </>
+        )}
+      </div>
     </div>
   );
 };

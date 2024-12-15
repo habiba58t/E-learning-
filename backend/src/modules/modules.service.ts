@@ -123,8 +123,9 @@ async delete(title: string): Promise<moduleDocument> {
 //implemented by farah for use in quiz
 // @UseGuards(AuthorizationGuard)
 // @Roles(Role.Admin,Role.Instructor)
-async findModuleByQuizId(quizId: mongoose.Types.ObjectId): Promise<moduleDocument>{
-  const module = await this.moduleModel.findOne({quizzes: {$in: [quizId]}})
+async findModuleByQuizId(quizId: string): Promise<moduleDocument>{
+  const qid = new mongoose.Types.ObjectId(quizId)
+  const module = await this.moduleModel.findOne({quizzes: {$in: [qid]}})
   return module;
 }
 
