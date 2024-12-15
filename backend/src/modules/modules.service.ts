@@ -13,9 +13,10 @@ import { QuestionsService } from 'src/questions/questions.service';
 import { Notes } from 'src/notes/notes.schema';
 import { NotesService } from 'src/notes/notes.service';
 import { moduleDocument } from './modules.schema';
-import { Content } from './content/content.schema';
-import { contentDocument } from './content/content.schema';
-import { ContentService } from './content/content.service';
+import { Content } from 'src/content/content.schema';
+import { ContentService } from 'src/content/content.service';
+import { contentDocument } from 'src/content/content.schema';
+
 //import {quizDocument} from 'src/quizzes/quizzes.service'
 //import { QqestionsDocument } from 'src/questions/questions.schema';
 import { CoursesService } from 'src/courses/courses.service';
@@ -89,11 +90,14 @@ async create(createModuleDto: CreateModuleDto): Promise<moduleDocument> {
   return await newModule.save();
 }
 // Update an existing module by title
-async update(title: string, updateModuleDto: UpdateModuleDto,user:any): Promise<moduleDocument> {
-  const module = await this.moduleModel.findOne({title}).exec();
+async update(titleM: string, updateModuleDto: UpdateModuleDto,username:string): Promise<moduleDocument> {
+  const user = await this.usersService.findUserByUsername(username);
+  const module = await this.moduleModel.findOne({title:titleM}).exec();
         if (!module) {
-          throw new NotFoundException(`Module with title ${title} not found`);
+          throw new NotFoundException(`Module with title ${titleM} not found`);
   }
+  console.log("module",module);
+  console.log("dto",updateModuleDto);
   // check if instructor who i updated is the one who created 
   const course = await this.coursesService.findCourseByModuleId(module._id)
 
@@ -103,7 +107,10 @@ async update(title: string, updateModuleDto: UpdateModuleDto,user:any): Promise<
   if (!isInstructor && !isAdmin) {
     throw new UnauthorizedException('You are not authorized to view questions of this module');
   }
-  const updatedModule = await this.moduleModel.findOneAndUpdate({title, updateModuleDto}, { new: true });
+  const updatedModule = await this.moduleModel.findOneAndUpdate({title:titleM},updateModuleDto ,{ new: true });
+  if (!updatedModule) {
+    throw new NotFoundException(`not updated ${updatedModule} not found`);
+  }
   return updatedModule;
 }
 
@@ -128,8 +135,6 @@ async findModuleByQuizId(quizId: mongoose.Types.ObjectId): Promise<moduleDocumen
 
 
 // Add question to modules array
-// @UseGuards(AuthorizationGuard)
-// @Roles(Role.Admin,Role.Instructor)
 async addQuestionToModule(moduleId: mongoose.Types.ObjectId, questionId: mongoose.Types.ObjectId,user:any): Promise<moduleDocument> {
   // Find the module by ID
   const module = await this.moduleModel.findById(moduleId).exec();
@@ -534,7 +539,12 @@ async UpdateNote(notetId: mongoose.Types.ObjectId,contentNew:string): Promise<no
   return note;
 }
 
+ //toggle notes enable
+    async toggleNote(moduleTitle: string): Promise<void> {
+       const module = await this.moduleModel.findOne({title:moduleTitle});
+       module.enableNotes = !module.enableNotes;
+        await module.save();
 
+    } 
 }
 
-//add guards to courses and modules, update users, ask amany, start notifcations

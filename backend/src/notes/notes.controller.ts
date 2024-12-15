@@ -1,10 +1,13 @@
-import { Body, Controller, Get, Post, Param, Delete, Put,NotFoundException } from '@nestjs/common';
+import { Body, Controller, Get, Post, Param, Delete, Put,NotFoundException,UseGuards } from '@nestjs/common';
 import { NotesService } from './notes.service';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { UpdateNoteDto } from './dto/update-note.dto';
 import { Notes } from './notes.schema'; 
 import * as mongoose from 'mongoose'; // Import mongoose to use ObjectId
 import { notesDocument } from './notes.schema';
+import { Role, Roles } from 'src/auth/decorators/role.decorator';
+import { AuthGuard } from 'src/auth/guards/authentication.guard';
+import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
 
 @Controller('notes')
 export class NotesController {
@@ -50,4 +53,5 @@ export class NotesController {
   async updateNote(@Param('noteId') noteId: mongoose.Types.ObjectId,@Body() updateNoteDto: UpdateNoteDto,): Promise<notesDocument> {
     return await this.notesService.updateNote(noteId, updateNoteDto);
   }
+
 }

@@ -11,6 +11,7 @@ export interface Module {
   level: 'easy' | 'medium' | 'hard';
   isOutdated: boolean;
   content: ContentWithDownload[];
+  enableNotes:boolean;
 }
 
 export interface Content {
@@ -39,6 +40,11 @@ const ModulePage = () => {
   const [contentTitle, setContentTitle] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [contentList, setContentList] = useState<{   _id: string,title: string; resources: any[] }[] | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [moduleLevel, setModuleLevel] = useState<"easy" | "medium" | "hard" | "Select Difficulty Level">("easy");
+  const [actionType, setActionType] = useState<"update" | "delete" | null>(null);
+
+
 
   const router = useRouter();
 
@@ -80,9 +86,6 @@ const ModulePage = () => {
 
         // Now, set the modified content
         setContentList(modifiedContent);
-  
-      // Set the transformed module with modified contents
-   //   setModule({ ...moduleData, content: modifiedContents });
     } catch (err) {
       console.error("Error fetching module:", err);
       setError("Failed to load the module. Please try again.");
@@ -153,7 +156,7 @@ const ModulePage = () => {
     }
     const username = userData.payload.username;
     await axiosInstance.put(`${backend_url}/courses/${username}/${courseCode}/modules/${moduleTitle}`);
-    fetchModule();
+    router.push(`/components/instructor/courses/${courseCode}/viewCourse`);
   } catch (err) {
     console.error("Error fetching data:", err);
     setError("Failed to get cookie. Please try again.");
@@ -208,6 +211,52 @@ const ModulePage = () => {
   }
   };
 
+  const handleDeleteContent = async () => {
+    console.log("Deleting content with title:", contentTitle);
+    await axiosInstance.delete(`${backend_url}/content/${contentTitle}/${moduleTitle}/deleteContent`);
+    // Reset the form and hide it
+    setContentTitle("");
+    setShowForm(false);
+    fetchModule(); // Refresh module data after deleting content
+  };
+
+
+  const handleEnableNotes = async () => {
+    console.log("eneterd here");
+    await axiosInstance.put<Module>(`${backend_url}/modules/toggleNote/${moduleTitle}`);//ok
+    fetchModule(); // Refresh module data after enabling notes
+  }
+
+  const handleUpdateModuleLevel = async () => {
+    console.log("Updating module level for", moduleTitle, "to", moduleLevel);
+    try {
+      const cookieResponse = await fetch(`${backend_url}/auth/get-cookie-data`, {
+        credentials: "include",
+      });
+      const { userData } = await cookieResponse.json();
+  
+      if (!userData || !userData.payload?.username) {
+        throw new Error("No valid user data found in cookies.");
+      }
+      const username = userData.payload.username;
+
+    console.log("Updating module level for", moduleTitle, "to", moduleLevel);
+    const moduleDto={
+      level: moduleLevel,
+    }
+    console.log("moduleDto:",moduleDto);
+    await axiosInstance.put<Module>(`${backend_url}/modules/${username}/${moduleTitle}/updateModule`,moduleDto);
+    setModuleLevel("Select Difficulty Level");
+    fetchModule(); // Refresh module data after enabling notes
+    // Reset the form and hide it
+    setShowForm(false);
+  } catch (err) {
+    console.error("Error fetching data:", err);
+    setError("Failed to get cookie. Please try again.");
+  }
+  }
+
+
   const handleQuestion = (moduleId: string) => {
     router.push(`/components/instructor/courses/${courseCode}/Question/${moduleId}`);
   };
@@ -241,11 +290,14 @@ const ModulePage = () => {
           >
             {module.isOutdated ? 'Outdated' : 'Up-to-date'}
           </button>
-          <button
-            className="px-3 py-1 bg-blue-500 text-white rounded-lg shadow-md hover:opacity-80"
-          >
-            Update Module
-          </button>
+
+          {/* Update Module Button */}
+      <button
+         onClick={() => { setActionType("update"); setShowForm(true); }}
+        className="px-4 py-2 bg-yellow-500 text-white rounded-lg shadow-md hover:opacity-90 transition-all"
+      >
+        Update Module Level
+      </button>
           <button
             onClick={handleDeleteModule}
             className="px-3 py-1 bg-red-500 text-white rounded-lg shadow-md hover:opacity-80"
@@ -256,7 +308,7 @@ const ModulePage = () => {
             onClick={() => handleQuiz(module._id)}
             className="px-3 py-1 bg-purple-500 text-white rounded-lg shadow-md hover:opacity-80"
           >
-            Take Quiz
+            Create Quiz
           </button>
           <button
             onClick={() => handleQuestion(module._id)}
@@ -314,16 +366,96 @@ const ModulePage = () => {
             </div>
           </div>
         )}
-          <button
-            className="px-3 py-1 bg-orange-500 text-white rounded-lg shadow-md hover:opacity-80"
-          >
-            Delete Content
-          </button>
-          <button
-            className="px-3 py-1 bg-gray-500 text-white rounded-lg shadow-md hover:opacity-80"
-          >
-            Enable Notes
-          </button>
+           {/* Delete Content Button */}
+      <button
+       onClick={() => { setActionType("delete"); setShowForm(true); }}
+        className="px-4 py-2 bg-red-500 text-white rounded-lg shadow-md hover:opacity-90 transition-all"
+      >
+        Delete Content
+      </button>
+
+     {/* Modal Form */}
+     {showForm && (
+        <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            {actionType === "update" ? (
+              <>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Update Module Level</h3>
+                <div className="mb-4">
+                  <label htmlFor="moduleLevel" className="block text-gray-700 font-medium mb-1">
+                    Select Level:
+                  </label>
+                  <select
+    id="moduleLevel"
+    value={moduleLevel}
+    onChange={(e) => setModuleLevel(e.target.value as "easy" | "medium" | "hard")}
+    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+  >
+    {/* <option value="" disabled>
+      Select Difficulty Level
+    </option> */}
+    <option value="easy">Easy</option>
+    <option value="medium">Medium</option>
+    <option value="hard">Hard</option>
+  </select>
+                </div>
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={handleUpdateModuleLevel}
+                    className="px-4 py-2 bg-yellow-600 text-white rounded-lg shadow-md hover:bg-yellow-700 transition-all"
+                  >
+                    Confirm Update
+                  </button>
+                  <button
+                    onClick={() => setShowForm(false)}
+                    className="px-4 py-2 bg-gray-500 text-white rounded-lg shadow-md hover:bg-gray-600 transition-all"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </>
+            ) : actionType === "delete" ? (
+              <>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Delete Content</h3>
+                <div className="mb-4">
+                  <label htmlFor="contentTitle" className="block text-gray-700 font-medium mb-1">
+                    Content Title:
+                  </label>
+                  <input
+                    type="text"
+                    id="contentTitle"
+                    value={contentTitle}
+                    onChange={(e) => setContentTitle(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                    placeholder="Enter content title to delete"
+                  />
+                </div>
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={handleDeleteContent}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg shadow-md hover:bg-red-700 transition-all"
+                  >
+                    Confirm Delete
+                  </button>
+                  <button
+                    onClick={() => setShowForm(false)}
+                    className="px-4 py-2 bg-gray-500 text-white rounded-lg shadow-md hover:bg-gray-600 transition-all"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </>
+            ) : null}
+          </div>
+        </div>
+      )}
+           {/* Outdated Toggle */}
+           <button
+              onClick={() => handleEnableNotes()}
+              className={`px-3 py-1 bg-gray-500 text-white rounded-lg ${module.enableNotes ? 'bg-red-500' : 'bg-green-500'} mb-4`}
+            >
+              {module.enableNotes ? 'Notes Disabled' : 'Notes Enabled'}
+            </button>
         </div>
       </div>
  

@@ -198,7 +198,7 @@ async getModulesForCourseInstructor(course_code: string, username: string): Prom
 
   // Fetch all modules by their ObjectIds
   const modules = await this.moduleModel.find({ _id: { $in: course.modules } }).exec();
-
+  
   // Return an empty array if no modules exist
   return modules.length ? modules : [];
 }

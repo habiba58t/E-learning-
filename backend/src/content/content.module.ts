@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { ModulesController } from './modules.controller';
-import { ModulesService } from './modules.service';
+import { ModulesController } from 'src/modules/modules.controller';
+import { ModulesService } from 'src/modules/modules.service';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ModuleSchema } from './modules.schema';
+import { ModuleSchema } from 'src/modules/modules.schema';
 import { QuizzesSchema } from '../quizzes/quizzes.schema';
 import { QuizzesService } from '../quizzes/quizzes.service';
 import { QuestionsService } from 'src/questions/questions.service';
@@ -13,6 +13,7 @@ import { Content } from 'src/content/content.schema';
 import { ContentService } from 'src/content/content.service';
 import { contentDocument } from 'src/content/content.schema';
 import { ContentSchema } from 'src/content/content.schema';
+import { ContentController } from './content.controller';
 import { UsersSchema } from 'src/users/users.schema';
 import { UsersService } from 'src/users/users.service';
 import { StudentService } from 'src/users/student/student.service';
@@ -29,7 +30,6 @@ import { Users } from 'src/users/users.schema';
 import {Notification} from 'src/notification/notification.schema';
 import {NotificationSchema} from 'src/notification/notification.schema';
 import {NotificationService} from 'src/notification/notification.service';
-
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Module.name, schema: ModuleSchema }]),
@@ -44,11 +44,9 @@ import {NotificationService} from 'src/notification/notification.service';
     MongooseModule.forFeature([{ name: Responses.name, schema: ResponsesSchema }]),
     MongooseModule.forFeature([{ name: Notification.name, schema: NotificationSchema }]),
 
-
   ],
-  controllers: [ModulesController],
+  controllers: [ContentController],
   providers: [ResponsesService, NotesService, UsersService, StudentService,ModulesService,QuizzesService,QuestionsService,NotesService,ContentService, CoursesService, ProgressService,NotificationService],
   exports: [ResponsesService, UsersService, StudentService, ModulesService,QuizzesService,QuestionsService,NotesService,ContentService, CoursesService, ProgressService, NotesService,NotificationService]
 })
-
-export class ModulesModule {}
+export class ContentModule {}

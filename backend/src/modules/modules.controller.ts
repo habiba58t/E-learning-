@@ -14,8 +14,7 @@ import { UpdateModuleDto } from './dto/UpdateModule.dto';
 import {Question} from '../questions/questions.schema'
 import { Notes } from 'src/notes/notes.schema';
 import { moduleDocument } from './modules.schema';
-import { Content } from './content/content.schema';
-import { contentDocument } from './content/content.schema';
+import { Content } from 'src/content/content.schema';
 import { notesDocument } from 'src/notes/notes.schema';
 import { Role, Roles } from 'src/auth/decorators/role.decorator';
 import { AuthGuard } from 'src/auth/guards/authentication.guard';
@@ -63,9 +62,9 @@ async findByTitle(@Param('title') title: string): Promise<moduleDocument> {
  // PUT /module/:title: Update an existing module by its title
  @UseGuards(AuthGuard,AuthorizationGuard)
 @Roles(Role.Admin,Role.Instructor)
- @Put(':title')
- async update(@Req() {user},@Param('title') title: string, @Body() updateModuleDto: UpdateModuleDto): Promise<moduleDocument> {
-   return this.modulesService.update(title, updateModuleDto,user);
+ @Put(':username/:title/updateModule')
+ async update(@Param('username') username:string,@Param('title') title: string, @Body() updateModuleDto: UpdateModuleDto): Promise<moduleDocument> {
+   return this.modulesService.update(title, updateModuleDto,username);
  }
 // DELETE /modules/:title: Delete a module by its title
 @UseGuards(AuthGuard,AuthorizationGuard)
@@ -293,6 +292,14 @@ async createNote(@Param('username')username:string,@Body('title')title:string,@B
 async UpdateNote(@Param('notetId') notetId: mongoose.Types.ObjectId,@Body('contentNew')contentNew:string): Promise<notesDocument>{
    return await this.modulesService.UpdateNote(notetId,contentNew);
   }
+
+  //toggle notes enable
+  @UseGuards(AuthGuard, AuthorizationGuard)
+    @Roles(Role.Admin, Role.Instructor)
+    @Put('toggleNote/:moduleTitle')
+    async toggleNote( @Param('moduleTitle') moduleTitle: string): Promise<void> {
+       this.modulesService.toggleNote(moduleTitle);
+    } 
 
 }
 

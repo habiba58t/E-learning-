@@ -4,7 +4,7 @@ import { Question } from '../questions/questions.schema'; // Adjust the import p
 import { Types } from 'mongoose';
 import * as mongoose from 'mongoose'
 import { HydratedDocument } from 'mongoose';
-import { Content } from './content/content.schema';
+import { Content } from 'src/content/content.schema';
 
 export type moduleDocument = HydratedDocument<Module>
 @Schema()
@@ -47,6 +47,9 @@ export class Module {
 
   @Prop()
   isOutdated: boolean=false;
+
+  @Prop({default:true})
+  enableNotes: boolean;
 }
 export const ModuleSchema = SchemaFactory.createForClass(Module);
 
