@@ -348,10 +348,10 @@ async addContentToModule(
 
 
 //get content for a speicifc module
-async getContentForModule( username: string, moduleId: string): Promise<Content[]> {
-  const module = await this.moduleModel.findById(moduleId).exec();
+async getContentForModule( username: string, title: string): Promise<Content[]> {
+  const module = await this.moduleModel.findOne({title}).exec();
   if (!module) {
-    throw new NotFoundException(`Module with ID ${moduleId} not found`);
+    throw new NotFoundException(`Module with title ${title} not found`);
   }
   const course = await this.coursesService.findCourseByModuleId(module._id)
   if (!course) {

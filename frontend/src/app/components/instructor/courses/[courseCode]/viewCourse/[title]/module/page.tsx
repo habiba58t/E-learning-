@@ -38,35 +38,67 @@ const ModulePage = () => {
   const [showModal, setShowModal] = useState(false);
   const [contentTitle, setContentTitle] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [contentList, setContentList] = useState<{   _id: string,title: string; resources: any[] }[] | null>(null);
 
   const router = useRouter();
 
   async function fetchModule() {
+    try {
+      const cookieResponse = await fetch(`${backend_url}/auth/get-cookie-data`, {
+        credentials: "include",
+      });
+      const { userData } = await cookieResponse.json();
+  
+      if (!userData || !userData.payload?.username) {
+        throw new Error("No valid user data found in cookies.");
+      }
+      const username = userData.payload.username;
     console.log("moduleTitle:", moduleTitle);
     try {
       const response = await axiosInstance.get<Module>(`${backend_url}/modules/mtitle/${moduleTitle}`);
-      const moduleData: Module = response.data;
+      console.log("module in response:",response.data); //till here ok
+      setModule(response.data);
+      console.log("module yarab:",module);
   
       // Log the fetched module data for debugging
-      console.log("Fetched moduleData:", moduleData);
-  
-      // Check if contents are present and map to include download functionality
-      const modifiedContents: ContentWithDownload[] = (moduleData.content || []).map((item) => ({
-        ...item,
-        download: item.resources && item.resources.length > 0 
-          ? () => downloadFile(item.resources[0].filePath, item.resources[0].originalName)
-          : undefined,
-      }));
-      
+      console.log("Fetched moduleData:", module);
+      try {
+        const response = await axios.get(
+          `${backend_url}/modules/${username}/${moduleTitle}/content`,
+          { withCredentials: true }
+        );
+
+        const contents = response.data;
+
+        // Ensure each content item has the `download` function if resources exist
+        const modifiedContent: ContentWithDownload[] = contents.map((item: any) => ({
+          ...item, // Keep all the existing properties from the content
+          download: item.resources && item.resources.length > 0
+            ? () => downloadFile(item.resources[0].filePath, item.resources[0].originalName)
+            : undefined, // Set to undefined if no resources
+        }));
+
+        // Now, set the modified content
+        setContentList(modifiedContent);
   
       // Set the transformed module with modified contents
-      setModule({ ...moduleData, content: modifiedContents });
+   //   setModule({ ...moduleData, content: modifiedContents });
     } catch (err) {
       console.error("Error fetching module:", err);
       setError("Failed to load the module. Please try again.");
     } finally {
       setLoading(false);
     }
+  } catch (err) {
+    console.error("Error fetching content:", err);
+    setError("Failed to fetch content. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+} catch (err) {
+  console.error("Error fetching data:", err);
+  setError("Failed to get cookie. Please try again.");
+}
   }
   useEffect(() => {
     fetchModule();
@@ -297,44 +329,46 @@ const ModulePage = () => {
  
       <div className="mt-8">
   <h2 className="text-2xl font-semibold text-gray-800 mb-4">Contents</h2>
-  {module.content && module.content.length > 0 ? (
+  {contentList && contentList.length > 0 ? (
     <ul>
-    {module.content.map((content, index) => (
-      <li key={content._id || `content-${index}`} className="border-b border-gray-300 py-4">
-        <h3 className="text-xl font-semibold text-blue-600">{content.title}</h3>
-        <ul className="mt-2">
-          {content.resources && content.resources.length > 0 ? (
-            content.resources.map((resource, resourceIndex) => (
-              <li key={`${content._id || 'no-id'}-${resource.filePath}-${resourceIndex}`} className="flex items-center gap-2">
-                <a
-                  href={`${backend_url}${resource.filePath}`}
-                  download
-                  className="text-blue-500 hover:underline"
+      {contentList.map((content, index) => (
+        <li
+          key={content._id || `content-${index}`}
+          className="border-b border-gray-300 py-4"
+        >
+          <h3 className="text-xl font-semibold text-blue-600">
+            {content.title}
+          </h3>
+          <ul className="mt-2">
+            {content.resources && content.resources.length > 0 ? (
+
+              content.resources.map((resource, resourceIndex) => (
+                <li
+                  key={`${content._id || "no-id"}-${resource.filePath}-${resourceIndex}`}
+                  className="flex items-center gap-2"
                 >
-                  {resource.originalName} ({resource.fileType})
-                </a>
-              </li>
-            ))
-          ) : (
-            <li className="text-gray-500">No resources available.</li>
-          )}
-        </ul>
-        {content.download && (
-          <button
-            onClick={content.download}
-            className="mt-2 px-3 py-1 bg-teal-500 text-white rounded-lg shadow-md hover:opacity-80"
-          >
-            Download
-          </button>
-        )}
-      </li>
-    ))}
-  </ul>
-  
+                  <a
+                    href={`${backend_url}${resource.filePath}`}
+                    download
+                    className="text-blue-500 hover:underline"
+                  >
+                    {resource.originalName} ({resource.fileType})
+                  </a>
+                </li>
+              ))
+            ) : (
+              <li className="text-gray-500">No resources available.</li>
+            )}
+          </ul>
+          
+        </li>
+      ))}
+    </ul>
   ) : (
     <p>No contents available.</p>
   )}
 </div>
+
     </div>
   );
 };
