@@ -199,4 +199,13 @@ async getNonOutdatedCoursesForStudent(@Param('username') username: string) {
   async markCourseAsUnavailable(@Param('course_code') courseId: string, @Req(){user}) :Promise<courseDocument> {
     return await this.coursesService.deleteCourse(courseId,user);
   }
+
+
+  // //testt
+  // @UseGuards(AuthGuard, AuthorizationGuard)
+  // @Roles(Role.Admin, Role.Instructor)
+  // @Get('avgScoresAll/:course_code')
+  // async getAllAvg(@Param('course_code')course_code:string):Promise<number>{
+  //   return await this.coursesService.getAvgScoreOfAllStudents(course_code);
+  // }
 }

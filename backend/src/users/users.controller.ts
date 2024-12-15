@@ -69,4 +69,6 @@ async updateProfile(@Param('username') username: string,@Body() updateUserDto: U
     user: updatedUser,
   };
 }
+
+
 }

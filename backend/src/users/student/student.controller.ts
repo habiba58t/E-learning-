@@ -62,6 +62,26 @@ export class StudentController {
     await this.studentService.deleteStudentAndRelatedData(username);
     return { message: 'Student and related data deleted successfully.' };
   }
+
+    @UseGuards(AuthorizationGuard)
+    @Roles(Role.User, Role.Admin, Role.Instructor)
+    @Get('levelEasy/:courseId')
+  async getEasylevell(@Param('courseId') courseId:mongoose.Types.ObjectId){
+    return await this.studentService.getnumberOfEasyLevel(courseId);
+  }
+  @UseGuards(AuthorizationGuard)
+@Roles(Role.User, Role.Admin, Role.Instructor)
+@Get('mediumLevel/:courseId')
+async getMediumLevel(@Param('courseId') courseId:mongoose.Types.ObjectId){
+  return await this.studentService.getnumberMediumLevel(courseId);
+}
+@UseGuards(AuthorizationGuard)
+@Roles(Role.User, Role.Admin, Role.Instructor)
+@Get('hardLevel/:courseId')
+async getHardLevel(@Param('courseId') courseId:mongoose.Types.ObjectId){
+  return await this.studentService.getnumberHardLevel(courseId);
+  
+}
 }
 
 

@@ -329,6 +329,22 @@ async getAverageScoreForCourse(course_code: string): Promise<number> {
   return averageScore;
 }
 
+
+
+// async getAvgScoreOfAllStudents(course_code: string): Promise<number> {
+//   let sum = 0;
+//   let count = 0;
+//   const students = await this.progressService.findAllStudentsEnrolled(course_code);
+//   for (const student of students) {
+//     const avgScore = await this.getAverageScoreForCourse(course_code);
+//     sum += avgScore;
+//     count++;
+//   }
+//   // Return the average or 0 if no scores
+//   return count > 0 ? sum / count : 0;
+// }
+
+
 //GET AVERAGE RATING
 async getAverageRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
   const course = await this.getcoursebyid(ObjectId);

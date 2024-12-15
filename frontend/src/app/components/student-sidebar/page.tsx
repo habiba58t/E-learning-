@@ -22,7 +22,7 @@ const Sidebar = () => {
           </Link>
         </li>
         <li>
-          <Link href="/progress" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
+          <Link href="/Progress" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
             Progress
           </Link>
         </li>

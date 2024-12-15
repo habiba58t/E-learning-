@@ -102,7 +102,14 @@ async deleteProgressByUsername(Username: string) {
         //console.log(`usernames not finish course ${incompleteUsernames}`)
         return incompleteUsernames; 
       }
+      
+      async findAllStudents(course_code: string): Promise<string[]> { //return array of usernames in a course
+        const students = await this.findAllByCourse(course_code);
+        const usernames = students.map(student => student.Username);
         
+        return usernames;
+    }
+
       //completed: the array aboth, filter who finished. kol student check if completetion is 100 . getStudentsCOmpleted
       async findAllStudentsCompleted(course_code: string): Promise<Progress[]> {
         const students = await this.findAllByCourse(course_code); // Get all progress documents for the course
@@ -113,28 +120,11 @@ async deleteProgressByUsername(Username: string) {
         return completedStudents; 
       }
 
+      async getNumberOfCompletedStudents(course_code: string):Promise<number>{
+        const completed= await this.findAllStudentsCompleted(course_code);
+        return completed.length; 
+      }
 
-      // // get length of modules array mn course code(total number of modules), how many modules completed per user needed . getModulesCompleted
-      // async getTotalModules(course_code: string): Promise<number> {
-      //   const total= await this.coursesService.getModulesForCourse(course_code); 
-      //   return total.length;// Call the method from CoursesService
-      // }
-
-    //   async getTotalModulesCompleted(course_code: string, Username: string):Promise<number>{
-    //     const studentProgress = await this.progressModel.findOne({ Username, course_code });
-
-    //     if (!studentProgress) {
-    //       throw new Error('Student progress not found');
-    //     }
-    //      // Get the total number of modules for the course
-    // const totalModules = await this.getTotalModules(course_code);  // This calls getModulesForCourse from CoursesService
-
-    // // Calculate the number of completed modules based on completion_percentage
-    // const completedModules = Math.round((studentProgress.completion_percentage / 100) * totalModules);
-
-    // return completedModules;
-  
-    //   }
 
       async setCompletionPercentage(Username: string): Promise<number[]>{
         let CompPercentage: number[];
@@ -180,6 +170,28 @@ async deleteProgressByUsername(Username: string) {
       return await CompPercentage;
         
       }
+
+      
+      async AvgCompletionForAll(course_code: string): Promise<number> {
+        // Fetch all progress documents for the given course
+        const students = await this.findAllByCourse(course_code);
+    
+        if (students.length === 0) {
+            // No students enrolled in the course, return 0
+            return 0;
+        }
+    
+        // Sum up the completion percentages of all students
+        const totalCompletionPercentage = students.reduce((total, student) => {
+            return total + (student.completion_percentage || 0); // Handle cases where completion_percentage might be undefined
+        }, 0);
+    
+        // Calculate the average
+        const averageCompletionPercentage = totalCompletionPercentage / students.length;
+    
+        return averageCompletionPercentage;
+    }
+    
 
       
     /*  async setCompletionPercentage(username: string): Promise<void> {

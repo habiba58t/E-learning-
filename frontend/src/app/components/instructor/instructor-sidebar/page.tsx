@@ -36,6 +36,11 @@ const InstructorSidebar = () => {
             Student Feedback
           </Link>
         </li>
+        <li>
+          <Link href="/analytics" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
+            Analytics
+          </Link>
+        </li>
       </ul>
     </div>
   );
