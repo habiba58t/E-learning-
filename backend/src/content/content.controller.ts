@@ -26,9 +26,10 @@ export class ContentController {
 // DELETE content
 @UseGuards(AuthGuard,AuthorizationGuard)
 @Roles(Role.Admin, Role.Instructor)
-@Delete(':contentTitle/:title/deleteContent')
-async delete(@Param('contentTitle') contentTitle: string,@Param('title') title: string): Promise<void> {
-  return this.contentService.delete(contentTitle,title);
+@Delete(':ObjectId/:title/deleteContent')
+async delete(@Param('ObjectId') ObjectId: string,@Param('title') title: string): Promise<void> {
+  const objectId = new mongoose.Types.ObjectId(ObjectId);
+  return this.contentService.delete(objectId,title);
 }
 
 

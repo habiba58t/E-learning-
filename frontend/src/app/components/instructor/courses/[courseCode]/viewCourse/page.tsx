@@ -70,7 +70,9 @@ const CourseDetails = () => {
   const [moduleTitle, setModuleTitle] = useState("");
   const [moduleLevel, setModuleLevel] = useState<"easy" | "medium" | "hard">("easy");
   const [showForm, setShowForm] = useState(false);
-
+  const [totalStudents, setTotalStudents] =  useState<number | undefined>();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [students, setStudents] = useState<string[] | null>(null);
 
   const router = useRouter();
 
@@ -110,7 +112,14 @@ const CourseDetails = () => {
       // Fetch modules data
       const modulesResponse = await axiosInstance.get<Module[]>(`${backend_url}/courses/${username}/${courseCode}/modulesInstructor`);
       setModules(modulesResponse.data);
-
+      try {
+        const response = await axiosInstance.get<number>(`${backend_url}/progress/enrolled/${courseCode}`);
+       const answer = response.data;
+        setTotalStudents(answer | 0);
+      } catch (error) {
+        console.error('Failed to fetch total students:', error);
+         setError('Error fetching data');
+      }
     } catch (err) {
       console.error("Error fetching modules:", err);
       setError("Failed to load the modules. Please try again.");
@@ -123,9 +132,6 @@ const CourseDetails = () => {
     fetchCourseAndModules();
   }, []);
 
-  const toggleDropdown = () => {
-    setDropdownOpen((prev) => !prev);
-  };
 
   const handleDelete = async () => {
     try {
@@ -227,6 +233,30 @@ const CourseDetails = () => {
     router.push(`/components/instructor/courses/${courseCode}/viewCourse/${title}/module`);
   };
 
+  const toggleModal = async () => {
+    setModalOpen(!modalOpen);
+
+    if (!modalOpen && students === null) {
+      // Fetch students when the modal is opened
+      try {
+        setLoading(true);
+        setError(null);
+        const response =await axiosInstance.get(`${backend_url}/progress/enrolledStudents/${courseCode}`);
+        const students: string[] = response.data; // API returns usernames directly
+        setStudents(students);
+      } catch (err) {
+        console.error('Error fetching students:', err);
+        setError('Failed to load students.');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const handleUserClick = (username: string) => {
+    router.push(`/components/profiles/${username}`);
+  };
+
   if (error) {
     return <div className="text-red-500">{error}</div>;
   }
@@ -311,7 +341,7 @@ const CourseDetails = () => {
             <p><strong>Category:</strong> {course.category}</p>
             <p><strong>Level:</strong> {course.level}</p>
             <p><strong>Average Rating:</strong> {course.averageRating ?? 'N/A'}</p>
-            <p><strong>Number of Students Enrolled:</strong> {course.totalStudents ?? 'N/A'}</p>
+            <p><strong>Number of Students Enrolled:</strong>{totalStudents}</p>
           </div>
 
           <div className="flex flex-wrap gap-4">
@@ -380,20 +410,52 @@ const CourseDetails = () => {
           </div>
         </div>
             )}
-            <div className="relative">
-              <button onClick={toggleDropdown} className="px-4 py-2 bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 text-white rounded-lg shadow-md hover:opacity-90 transition-all">
-                Enrolled Students
-              </button>
-              {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-md">
-                  <button onClick={() => router.push(`/courses/${courseCode}/students`)} className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-gray-100">
-                    View Enrolled Students
-                  </button>
-                </div>
-              )}
-            </div>
+            <button
+        onClick={toggleModal}
+        className="px-4 py-2 bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 text-white rounded-lg shadow-md hover:opacity-90 transition-all"
+      >
+        Enrolled Students
+      </button>
+       {/* Modal */}
+       {modalOpen && (
+        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg w-96 p-6 relative">
+            {/* Close Button */}
+            <button
+              onClick={toggleModal}
+              className="absolute top-2 right-2 text-gray-600 hover:text-gray-800"
+            >
+              &times;
+            </button>
+
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Enrolled Students</h2>
+
+            {loading && <p className="text-gray-500">Loading...</p>}
+            {error && <p className="text-red-500">{error}</p>}
+
+            {!loading && !error && students && (
+              <ul className="space-y-2">
+                {students.length > 0 ? (
+                  students.map((username) => (
+                    <li key={username}>
+                      <button
+                        onClick={() => handleUserClick(username)}
+                        className="text-blue-600 hover:underline w-full text-left"
+                      >
+                        {username}
+                      </button>
+                    </li>
+                  ))
+                ) : (
+                  <p className="text-gray-500">No students enrolled.</p>
+                )}
+              </ul>
+            )}
           </div>
         </div>
+      )}      
+            </div>
+          </div>
       ) : (
         <div>No course found with the specified code.</div>
       )}

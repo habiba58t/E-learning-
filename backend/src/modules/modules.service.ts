@@ -287,9 +287,7 @@ async toggleOutdated(title: string,username:string): Promise<moduleDocument> {
 }
 
 // Method to add file metadata to a Module's resources
-async addContentToModule(
-  moduleId: string,
-  fileUrl: string,
+async addContentToModule(moduleId: string,fileUrl: string,
   originalName: string,
   fileType: string,
   contentTitle: string,

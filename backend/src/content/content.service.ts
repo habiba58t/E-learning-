@@ -34,11 +34,11 @@ async createContent(createContentDto: CreateContentDto): Promise<contentDocument
   }
 
   // DELETE /modules/:title: Delete a module by its title
-  async delete( contentTitle: string,title: string): Promise<void> {
+  async delete( objectId: mongoose.Types.ObjectId ,title: string): Promise<void> {
     const module = await this.modulesService.findByTitle(title);
-    const content = await this.contentModel.findOne({title:contentTitle}) ;
+    const content = await this.contentModel.findById(objectId) ;
     if (!content) {
-      throw new Error(`Content with title "${contentTitle}" not found.`);
+      throw new Error(`Content with id "${objectId}" not found.`);
     }
   
     if (!module) {
@@ -48,7 +48,7 @@ async createContent(createContentDto: CreateContentDto): Promise<contentDocument
     module.content = module.content.filter((id) => !id.equals(content._id));
     await module.save();
 
-    await this.contentModel.findOneAndDelete({ title:contentTitle });
+    await this.contentModel.findByIdAndDelete(objectId);
   }
 
 

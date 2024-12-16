@@ -5,7 +5,7 @@ import { HydratedDocument } from 'mongoose';
 export type contentDocument = HydratedDocument<Content>
 @Schema()
 export class Content {
-  @Prop({ required: true,unique: true })
+  @Prop({ required: true })
   title: string;
 
   @Prop({ required: true })
