@@ -93,6 +93,11 @@ const CourseDetails = () => {
             router.push(`${courseCode}/${module_title}`);
           }
       };
+
+      const handleChatButtonClick = () => {
+        // Redirect to the chat page for this course_code
+        router.push(`/components/chat/${courseCode}`);
+      };
   
 
     if (loading) {
@@ -139,7 +144,7 @@ const CourseDetails = () => {
 
                 <div className="flex justify-center mt-6">
                 <button
-                    onClick={() => router.push(`/chat/${course?.course_code}`)}
+                    onClick={handleChatButtonClick}
                     className="bg-white text-purple-700 font-bold py-2 px-6 rounded-full shadow-md hover:bg-gray-100 transition-all"
                 >
                   Chat

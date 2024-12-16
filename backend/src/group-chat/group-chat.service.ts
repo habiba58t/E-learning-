@@ -30,12 +30,12 @@ export class GroupChatService {
 
 
  // send message too the group chat
-      async addMessageToGroup(group_id: string, createMessageDto: CreateMessageDto) :Promise<GroupDocument>{
+      async addMessageToGroup(groupName: string, createMessageDto: CreateMessageDto) :Promise<GroupDocument>{
         const message = await this.messageService.createMessage(createMessageDto)
-        const group = await this.groupChat.findById(group_id)
+        const group = await this.groupChat.findOne({group_name: groupName})
         if (!group) {
             throw new 
-            Error(`Module with ID ${group_id} not found`);
+            Error(`Module with ID ${groupName} not found`);
           }
           group.messages.push(message._id);
       
@@ -47,17 +47,17 @@ export class GroupChatService {
       }
 
  // fetch all messages of a group
-      async getGroupMessages(groupId: string): Promise<GroupChat> {
-        const groupChat = await this.groupChat.findById(groupId).populate('Message'); // Populate the messages array with full message objects
-
-        if (!groupChat) {
-            throw new NotFoundException(`Group with ID ${groupId} not found`);
-        }
-
-        return groupChat;
+ async getGroupMessages(groupName: string): Promise<GroupDocument> {
+    const groupChat = await this.groupChat.findOne({ group_name: groupName }).populate('messages');
+  
+    if (!groupChat) {
+      throw new NotFoundException(`Group with name "${groupName}" not found`);
     }
+  
+    return groupChat;
+  }
  // fetch a group by its id 
-    async getGroupById(groupId: string): Promise<GroupChat> {
+    async getGroupById(groupId: string): Promise<GroupDocument> {
         const groupChat = await this.groupChat.findById(groupId);
         if (!groupChat) {
             throw new NotFoundException(`Group with ID ${groupId} not found`);
@@ -67,7 +67,8 @@ export class GroupChatService {
 
      // get groupchats  by course_code
     async getGroupChatsByCourseCode(courseCode: string): Promise<GroupDocument[]> {
-        const groupChats = await this.groupChat.find({ courseCode });
+        //const groupChats = await this.groupChat.find({ courseCode }).exec();
+        const groupChats = await this.groupChat.find({ course_code: courseCode }).exec();
     
         if (!groupChats || groupChats.length === 0) {
             throw new NotFoundException(`No group chats found for course code ${courseCode}`);

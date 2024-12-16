@@ -16,22 +16,22 @@ export class GroupChatController {
     }
  // send messsage to group chat
 
-    @Post('/:group_id/message')
+    @Post('/:group_name/message')
   async sendGroupMessage(
-    @Param('group_id') group_id: string,
+    @Param('group_name') group_name: string,
     @Body() createMessageDto:CreateMessageDto 
   ) {
-    return await this.groupchatService.addMessageToGroup(group_id,createMessageDto);
+    return await this.groupchatService.addMessageToGroup(group_name,createMessageDto);
   }
 
   // Fetch all messages for a group chat
-  @Get('/:group_id/messages')
-  async getGroupMessages(@Param('group_id') groupId: string) {
-      return await this.groupchatService.getGroupMessages(groupId);
+  @Get('/:groupName/messages')
+  async getGroupMessages(@Param('groupName') group_name: string):Promise<GroupDocument> {
+      return await this.groupchatService.getGroupMessages(group_name);
   }
 // Fetch a specific group chat by ID
 @Get('/:group_id')
-async getGroupById(@Param('group_id') groupId: string) {
+async getGroupById(@Param('group_id') groupId: string):Promise<GroupDocument>{
     return await this.groupchatService.getGroupById(groupId);
 }
 

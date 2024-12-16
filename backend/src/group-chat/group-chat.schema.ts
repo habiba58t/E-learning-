@@ -10,7 +10,7 @@ export class GroupChat {
   @Prop({ required: true })
   course_code: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true ,unique: true})
   group_name: string;
 
   @Prop({ required: true })
