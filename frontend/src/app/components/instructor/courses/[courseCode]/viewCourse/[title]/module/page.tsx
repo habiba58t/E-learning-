@@ -211,9 +211,10 @@ const ModulePage = () => {
   }
   };
 
-  const handleDeleteContent = async () => {
-    console.log("Deleting content with title:", contentTitle);
-    await axiosInstance.delete(`${backend_url}/content/${contentTitle}/${moduleTitle}/deleteContent`);
+  const handleDeleteContent = async (objectid: string) => {
+
+    console.log("Deleting content with object id:", objectid);
+    await axiosInstance.delete(`${backend_url}/content/${objectid}/${moduleTitle}/deleteContent`);
     // Reset the form and hide it
     setContentTitle("");
     setShowForm(false);
@@ -294,7 +295,7 @@ const ModulePage = () => {
           {/* Update Module Button */}
       <button
          onClick={() => { setActionType("update"); setShowForm(true); }}
-        className="px-4 py-2 bg-yellow-500 text-white rounded-lg shadow-md hover:opacity-90 transition-all"
+        className="px-3 py-1 bg-yellow-500 text-white rounded-lg shadow-md hover:opacity-90 transition-all"
       >
         Update Module Level
       </button>
@@ -366,89 +367,45 @@ const ModulePage = () => {
             </div>
           </div>
         )}
-           {/* Delete Content Button */}
-      <button
-       onClick={() => { setActionType("delete"); setShowForm(true); }}
-        className="px-4 py-2 bg-red-500 text-white rounded-lg shadow-md hover:opacity-90 transition-all"
-      >
-        Delete Content
-      </button>
 
      {/* Modal Form */}
-     {showForm && (
-        <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            {actionType === "update" ? (
-              <>
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Update Module Level</h3>
-                <div className="mb-4">
-                  <label htmlFor="moduleLevel" className="block text-gray-700 font-medium mb-1">
-                    Select Level:
-                  </label>
-                  <select
-    id="moduleLevel"
-    value={moduleLevel}
-    onChange={(e) => setModuleLevel(e.target.value as "easy" | "medium" | "hard")}
-    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
-  >
-    {/* <option value="" disabled>
-      Select Difficulty Level
-    </option> */}
-    <option value="easy">Easy</option>
-    <option value="medium">Medium</option>
-    <option value="hard">Hard</option>
-  </select>
-                </div>
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={handleUpdateModuleLevel}
-                    className="px-4 py-2 bg-yellow-600 text-white rounded-lg shadow-md hover:bg-yellow-700 transition-all"
-                  >
-                    Confirm Update
-                  </button>
-                  <button
-                    onClick={() => setShowForm(false)}
-                    className="px-4 py-2 bg-gray-500 text-white rounded-lg shadow-md hover:bg-gray-600 transition-all"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </>
-            ) : actionType === "delete" ? (
-              <>
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Delete Content</h3>
-                <div className="mb-4">
-                  <label htmlFor="contentTitle" className="block text-gray-700 font-medium mb-1">
-                    Content Title:
-                  </label>
-                  <input
-                    type="text"
-                    id="contentTitle"
-                    value={contentTitle}
-                    onChange={(e) => setContentTitle(e.target.value)}
-                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
-                    placeholder="Enter content title to delete"
-                  />
-                </div>
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={handleDeleteContent}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg shadow-md hover:bg-red-700 transition-all"
-                  >
-                    Confirm Delete
-                  </button>
-                  <button
-                    onClick={() => setShowForm(false)}
-                    className="px-4 py-2 bg-gray-500 text-white rounded-lg shadow-md hover:bg-gray-600 transition-all"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </>
-            ) : null}
-          </div>
-        </div>
-      )}
+{showForm && (
+  <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center z-50">
+    <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+      <h3 className="text-lg font-semibold text-gray-800 mb-4">Update Module Level</h3>
+      <div className="mb-4">
+        <label htmlFor="moduleLevel" className="block text-gray-700 font-medium mb-1">
+          Select Level:
+        </label>
+        <select
+          id="moduleLevel"
+          value={moduleLevel}
+          onChange={(e) => setModuleLevel(e.target.value as "easy" | "medium" | "hard")}
+          className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+        >
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+      </div>
+      <div className="flex items-center gap-4">
+        <button
+          onClick={handleUpdateModuleLevel}
+          className="px-4 py-2 bg-yellow-600 text-white rounded-lg shadow-md hover:bg-yellow-700 transition-all"
+        >
+          Confirm Update
+        </button>
+        <button
+          onClick={() => setShowForm(false)}
+          className="px-4 py-2 bg-gray-500 text-white rounded-lg shadow-md hover:bg-gray-600 transition-all"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
            {/* Outdated Toggle */}
            <button
               onClick={() => handleEnableNotes()}
@@ -466,14 +423,22 @@ const ModulePage = () => {
       {contentList.map((content, index) => (
         <li
           key={content._id || `content-${index}`}
-          className="border-b border-gray-300 py-4"
+          className="border-b border-gray-300 py-4 flex items-center relative"
         >
-          <h3 className="text-xl font-semibold text-blue-600">
-            {content.title}
-          </h3>
-          <ul className="mt-2">
-            {content.resources && content.resources.length > 0 ? (
+          {/* Content Title */}
+          <h3 className="text-xl font-semibold text-blue-600 pr-16">{content.title}</h3>
 
+          {/* Delete Button */}
+          <button
+            onClick={() => handleDeleteContent(content._id)}
+            className="absolute right-0 bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 text-white font-semibold py-2 px-4 rounded-full hover:opacity-90 transition-all"
+          >
+            Delete
+          </button>
+
+          {/* Resource List */}
+          <ul className="mt-2 w-full">
+            {content.resources && content.resources.length > 0 ? (
               content.resources.map((resource, resourceIndex) => (
                 <li
                   key={`${content._id || "no-id"}-${resource.filePath}-${resourceIndex}`}
@@ -492,7 +457,6 @@ const ModulePage = () => {
               <li className="text-gray-500">No resources available.</li>
             )}
           </ul>
-          
         </li>
       ))}
     </ul>
@@ -500,6 +464,9 @@ const ModulePage = () => {
     <p>No contents available.</p>
   )}
 </div>
+
+
+
 
     </div>
   );
