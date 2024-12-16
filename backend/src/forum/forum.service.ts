@@ -20,46 +20,81 @@ export class ForumService {
   ) {}
 
 
-//   create a Thread and add it in array of threads in course
-  async createForum(user: any, createThreadDto: CreateThreadDto): Promise<threadDocument> {
-    if (!user || !user.username) {
-      throw new Error('User is not authenticated or has no username');
-    }
+// //   create a Thread and add it in array of threads in course
+//   async createForum(user: any, createThreadDto: CreateThreadDto): Promise<threadDocument> {
+//     if (!user || !user.username) {
+//       throw new Error('User is not authenticated or has no username');
+//     }
   
-    // Create a new thread with the user as the creator
-    const newThread = new this.ThreadsModel(createThreadDto);
-    newThread.created_by = user.username;
-    const savedThread = await newThread.save();
+//     // Create a new thread with the user as the creator
+//     const newThread = new this.ThreadsModel(createThreadDto);
+//     newThread.created_by = user.username;
+//     const savedThread = await newThread.save();
   
-    const userthread = await this.userModel.findOne({ username: user.username }).exec();
-    if (!userthread) {
-      throw new Error('User not found');
-    }
+//     const userthread = await this.userModel.findOne({ username: user.username }).exec();
+//     if (!userthread) {
+//       throw new Error('User not found');
+//     }
   
-    // Update the course's threads array with the new thread ID
-    const courseUpdate = await this.courseModel.findOneAndUpdate(
-      { _id: createThreadDto.courseId },
-      { $push: { threads: savedThread._id } },
-      { new: true }
-    );
+//     // Update the course's threads array with the new thread ID
+//     const courseUpdate = await this.courseModel.findOneAndUpdate(
+//       { _id: createThreadDto.courseId },
+//       { $push: { threads: savedThread._id } },
+//       { new: true }
+//     );
   
-    console.log('Course Update:', courseUpdate); // Debug course update
+//     console.log('Course Update:', courseUpdate); // Debug course update
   
-    // Update the user's threads array with the new thread ID
-    const updatedUser = await this.userModel.findOneAndUpdate(
-      { _id: user._id },
-      { $push: { threads: savedThread._id } },
-      { new: true }
-    );
+//     // Update the user's threads array with the new thread ID
+//     const updatedUser = await this.userModel.findOneAndUpdate(
+//       { _id: user._id },
+//       { $push: { threads: savedThread._id } },
+//       { new: true }
+//     );
   
-    // console.log('User Update:', updatedUser); // Debug user update
-    // const NotificationDto = {
-    //   message: createThreadDto.message
-    // };
-    //  await this.notificationService.CreateNotificationDto(createThreadDto.courseId,NotificationDto );
+//     // console.log('User Update:', updatedUser); // Debug user update
+//     // const NotificationDto = {
+//     //   message: createThreadDto.message
+//     // };
+//     //  await this.notificationService.CreateNotificationDto(createThreadDto.courseId,NotificationDto );
   
-    return savedThread;
+//     return savedThread;
+//   }
+
+async createForum(user: any, createThreadDto: CreateThreadDto): Promise<threadDocument> {
+  if (!user || !user.username) {
+    throw new Error('User is not authenticated or has no username');
   }
+
+  // Create a new thread with the user as the creator
+  const newThread = new this.ThreadsModel(createThreadDto);
+  newThread.created_by = user.username;
+  const savedThread = await newThread.save();
+
+  const userthread = await this.userModel.findOne({ username: user.username }).exec();
+  if (!userthread) {
+    throw new Error('User not found');
+  }
+
+  // Update the course's threads array with the new thread ID by querying with course_code
+  const courseUpdate = await this.courseModel.findOneAndUpdate(
+    { course_code: createThreadDto.courseId },  // Use course_code to find the course
+    { $push: { threads: savedThread._id } },
+    { new: true }
+  );
+
+  console.log('Course Update:', courseUpdate); // Debug course update
+
+  // Update the user's threads array with the new thread ID
+  const updatedUser = await this.userModel.findOneAndUpdate(
+    { _id: user._id },
+    { $push: { threads: savedThread._id } },
+    { new: true }
+  );
+
+  return savedThread;
+}
+
 
 //get all forums
   async findAllForums():Promise<threadDocument[]>{
@@ -191,6 +226,20 @@ async findThreadByTitle(courseCode: string, title: string): Promise<threadDocume
 
     }
 
+    async getAllReplies(threadId: mongoose.Types.ObjectId): Promise<Reply[]> {
+      // Find the thread by its ID and populate the replies field
+          const thread = await this.ThreadsModel.findById(threadId)
+          .populate<{ replies: Reply[] }>('replies')  // Specify that replies will be populated as Reply[] 
+          .exec();
+
+          if (!thread) {
+          throw new NotFoundException('Thread not found');
+          }
+
+          return thread.replies;  // Now thread.replies will be of type Reply[]
+    }
+    
+    
 
   
 

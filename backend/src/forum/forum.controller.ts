@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { ForumService } from './forum.service';
 import { threadDocument, Threads } from './threads.schema';
-import { replyDocument } from './reply.schema';
+import { Reply, replyDocument } from './reply.schema';
 import mongoose, { Types } from 'mongoose';
 import { CreateThreadDto } from './dto/create-thread-dto';
 import { CreateReplyDto } from './dto/create-reply-dto';
@@ -89,5 +89,14 @@ export class ForumController {
       return updatedThread;
     }
 
+    @Get('thread/:threadId/replies')  
+    async getAllReplies(@Param('threadId') threadId: mongoose.Types.ObjectId): Promise<Reply[]> {
+      try {
+        const replies = await this.forumService.getAllReplies(threadId);  // Call the service method
+        return replies;  // Return the populated replies
+      } catch (error) {
+        throw new NotFoundException('Replies not found');
+      }
+    }
 
 }

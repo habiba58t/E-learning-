@@ -10,8 +10,8 @@ export class Threads {
   @Prop({required: true })
   message: string;
 
-  @Prop({type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'reply' }]}) // Array of replies
-  replies:mongoose.Types.ObjectId[];
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Reply' }] }) 
+  replies: mongoose.Types.ObjectId[];
 
   @Prop({ default: Date.now })
   timestamp: Date;
