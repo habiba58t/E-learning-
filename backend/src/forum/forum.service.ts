@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Req } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException, Req } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument, Model } from 'mongoose';
 import { threadDocument, Threads } from './threads.schema';
@@ -7,6 +7,7 @@ import { courseDocument, Courses } from 'src/courses/courses.schema';
 import { CreateReplyDto } from './dto/create-reply-dto';
 import { CreateThreadDto } from './dto/create-thread-dto';
 import { userDocument, Users } from 'src/users/users.schema';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class ForumService {
@@ -15,6 +16,7 @@ export class ForumService {
    @InjectModel(Reply.name) private  replyModel: Model<replyDocument>,
  @InjectModel(Courses.name) private  courseModel: Model<courseDocument>,
  @InjectModel(Users.name) private  userModel: Model<userDocument>,
+  //@Inject(forwardRef(() => NotificationService)) private readonly notificationService: NotificationService,
   ) {}
 
 
@@ -50,7 +52,11 @@ export class ForumService {
       { new: true }
     );
   
-    console.log('User Update:', updatedUser); // Debug user update
+    // console.log('User Update:', updatedUser); // Debug user update
+    // const NotificationDto = {
+    //   message: createThreadDto.message
+    // };
+    //  await this.notificationService.CreateNotificationDto(createThreadDto.courseId,NotificationDto );
   
     return savedThread;
   }
@@ -60,6 +66,8 @@ export class ForumService {
     const threads = await this.ThreadsModel.find();
      return threads;
   }
+
+  
 //get forums by course code 
 async findThreadByCourseCode(courseCode: string): Promise<threadDocument[]> {
   // Find the course by its code
@@ -72,6 +80,8 @@ async findThreadByCourseCode(courseCode: string): Promise<threadDocument[]> {
   }
   return course.threads || [];
 }
+
+
 
 //get forum by title 
 async findThreadByTitle(courseCode: string, title: string): Promise<threadDocument> {
@@ -88,6 +98,7 @@ async findThreadByTitle(courseCode: string, title: string): Promise<threadDocume
   return matchingThread;
 }
 
+//update thread 
 
   
 

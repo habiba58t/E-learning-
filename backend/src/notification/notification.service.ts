@@ -9,6 +9,9 @@ import { Users } from 'src/users/users.schema';
 
 @Injectable()
 export class NotificationService {
+  CreateNotificationDto(courseId: mongoose.Types.ObjectId, NotificationDto: { message: any; }) {
+    throw new Error('Method not implemented.');
+  }
     constructor (
         @InjectModel(Notification.name) private notificationModel: Model<notificationDocument>,
         @InjectModel(Users.name) private readonly userModel: Model<Users>,
