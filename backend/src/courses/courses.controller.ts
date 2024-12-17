@@ -123,6 +123,17 @@ async findCourseByModuleId(@Param('moduleId') moduleId: string):Promise<courseDo
     return modules;
   }
 
+  //ADDED
+  // Get modules for a instructor in a specific course
+  @UseGuards(AuthGuard, AuthorizationGuard)
+  @Roles(Role.Admin, Role.Instructor)
+  @Get(':course_code/modulesAdmin')
+  async getModulesForAdmin(@Param('course_code') course_code: string): Promise<moduleDocument[]> {
+    // Call the service method to get the modules for the course
+    const modules = await this.coursesService.getModulesForAdmin(course_code);
+    return modules;
+  }
+
   @UseGuards(AuthGuard, AuthorizationGuard)
   @Roles(Role.Admin, Role.Instructor)
   @Put(':username/:courseCode/modules')

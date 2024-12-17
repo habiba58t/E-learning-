@@ -207,6 +207,21 @@ async getModulesForCourseInstructor(course_code: string, username: string): Prom
   return modules.length ? modules : [];
 }
 
+// GET: modules for a course for an instructor
+async getModulesForAdmin(course_code: string): Promise<moduleDocument[]> {
+  // Find the course by course_code
+  const course = await this.courseModel.findOne({ course_code }).exec();
+  if (!course) {
+    throw new NotFoundException(`Course with course code ${course_code} not found`);
+  }
+
+  // Fetch all modules by their ObjectIds
+  const modules = await this.moduleModel.find({ _id: { $in: course.modules } }).exec();
+  
+  // Return an empty array if no modules exist
+  return modules.length ? modules : [];
+}
+
 
 //PUT: add module to a course
 async addModuleToCourse(courseCode: string, createModuleDto: CreateModuleDto,username: string): Promise<courseDocument> {

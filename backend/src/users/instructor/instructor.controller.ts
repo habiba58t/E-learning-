@@ -12,7 +12,7 @@ import { Public } from 'src/auth/decorators/public.decorator';
 
 @UseGuards(AuthGuard)
 
-@Controller('users/instructor')
+@Controller('instructor')
 export class InstructorController {
     constructor(private readonly instructorService: InstructorService) {}
 

@@ -33,16 +33,16 @@ export default function AdminPage (){
   const [loading, setLoading] = useState<boolean>(true);
   const [showCreateForm, setShowCreateForm] = useState<boolean>(false);
   const [newCourse, setNewCourse] = useState({
-    title: '',
     course_code: '',
+    title: '',
     description: '',
     category: '',
     level: 'easy',
+    created_by: ''
   });
-
   const router = useRouter();
 
- // Fetch courses for the instructor on load
+ // Fetch courses 
  async function fetchCookieData() {
     try {
       const cookieResponse = await fetch(`${backend_url}/auth/get-cookie-data`, {
@@ -133,7 +133,7 @@ export default function AdminPage (){
 
       const response = await axiosInstance.post(`${backend_url}/courses/createCourse`, {
         ...newCourse,
-        created_by: username,
+        created_by: newCourse.created_by,
       });
       const createdCourse = response.data;
       setCourseList((prev) => [...prev, createdCourse]);
@@ -145,6 +145,7 @@ export default function AdminPage (){
         description: '',
         category: '',
         level: 'easy',
+        created_by: '',
       });
       setShowCreateForm(false);
       fetchCookieData(); // Refresh course list
@@ -191,12 +192,16 @@ export default function AdminPage (){
   };
 
   const handleViewCourse = (courseCode: string) => {
-    router.push(`/components/instructor/courses/${courseCode}/viewCourse`);
+    router.push(`/components/admin/courses/${courseCode}/viewCourse`);
   };
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setNewCourse((prev) => ({ ...prev, [name]: value }));
+    console.log(name,value);
+    setNewCourse((prevCourse) => ({
+      ...prevCourse,
+      [name]: value
+    }));
   };
 
   if (loading) {
@@ -279,12 +284,21 @@ export default function AdminPage (){
               <option value="medium">Medium</option>
               <option value="hard">Hard</option>
             </select>
+            {/* Instructor Field */}
+      <input
+        type="text"
+        name="created_by"
+        value={newCourse.created_by}
+        onChange={handleFormChange}
+        placeholder="Instructor Username"
+        className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
           </div>
           <div className="mt-4 flex justify-end gap-4">
           <button
   className="px-4 py-2 bg-green-500 text-white rounded-lg hover:opacity-90 transition-all"
   onClick={() => {
-    if (!newCourse.course_code || !newCourse.title || !newCourse.description || !newCourse.category || !newCourse.level) {
+    if (!newCourse.course_code || !newCourse.title || !newCourse.description || !newCourse.category || !newCourse.level || !newCourse.created_by) {
       alert("All fields are required to create a course.");
       return; // Exit if any field is missing
     }

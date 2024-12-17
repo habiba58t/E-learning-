@@ -287,11 +287,7 @@ async toggleOutdated(title: string,username:string): Promise<moduleDocument> {
 }
 
 // Method to add file metadata to a Module's resources
-async addContentToModule(moduleId: string,fileUrl: string,
-  originalName: string,
-  fileType: string,
-  contentTitle: string,
-  username: string,
+async addContentToModule(moduleId: string,fileUrl: string,originalName: string,fileType: string,contentTitle: string,username: string,
 ): Promise<moduleDocument> {
   try {
     const module = await this.moduleModel.findById(moduleId).exec();
@@ -331,6 +327,7 @@ async addContentToModule(moduleId: string,fileUrl: string,
       title: contentTitle,
       resources: [fileMetadata],
     };
+    
 
     const content = await this.contentService.createContent(contentDto);
     if (!content) {

@@ -110,7 +110,7 @@ const CourseDetailsAdmin = () => {
       }
   
       // Fetch modules data
-      const modulesResponse = await axiosInstance.get<Module[]>(`${backend_url}/courses/${username}/${courseCode}/modulesInstructor`);
+      const modulesResponse = await axiosInstance.get<Module[]>(`${backend_url}/courses/${courseCode}/modulesAdmin`);
       setModules(modulesResponse.data);
       try {
         const response = await axiosInstance.get<number>(`${backend_url}/progress/enrolled/${courseCode}`);
@@ -145,7 +145,7 @@ const CourseDetailsAdmin = () => {
       }
       const username = userData.payload.username;
       await axiosInstance.put(`${backend_url}/courses/${username}/${courseCode}/delete`);
-      router.push(`/components/instructor/courses`);
+      router.push(`/components/admin/courses`);
     } catch (err) {
       console.error("Error fetching data:", err);
       setError("Failed to get cookie. Please try again.");
@@ -230,7 +230,7 @@ const CourseDetailsAdmin = () => {
   };
 
   const handleViewModule = (title: string) => {
-    router.push(`/components/instructor/courses/${courseCode}/viewCourse/${title}/module`);
+    router.push(`/components/admin/courses/${courseCode}/viewCourse/${title}/module`);
   };
 
   const toggleModal = async () => {
@@ -342,6 +342,7 @@ const CourseDetailsAdmin = () => {
             <p><strong>Level:</strong> {course.level}</p>
             <p><strong>Average Rating:</strong> {course.averageRating ?? 'N/A'}</p>
             <p><strong>Number of Students Enrolled:</strong>{totalStudents}</p>
+            <p><strong>Instructor:</strong> {course.created_by || 'N/A'}</p>
           </div>
 
           <div className="flex flex-wrap gap-4">
