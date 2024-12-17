@@ -78,8 +78,8 @@ export class GroupChatService {
     }
 
     // Add user to the group chat
-    async addUserToGroup(groupId: string, username: string): Promise<GroupChat> {
-        const groupChat = await this.groupChat.findById(groupId);
+    async addUserToGroup(group_name: string, username: string): Promise<GroupDocument> {
+        const groupChat = await this.groupChat.findOne({group_name});
         if (!groupChat) {
             throw new Error('Group chat not found');
         }

@@ -40,4 +40,20 @@ async getGroupById(@Param('group_id') groupId: string):Promise<GroupDocument>{
 async getGroupChatsByCourseCode(@Param('courseCode') courseCode: string): Promise<GroupDocument[]> {
     return await this.groupchatService.getGroupChatsByCourseCode(courseCode);
 }
+
+
+
+@Post('/:groupName/add-user/:username')
+  async addUserToGroup(
+    @Param('groupName') groupName: string, // Extract groupName from the URL param
+    @Param('username') username: string,  // Extract username from the URL param
+  ): Promise<GroupDocument> {
+    try {
+      // Call service to add user to group
+      const updatedGroupChat = await this.groupchatService.addUserToGroup(groupName, username);
+      return updatedGroupChat;
+    } catch (error) {
+      throw new Error(error.message);
+    }
+  }
 }
