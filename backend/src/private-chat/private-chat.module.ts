@@ -30,18 +30,34 @@ import { ContentSchema } from 'src/modules/content/content.schema';
 import { ContentService } from 'src/modules/content/content.service';
 import { StudentService } from 'src/users/student/student.service';
 //import { GroupChatSchema } from 'src/group-chat/group-chat.schema';
-import { MessageSchema } from './message.schema';
-import { Message } from './message.schema';
-import { MessageController } from './message.controller';
+import { MessageSchema } from '../message/message.schema';
+import { Message } from '../message/message.schema';
+import { PrivateChat, PrivateChatSchema } from './private-chat.schema';
+import { PrivateChatController } from './private-chat.controller';
+import { PrivateChatService } from './private-chat.service';
 
 
 
 @Module({
-   imports: [
-      MongooseModule.forFeature([{ name: Message.name, schema: MessageSchema }]),
-   ],
-  controllers: [MessageController],
-  providers: [MessageService],
-   exports: [MessageService]
+    imports: [
+    MongooseModule.forFeature([{name: PrivateChat.name, schema: PrivateChatSchema}]),
+    MongooseModule.forFeature([{ name: Module.name, schema: ModuleSchema }]),
+    MongooseModule.forFeature([{ name: Quiz.name, schema: QuizzesSchema }]),
+    MongooseModule.forFeature([{ name: Question.name, schema: QuestionsSchema }]),
+    MongooseModule.forFeature([{ name: Notes.name, schema: NoteSchema }]),
+    MongooseModule.forFeature([{ name: 'Content', schema: ContentSchema }]),
+    MongooseModule.forFeature([{ name: Users.name, schema: UsersSchema }]),
+    MongooseModule.forFeature([{ name: 'Courses', schema: CoursesSchema }]),
+    MongooseModule.forFeature([{ name: 'Progress', schema: ProgressSchema }]),
+    MongooseModule.forFeature([{ name: 'Notes', schema: NoteSchema }]),
+    MongooseModule.forFeature([{ name: Responses.name, schema: ResponsesSchema }]),
+    MongooseModule.forFeature([{ name: Notification.name, schema: NotificationSchema }]),
+    MongooseModule.forFeature([{ name: Message.name, schema: MessageSchema }]),
+
+
+    ],
+    controllers: [PrivateChatController],
+    providers: [PrivateChatService, MessageService, ResponsesService, NotesService, UsersService, StudentService,ModulesService,QuizzesService,QuestionsService,NotesService,ContentService, CoursesService, ProgressService,NotificationService],
+    exports: [PrivateChatService]
 })
-export class MessageModule {}
+export class PrivateChatModule {}

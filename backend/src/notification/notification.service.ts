@@ -82,8 +82,8 @@ async createForumNotification(user:any,course_code:string,dto:CreateNotification
 }
 
 //create notification for chat one to one
-async createPrivateChatNotification(user,recieverUsername:string): Promise<notificationDocument>{
-    const title = `${user} sent you a private message `;
+async createPrivateChatNotification(username ,recieverUsername:string): Promise<notificationDocument>{
+    const title = `${username} sent you a private message `;
     const NotificationDto = {
         message: title
       };
@@ -94,25 +94,38 @@ async createPrivateChatNotification(user,recieverUsername:string): Promise<notif
 
 
 //create notification for chat one to one
-async createPublicChatNotification(user,course_code:string): Promise<notificationDocument>{
-  const title = `${user} created a group `;
-  const NotificationDto = {
-      message: title
+async createPublicChatNotification(username: string,course_code:string): Promise<void>{
+    const course = await this.coursesService.findOne(course_code) //get course by course code
+    const users =await this.progressService.getEnrolledStudents(course._id); //get all students enrolled in that course by its id
+   
+    const message = `${username} created a group chat `; //message with who created the group chat
+    const NotificationDto = {
+      message,
+      created_by: username
     };
-     const notification= await this.progressService.
-     await this.userModel.updateOne({ username: },{ $push: { notification: notification._id}}); //add notifcation id to array of notifcation in user
-     return notification;
+    const notification= await this.notificationModel.create(NotificationDto) as notificationDocument ; //create the notification
+    for(const user of users){
+      await this.userModel.updateOne({ user },{ $push: { notification: notification._id}}); //add notifcation id to array of notifcation in user
+    }
+
 }
 
 
-//create notification for chat one to one
-async sendPublicChatNotification(user,recieverUsername:string): Promise<notificationDocument>{
-  const title = `${user} sent you a private message `;
-  const NotificationDto = {
-      message: title
-    };
-     const notification= await this.notificationModel.create(NotificationDto) as notificationDocument ;
-     await this.userModel.updateOne({ username: recieverUsername},{ $push: { notification: notification._id}}); //add notifcation id to array of notifcation in user
-     return notification;
-}
+//create notification for chat one to one send message to all members in this chat
+// async sendPublicChatNotification(username :string, chatId: string): Promise<void>{
+//   const cid=new mongoose.Types.ObjectId(chatId)
+//   const chat = await this.getGroupById(cid) //get chat by its id
+//   const users =chat.members; //get members of this chat
+ 
+//   const message = `${username} sent a message to group chat `; //message with who created the group chat
+//   const NotificationDto = {
+//     message,
+//     created_by: username
+//   };
+//   const notification= await this.notificationModel.create(NotificationDto) as notificationDocument ; //create the notification
+//   for(const user of users){
+//     await this.userModel.updateOne({ user },{ $push: { notification: notification._id}}); //add notifcation id to array of notifcation in users 
+//     //receiving this notifications
+//   }
+// }
 }

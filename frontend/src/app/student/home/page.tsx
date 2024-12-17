@@ -158,6 +158,11 @@ const HomePage = () => {
         return "";
     }
   };
+//username is from token and other is the one i want to message
+  const handleRedirectToChat = (receiverUsername: string|undefined) => {
+    const currentUsername = username;
+    router.push(`/student/private-chats/${currentUsername}/${receiverUsername}`);
+  };
 
   const renderResult = (item: UserorCourseData) => {
     if (selectedCategory === "course") {
@@ -196,10 +201,20 @@ const HomePage = () => {
           <h3 className="font-bold text-lg text-blue-600">{item.name}</h3>
           <p className="text-gray-600">Email: {item.email}</p>
           <p className="text-gray-600">Username: {item.username}</p>
+          {/* Add "Message" button for students */}
+          {selectedCategory === "student" && (
+            <button
+              onClick={() => handleRedirectToChat(item.username)}
+              className="mt-2 bg-gradient-to-br from-sky-600 to-sky-900 text-white px-4 py-2 rounded-lg hover:shadow-xl hover:bg-gradient-to-br from-slate-500 via-indigo-900 to-zinc-800"
+            >
+              Message
+            </button>
+          )}
         </div>
       );
     }
   };
+  
 
   useEffect(() => {
     // Check enrollment status for all courses when data is available

@@ -31,6 +31,11 @@ const Sidebar = () => {
             Forum
           </Link>
         </li>
+        <li>
+          <Link href="/student/private-chats" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
+            Chats
+          </Link>
+        </li>
       </ul>
     </div>
   );
