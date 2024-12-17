@@ -80,5 +80,11 @@ async getAvgRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
   
     return { message: `Instructor with username ${username} deleted successfully` };
   }
+
+    async validation(username: string): Promise<boolean> {
+      const user = this.userModel.findOne((user) => user.username === username);
+    
+    return user ? true : false;
+    }
   
 }

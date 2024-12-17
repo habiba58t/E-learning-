@@ -25,6 +25,13 @@ export class CoursesController {
     return this.coursesService.findAll();
   
   }
+  @UseGuards(AuthGuard, AuthorizationGuard)
+  @Roles(Role.Admin)
+  @Get('coursesAdmin')
+  async findCoursesAdmin(): Promise<courseDocument[]> {
+    return this.coursesService.findCoursesAdmin();
+  
+  }
 
   // GET /Course/:course code: Retrieve a specific course by its course_code
   @UseGuards(AuthGuard, AuthorizationGuard)

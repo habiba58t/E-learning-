@@ -12,7 +12,7 @@ import { Public } from 'src/auth/decorators/public.decorator';
 
 @UseGuards(AuthGuard)
 
-@Controller('instructor')
+@Controller('users/instructor')
 export class InstructorController {
     constructor(private readonly instructorService: InstructorService) {}
 
@@ -39,6 +39,13 @@ async setRating(@Param('ObjectId') ObjectId: string, @Param('score')score:number
 async deleteInstructor(@Param('username') username: string): Promise<{ message: string }> {
   return await this.instructorService.deleteInstructor(username);
 }
+
+@UseGuards(AuthorizationGuard)
+@Roles(Role.Admin)
+@Get(':username/validation')
+  async validation(@Param('username') username: string): Promise<boolean> {
+   return await this.instructorService.validation(username);
+  }
 
 
  

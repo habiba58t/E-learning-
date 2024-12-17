@@ -42,6 +42,10 @@ export class CoursesService {
       .select('title description')  // Select only title and description fields
       .exec();
   }
+
+  async findCoursesAdmin(): Promise<courseDocument[]> {
+    return this.courseModel.find({ Unavailable: false }) .exec();
+  }
     
 
  //FIND COURSE BY COURSE_CODE 
