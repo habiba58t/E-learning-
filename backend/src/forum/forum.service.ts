@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable, NotFoundException, Req } from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException, Req } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument, Model } from 'mongoose';
 import { threadDocument, Threads } from './threads.schema';
@@ -8,6 +8,7 @@ import { CreateReplyDto } from './dto/create-reply-dto';
 import { CreateThreadDto } from './dto/create-thread-dto';
 import { userDocument, Users } from 'src/users/users.schema';
 import { NotificationService } from 'src/notification/notification.service';
+import { UpdateThreadDto } from './dto/update-thread-dto';
 
 @Injectable()
 export class ForumService {
@@ -159,30 +160,88 @@ async findThreadByTitle(courseCode: string, title: string): Promise<threadDocume
 //     return matchingThread || null;
 //   }
 
-  //delete thread from array of threads in courses/user
-  async deleteThread(courseId: mongoose.Types.ObjectId, threadId: mongoose.Types.ObjectId): Promise<threadDocument | null> {
-    // Find the course and populate threads as HydratedDocument<Threads>
-    const course = await this.courseModel
-        .findById(courseId)
-        .populate<{ threads: HydratedDocument<Threads>[] }>('threads') // Populate as HydratedDocument<Threads>
-        .exec();
-    // If the course or threads array is empty
-    if (!course || !course.threads || course.threads.length === 0) {
-        return null; // Or throw an appropriate error
-    }
-    const threadIndex = course.threads.findIndex((thread) =>
-        thread._id.equals(threadId)
-    );
-    if (threadIndex === -1) {
-        return null;
-    }
-    // Remove the thread from the course's threads array
-    const [removedThread] = course.threads.splice(threadIndex, 1); 
-    await course.save(); 
-    const deletedThread = await this.ThreadsModel.findByIdAndDelete(threadId);
 
-    return deletedThread; 
-}
+
+  //update
+  async updateForum(course_code:string,threadId: mongoose.Types.ObjectId,updateThreadDto:UpdateThreadDto
+  ): Promise<threadDocument> {
+    // Fetch the course and populate threads
+    
+    const course = await this.courseModel
+      .findOne({course_code})
+      .populate<{ threads: HydratedDocument<Threads>[] }>('threads')
+      .exec();
+  
+    if (!course || !course.threads || course.threads.length === 0) {
+      throw new Error('Course or threads not found'); // Throwing an error instead of returning null
+    }
+  
+    // Find the index of the thread to update
+    const threadIndex = course.threads.findIndex((thread) =>
+      thread._id.equals(threadId)
+    );
+  
+    // if (threadIndex === -1) {
+    //   throw new Error('Thread not found in the course');
+    // }
+  
+    // Update the thread with the new data
+    const updatedThread = await this.ThreadsModel.findByIdAndUpdate(
+      threadId,
+      { $set: updateThreadDto },
+      { new: true } // Ensures the updated document is returned
+    ).exec();
+  
+    if (!updatedThread) {
+      throw new Error('Failed to update the thread');
+    }
+  
+    return updatedThread;
+  }
+  
+  async deleteThread(
+    course_code: string,
+    threadId: mongoose.Types.ObjectId
+  ): Promise<threadDocument | null> {
+    // Find the course by course_code and populate threads
+    const course = await this.courseModel
+      .findOne({ course_code })
+      .populate<{ threads: HydratedDocument<Threads>[] }>('threads')
+      .exec();
+  
+    // Handle case where course or threads are not found
+    if (!course || !course.threads || course.threads.length === 0) {
+      throw new Error('Course not found or has no threads');
+    }
+  
+    // Find the thread in the course's threads array
+    const threadIndex = course.threads.findIndex((thread) =>
+      thread._id.equals(threadId)
+    );
+  
+    if (threadIndex === -1) {
+      throw new Error('Thread not found in the course');
+    }
+  
+    // Remove the thread from the course's threads array
+    const [removedThread] = course.threads.splice(threadIndex, 1);
+  
+    // Save the updated course
+    await course.save();
+  
+    // Delete replies associated with the thread
+    await this.replyModel.deleteMany({ threadId });
+  
+    // Delete the thread document from the database
+    const deletedThread = await this.ThreadsModel.findByIdAndDelete(threadId);
+  
+    if (!deletedThread) {
+      throw new Error('Thread deletion failed');
+    }
+  
+    return deletedThread;
+  }
+  
 
   //create replay:
   async createReply(createReplyDto: CreateReplyDto, user: any): Promise<Reply> {
@@ -226,19 +285,37 @@ async findThreadByTitle(courseCode: string, title: string): Promise<threadDocume
 
     }
 
-    async getAllReplies(threadId: mongoose.Types.ObjectId): Promise<Reply[]> {
-      // Find the thread by its ID and populate the replies field
-          const thread = await this.ThreadsModel.findById(threadId)
-          .populate<{ replies: Reply[] }>('replies')  // Specify that replies will be populated as Reply[] 
-          .exec();
-
-          if (!thread) {
-          throw new NotFoundException('Thread not found');
-          }
-
-          return thread.replies;  // Now thread.replies will be of type Reply[]
-    }
+    // async getAllReplies(threadId: string): Promise<Reply[]> {
+    //   // Validate threadId format
+    //   if (!mongoose.Types.ObjectId.isValid(threadId)) {
+    //     throw new BadRequestException('Invalid thread ID format');
+    //   }
     
+    //   // Find the thread by ID and populate replies with additional user details (if needed)
+    //   const thread = await this.ThreadsModel.findById(threadId)
+    //     .populate({
+    //       path: 'replies', // populate replies
+    //       select: 'message createdAt', // select required fields
+    //       populate: {
+    //         path: 'userId', // Populate user reference if needed
+    //         select: 'username', // Select only the username field
+    //       },
+    //     })
+    //     .exec();
+    
+    //   if (!thread) {
+    //     throw new NotFoundException('Thread not found');
+    //   }
+    
+    //   return thread.replies; // Return populated replies
+    // }
+    
+    // Fetch thread by ID and populate the replies
+  // Fetch thread by ID and populate the replies
+  async getRepliesByThreadId(threadId: string): Promise<Reply[]> {
+    return this.replyModel.find({ threadId }).exec(); // Filter by threadId and return replies
+  }
+
     
 
   

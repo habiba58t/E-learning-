@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, NotFoundException, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, HttpException, HttpStatus, InternalServerErrorException, NotFoundException, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { ForumService } from './forum.service';
 import { threadDocument, Threads } from './threads.schema';
 import { Reply, replyDocument } from './reply.schema';
@@ -8,6 +8,7 @@ import { CreateReplyDto } from './dto/create-reply-dto';
 import { AuthGuard } from 'src/auth/guards/authentication.guard';
 import { Roles, Role } from 'src/auth/decorators/role.decorator';
 import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
+import { UpdateThreadDto } from './dto/update-thread-dto';
 
 @Controller('forum')
 export class ForumController {
@@ -55,18 +56,34 @@ export class ForumController {
     }
     
     //must put constraint that only user who created the thread can delete it
-    @Delete('threads/:courseId/:threadId') //tested and worked
-    async deleteThread(@Param('courseId') courseId: string,@Param('threadId') threadId: string,) {
-    const deletedThread = await this.forumService.deleteThread(
-      new mongoose.Types.ObjectId(courseId),
-      new mongoose.Types.ObjectId(threadId),
-    );
-    if (!deletedThread) {
-      throw new NotFoundException('Thread not found');
+    @Delete('threads/:course_code/:threadId') // Route for deleting a thread
+    async deleteThread(
+        @Param('course_code') course_code: string, // Correct param name
+        @Param('threadId') threadId: string // Correct param name
+    ) {
+        // Validate threadId as a valid ObjectId
+        if (!mongoose.Types.ObjectId.isValid(threadId)) {
+            throw new BadRequestException('Invalid threadId');
+        }
+    
+        // Attempt to delete the thread
+        const deletedThread = await this.forumService.deleteThread(
+            course_code,
+            new mongoose.Types.ObjectId(threadId)
+        );
+    
+        // Handle case where thread was not found
+        if (!deletedThread) {
+            throw new NotFoundException('Thread not found');
+        }
+    
+        // Return the deleted thread data
+        return {
+            message: 'Thread successfully deleted',
+            thread: deletedThread,
+        };
     }
-    return deletedThread;
-  }
-
+    
     @UseGuards(AuthGuard, AuthorizationGuard)
     @Roles(Role.User, Role.Instructor)
     @Post('replies') //done and tested
@@ -89,14 +106,55 @@ export class ForumController {
       return updatedThread;
     }
 
-    @Get('thread/:threadId/replies')  
-    async getAllReplies(@Param('threadId') threadId: mongoose.Types.ObjectId): Promise<Reply[]> {
-      try {
-        const replies = await this.forumService.getAllReplies(threadId);  // Call the service method
-        return replies;  // Return the populated replies
-      } catch (error) {
-        throw new NotFoundException('Replies not found');
+    
+    @Get('thread/:threadId/replies')
+    async getReplies(@Param('threadId') threadId: string): Promise<Reply[]> {
+      const replies = await this.forumService.getRepliesByThreadId(threadId);
+      
+      if (!replies || replies.length === 0) {
+        throw new NotFoundException('No replies found for this thread');
       }
+  
+      return replies; // Return the replies associated with the threadId
     }
+
+
+
+@Patch(':course_code/:threadId')
+  async updateThread(
+    @Param('course_code') course_code:string,
+    @Param('threadId') threadId: mongoose.Types.ObjectId,
+    @Body() updateThreadDto: UpdateThreadDto
+  ) {
+    try {
+      // Validate ObjectIds
+      // if (!Types.ObjectId.isValid(courseId) || !Types.ObjectId.isValid(threadId)) {
+      //   throw new HttpException('Invalid courseId or threadId', HttpStatus.BAD_REQUEST);
+      // }
+
+      // Call the service to update the thread
+      const updatedThread = await this.forumService.updateForum(
+        course_code,
+        new Types.ObjectId(threadId),
+        updateThreadDto
+      );
+
+      if (!updatedThread) {
+        throw new HttpException('Thread not found or update failed', HttpStatus.NOT_FOUND);
+      }
+
+      return {
+        message: 'Thread updated successfully',
+        thread: updatedThread,
+      };
+    } catch (error) {
+      throw new HttpException(
+        error.message || 'An error occurred while updating the thread',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+
 
 }
