@@ -31,23 +31,26 @@ export class PrivateChatService {
         { member1: member2, member2: member1 },
       ],
     });
-
+  
+    // If a chat already exists, return the existing chat
     if (existingChat) {
-        return existingChat;
-      //if a chat exists, do nothing and return, if it doesnt create it
-      //in front end both cases will redirect to the chat
+      return existingChat;
     }
-
-    // Create a new private chat
+  
+    // Create a new private chat only if no existing chat was found
     const newChat = new this.privateChatModel({
       member1: member1,
       member2: member2,
-    //  course_code: null, // No course associated with private chats
       Message: [], // Initially, no messages
     });
-    await this.notifService.createPrivateChatNotification(member1, member2) //send to member2 that member1 initiates a chat
-    return newChat.save();
+  
+    // Send a notification to member2 that member1 initiates a chat
+    await this.notifService.createPrivateChatNotification(member1, member2);
+  
+    // Save the new chat and return the saved chat
+    return await newChat.save();
   }
+  
 
   async addMessageToPrivateChat(
     chatId: string,

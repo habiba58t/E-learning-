@@ -1,8 +1,9 @@
-"use client"
+'use client';
 
 import axiosInstance from '@/app/utils/axiosInstance';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import Picker from 'emoji-picker-react';
 
 interface ChatData {
   member1: string;
@@ -19,124 +20,187 @@ interface MessageData {
 
 const ChatPage = () => {
   const { currentUsername, receiverUsername } = useParams();
-  const [username, setUsername] = useState<string | null>(null);
   const [error, setError] = useState<string>('');
-  const [chat, setChat] = useState<MessageData[]>([]); // Initialize with empty array
-  const [users, setUsers] = useState<string[]>([]);  // Initialize with empty array
-  const [currentChatId, setCurrentChatId] = useState<string | null>(null); // Store the current chat ID
+  const [chat, setChat] = useState<MessageData[]>([]);
+  const [users, setUsers] = useState<string[]>([]);
+  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  const [inputMessage, setInputMessage] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [username, setUsername] = useState<string | null>(null);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
+  const [lastMessageTimestamp, setLastMessageTimestamp] = useState<number | null>(null);
 
   const fetchCookieData = async () => {
+    const response = await fetch('http://localhost:3002/auth/get-cookie-data', {
+      credentials: 'include',
+    });
+    const { userData } = await response.json();
+
+    if (!userData?.payload?.username) {
+      console.error('No cookie data found');
+      setError('No cookie data found');
+      return;
+    }
+
+    setUsername(userData.payload.username);
+  };
+
+  const createOrLoadChat = async () => {
     try {
-      const response = await fetch('http://localhost:3002/auth/get-cookie-data', {
-        credentials: 'include',
-      });
-      const { userData } = await response.json();
+      await axiosInstance.post<ChatData[]>(`http://localhost:3002/private-chat/create/${receiverUsername}/${currentUsername}`);
 
-      if (!userData?.payload?.username) {
-        console.error('No cookie data found');
-        setError('No cookie data found');
-        return;
-      }
-
-      const user = userData.payload.username;
-      setUsername(user);
-      console.log('User logged in:', user);
-
-      // Fetch chat with selected user
-      const createChat = await axiosInstance.post(`http://localhost:3002/private-chat/create/${currentUsername}/${receiverUsername}`)
-      const messages = createChat.data.Message;
-      setChat(messages);
-      console.log(messages)
-      setCurrentChatId(createChat.data._id); // Save the chat ID
-
-      // Fetch all users for left panel (chat list)
       const myChats = await axiosInstance.get<ChatData[]>(`http://localhost:3002/private-chat/user/${currentUsername}`);
-      const otherMembers = myChats.data.map(chat => chat.member1 === currentUsername ? chat.member2 : chat.member1);
-      const uniqueUsers = [...new Set(otherMembers)]; // Remove duplicate usernames
-      setUsers(uniqueUsers);
-      
-
+      const otherMembers = myChats.data.map(chat =>
+        chat.member1 === currentUsername ? chat.member2 : chat.member1
+      );
+      setUsers([...new Set(otherMembers)]);
     } catch (err) {
-      console.error('Error fetching cookie data:', err);
+      console.error('Error creating or loading chat:', err);
       setError('Error fetching cookie data');
     }
   };
 
-  useEffect(() => {
-  //  if (currentUsername && receiverUsername) {
-      fetchCookieData();
-    
-  }, [currentUsername, receiverUsername]);
-  
-  // Handle sending a message
-  const handleSentMessage = async (content: string) => {
-    console.log(currentUsername)
-    console.log(currentUsername)
-    if (!content || !currentChatId) return;
-    //console.log(currentUsername)
-    const message = {
-      content,
-      sentBy: currentUsername,
-    };
+ const fetchUpdatedChat = async () => {
+    if (!selectedUser || loading) return; // Prevent redundant fetches
+    setLoading(true);
 
     try {
-      // Send the message to the backend
-      const response = await axiosInstance.post(`http://localhost:3002/private-chat/${currentChatId}/message`,  message );
-      console.log(response.data)
-      // After sending the message, update the chat with the new messages
-      setChat(response.data.messages);
+      const getChatResponse = await axiosInstance.get<ChatData>(
+        `http://localhost:3002/private-chat/get-chat/${currentUsername}/${selectedUser}`
+      );
+
+      // Only update chat if new messages are fetched
+      if (getChatResponse.data.Message && getChatResponse.data.Message.length !== chat.length) {
+        setChat(getChatResponse.data.Message);
+        setCurrentChatId(getChatResponse.data._id);
+      }
     } catch (error) {
-      console.error('Error sending message:', error);
-      setError('Error sending message');
+      console.error('Error fetching updated chat:', error);
+      setError('Error fetching chat messages');
+    } finally {
+      setLoading(false);
     }
   };
 
 
-  const handleUserClick = async (selectedUser: string) => {
+  const handleSentMessage = async () => {
+    if (!inputMessage || !currentChatId) return;
+  
+    const newMessage = {
+      content: inputMessage,
+      sentBy: currentUsername,
+      sentAt: new Date(), // Temporary timestamp for UI
+    };
+      
+    // Optimistically update local state
+    setChat(prevChat => [...prevChat, newMessage]);
+    setInputMessage(''); // Clear input field immediately
+
     try {
-      const chatData = await axiosInstance.get<ChatData>(`http://localhost:3002/private-chat/get-chat/${currentUsername}/${selectedUser}`);
-      setChat(chatData.data.Message); // Update chat messages
-      setCurrentChatId(chatData.data._id); // Update the current chat ID
+      const response = await axiosInstance.post(
+        `http://localhost:3002/private-chat/${currentChatId}/message`,
+        { content: inputMessage, sentBy: currentUsername }
+      );
+
+      // Update local state while merging with new messages
+      // setChat(prevChat => {
+      //   const mergedChat: MessageData[] = [...prevChat, newMessage];
+      //   const uniqueChat = Array.from(new Set(mergedChat.map(msg => JSON.stringify(msg)))).map(
+      //     msg => JSON.parse(msg)
+      //   );
+      //   return uniqueChat;
+      // });
+
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setError('Error sending message');
+
+      // Rollback: Remove the optimistic message on error
+      setChat(prevChat => prevChat.filter(msg => msg !== newMessage));
+    }
+  };
+
+
+  const handleUserClick = async (user: string) => {
+    if (user === selectedUser) return;
+    setSelectedUser(user);
+    setChat([]);
+
+    try {
+      const chatData = await axiosInstance.get<ChatData>(
+        `http://localhost:3002/private-chat/get-chat/${currentUsername}/${user}`
+      );
+      setChat(chatData.data.Message);
+      setCurrentChatId(chatData.data._id);
+      setLastMessageTimestamp(new Date(chatData.data.Message[chatData.data.Message.length - 1].sentAt).getTime());
     } catch (error) {
       console.error('Error opening chat:', error);
       setError('Error opening chat');
     }
   };
 
-  
-  useEffect(() => {
-    // This useEffect will re-fetch the chat whenever a new message is sent
-    if (currentChatId) {
-      const fetchUpdatedChat = async () => {
-        try {
-          const getChatResponse = await axiosInstance.get<ChatData>(`http://localhost:3002/private-chat/get-chat/${currentUsername}/${receiverUsername}`);
-          const updatedMessages = getChatResponse.data.Message;
-          setChat(updatedMessages);
-        } catch (error) {
-          console.error('Error fetching updated chat:', error);
-        }
-      };
+  const handleEmojiClick = (emoji: string) => {
+    setInputMessage(prev => prev + emoji);
+    setEmojiPickerVisible(false);
+  };
 
+  const handleThemeToggle = (newTheme: 'light' | 'dark') => {
+    setTheme(newTheme);
+  };
+
+  const safeCurrentUsername = Array.isArray(currentUsername) ? currentUsername[0] : currentUsername;
+
+  useEffect(() => {
+    if (safeCurrentUsername) {
+      setUsername(safeCurrentUsername);
+      fetchCookieData();
+      createOrLoadChat();
+    }
+  }, [safeCurrentUsername]);
+
+  
+
+useEffect(() => {
+    if (selectedUser) {
       fetchUpdatedChat();
     }
-  }, [chat]); // This will run whenever the `chat` state changes (after sending a message)
+    const interval = setInterval(() => {
+      fetchUpdatedChat();
+    }, 3000);
 
-  //repeat one for receiving a message by polling using use effect
+    return () => clearInterval(interval);
+  }, [selectedUser]);
+
+
+
+
   return (
-    <div className="flex h-screen">
+    <div className={`flex h-screen ${theme === 'light' ? 'bg-gradient-to-r from-blue-100 via-green-100 to-purple-100' : 'bg-gradient-to-r from-gray-800 via-gray-700 to-gray-600'}`}>
+      {/* Theme Toggle Button */}
+      <div className="absolute top-4 right-4">
+        <button
+          onClick={() => handleThemeToggle(theme === 'light' ? 'dark' : 'light')}
+          className="p-2 bg-gray-800 text-white rounded-full shadow-lg hover:bg-gray-600"
+        >
+          {theme === 'light' ? '🌙 Dark' : '🌞 Light'}
+        </button>
+      </div>
+
       {/* Left Panel - Users List */}
-      <div className="w-1/4 bg-gray-300 p-4">
-        <h2 className="text-xl font-semibold text-blue-500">Chats</h2>
+      <div className={`w-1/4 p-4 ${theme === 'light' ? 'bg-gradient-to-b from-green-200 to-blue-300' : 'bg-gradient-to-b from-gray-800 to-gray-900'} shadow-lg rounded-lg`}>
+        <h2 className="text-xl font-semibold text-blue-600">Chats </h2>
         <div className="mt-4 space-y-2">
           {users && users.length > 0 ? (
             users.map((user, index) => (
-              <div key={index} 
-                className="p-2 cursor-pointer hover:bg-gray-200 rounded text-blue-500" 
+              <div
+                key={index}
+                className={`p-2 cursor-pointer hover:bg-gray-200 rounded ${selectedUser === user ? 'bg-indigo-400' : ''}`}
                 onClick={() => handleUserClick(user)}
-                >
-              <span className="font-medium">{user}</span>
+              >
+                <span className="font-medium text-blue-700">{user}</span>
               </div>
-
             ))
           ) : (
             <div>No users to chat with.</div>
@@ -145,19 +209,28 @@ const ChatPage = () => {
       </div>
 
       {/* Right Panel - Chat Box */}
-      <div className="w-3/4 bg-white p-4 flex flex-col">
-        <h2 className="text-xl font-semibold mb-4 text-gray-600">
-          Chat between {currentUsername} and {receiverUsername}
-        </h2>
+      <div className={`w-3/4 p-6 flex flex-col space-y-4 rounded-lg shadow-xl ${theme === 'light' ? 'bg-gradient-to-tr from-slate-100 to-teal-100' : 'bg-gradient-to-tr from-slate-800 to-cyan-800 text-white'}`}>
+        <h2 className={`text-xl font-semibold" ${theme === 'light' ? 'text-purple-700' : ' text-white'}`}>{selectedUser ? `Chat with ${selectedUser}` : 'No user selected'}</h2>
 
-        {/* Chat History */}
-        <div className="flex-1 overflow-y-auto space-y-4 text-gray-600">
+{/* Chat History */}
+<div className="flex-1 overflow-y-auto space-y-4 text-gray-600">
           {chat && chat.length > 0 ? (
             chat.map((message, index) => (
-              <div key={index} className={`flex ${message  .sentBy === username ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-xs px-4 py-2 rounded-lg text-white ${message.sentBy === username ? 'bg-blue-500' : 'bg-gray-500'}`}>
+              <div
+                key={index}
+                className={`flex ${
+                  message.sentBy === username ? 'justify-end' : 'justify-start'
+                }`}
+              >
+                <div
+                  className={`max-w-xs px-4 py-2 rounded-lg text-white ${
+                    message.sentBy === username ? 'bg-blue-500' : 'bg-gray-500'
+                  }`}
+                >
                   <p>{message.content}</p>
-                  <span className="text-xs text-gray-700">{new Date(message.sentAt).toLocaleTimeString()}</span>
+                  <span className="text-xs text-gray-700">
+                    {new Date(message.sentAt).toLocaleTimeString()}
+                  </span>
                 </div>
               </div>
             ))
@@ -166,26 +239,42 @@ const ChatPage = () => {
           )}
         </div>
 
+
         {/* Send Message */}
-        <div className="mt-4 flex items-center">
-          <input
-            type="text"
-            className="w-full p-2 border border-gray-300 rounded-l-lg text-gray-600"
-            placeholder="Type a message..."
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleSentMessage((e.target as HTMLInputElement).value);
-                (e.target as HTMLInputElement).value = '';  // Clear input field
-              }
-            }}
-          />
-          <button
-            className="p-2 bg-blue-500 text-white rounded-r-lg"
-            onClick={() => handleSentMessage('vvv!')}
-          >
-            Send
-          </button>
-        </div>
+        {selectedUser && (
+          <div className="mt-4 flex items-center space-x-2">
+            <input
+              type="text"
+              value={inputMessage}
+              onChange={e => setInputMessage(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-600"
+              placeholder="Type a message..."
+              onKeyDown={e => {
+                if (e.key === 'Enter') handleSentMessage();
+              }}
+            />
+            <button
+              className="p-2 bg-indigo-500 text-white rounded-r-lg hover:bg-indigo-700"
+              onClick={handleSentMessage}
+            >
+              <span role="img" aria-label="send">📤</span> Send
+            </button>
+
+            <button
+              className="p-1 bg-yellow-500 text-white rounded-full"
+              onClick={() => setEmojiPickerVisible(!emojiPickerVisible)}
+            >
+              😊
+            </button>
+          </div>
+        )}
+
+        {/* Emoji Picker */}
+        {emojiPickerVisible && (
+          <div className="absolute bottom-16 right-4 z-10">
+            <Picker onEmojiClick={(emojiData) => handleEmojiClick(emojiData.emoji)} />
+          </div>
+        )}
       </div>
     </div>
   );

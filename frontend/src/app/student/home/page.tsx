@@ -30,19 +30,17 @@ const HomePage = () => {
 
   useEffect(() => {
     if (selectedCategory === "course") {
-      fetchAllCourses();
+      if (searchQuery) {
+        filterCourses();  // If there's a search query, filter the courses
+      } else {
+        fetchAllCourses();  // Fetch all courses if no search query
+      }
     } else {
-      fetchResults();
+      fetchResults();  // Always fetch results when category is not 'course'
     }
-  }, [selectedCategory]);
+  }, [selectedCategory, searchQuery]); // Both selectedCategory and searchQuery will trigger this effect
 
-  useEffect(() => {
-    if (selectedCategory === "course") {
-      filterCourses();
-    } else {
-      fetchResults();
-    }
-  }, [searchQuery]);
+  
 
   useEffect(() => {
     // Fetch user data on component mount
@@ -159,7 +157,7 @@ const HomePage = () => {
     }
   };
 //username is from token and other is the one i want to message
-  const handleRedirectToChat = (receiverUsername: string|undefined) => {
+  const handleRedirectToChat = (receiverUsername: string | undefined) => {
     const currentUsername = username;
     router.push(`/student/private-chats/${currentUsername}/${receiverUsername}`);
   };

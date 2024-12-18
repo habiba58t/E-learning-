@@ -17,7 +17,7 @@ export class MessageController {
  }
 
  @Post()
-  async createMessage2(@Body() messageDto: CreateMessageDto): Promise<Message> {
+  async createMessage2(@Body() messageDto: CreateMessageDto): Promise<MessageDocument> {
     return this.messageService.createMessage2(messageDto);
   }
 

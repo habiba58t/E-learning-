@@ -7,15 +7,15 @@ export type MessageDocument = HydratedDocument<Message>;
 @Schema()
 export class Message {
   // The content of the message
-  @Prop({  required: true })
+  @Prop({ required: true })
   content: string;
 
   // Sender of the message (username or user ID)
   @Prop({ required: true })
   sentBy: string;
 
-  // Timestamp for when the message was sent
-  @Prop({ default: Date.now })
+  // Timestamp for when the message was sent, default to current date if not provided
+  @Prop({ default: () => new Date() })
   sentAt: Date;
 }
 
