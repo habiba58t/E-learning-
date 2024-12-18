@@ -4,7 +4,12 @@ import Link from 'next/link';
 import React from 'react';
 import { FaBell, FaUser, FaSignOutAlt, FaSearch } from 'react-icons/fa';
 
-const NavBar: React.FC = () => {
+interface NavBarProps {
+  searchTerm: string;
+  handleSearch: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+const NavBar: React.FC<NavBarProps> = ({ searchTerm, handleSearch }) => {
   return (
     <nav className="bg-white bg-opacity-50 backdrop-filter backdrop-blur-lg shadow-lg border-b border-gray-200 fixed w-full z-10 top-0 left-0">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
@@ -12,8 +17,10 @@ const NavBar: React.FC = () => {
         <div className="flex items-center w-1/2">
           <input
             type="text"
+            value={searchTerm}
+            onChange={handleSearch}
             className="w-full px-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Search..."
+            placeholder="Search by course title or instructor name..."
           />
           <button className="ml-2 text-blue-600">
             <FaSearch className="w-5 h-5" />
