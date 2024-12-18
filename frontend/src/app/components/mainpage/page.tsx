@@ -27,7 +27,7 @@ export default function MainPage () {
     const fetchCourses = async () => {
       setLoading(true);
       try {
-        const response = await axiosInstance.get<Course[]>('/courses'); 
+        const response = await axiosInstance.get<Course[]>('cd/courses'); 
         setCourses(response.data);
         setFilteredCourses(response.data);
       } catch (error) {
