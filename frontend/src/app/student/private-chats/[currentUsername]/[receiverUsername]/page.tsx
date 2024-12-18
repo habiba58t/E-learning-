@@ -134,7 +134,7 @@ const ChatPage = () => {
       );
       setChat(chatData.data.Message);
       setCurrentChatId(chatData.data._id);
-      setLastMessageTimestamp(new Date(chatData.data.Message[chatData.data.Message.length - 1].sentAt).getTime());
+ //     setLastMessageTimestamp(new Date(chatData.data.Message[chatData.data.Message.length - 1].sentAt).getTime());
     } catch (error) {
       console.error('Error opening chat:', error);
       setError('Error opening chat');

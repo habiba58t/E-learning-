@@ -24,7 +24,6 @@ const HomePage = () => {
   const [results, setResults] = useState<UserorCourseData[]>([]);
   const [allCourses, setAllCourses] = useState<UserorCourseData[]>([]);
   const [username, setUsername] = useState<string | null>(null);
-  const [enrollmentStatus, setEnrollmentStatus] = useState<Record<string, string>>({});
 
   const router = useRouter(); // Use the hook here
 
@@ -105,42 +104,7 @@ const HomePage = () => {
     }
   };
 
-  const handleEnroll = async (key: string) => {
-    if (!username) {
-      setError("User is not logged in");
-      return;
-    }
-
-    try {
-      const response = await axiosInstance.put(
-        `http://localhost:3002/student/enroll/${key}`
-      );
-      alert("You enrolled successfully!")
-      router.push("/student/courses");
-    } catch (err) {
-      console.error("Error enrolling in course:", err);
-    }
-  };
-
-  const handleIsEnrolled = async (courseid: string) => {
-    if (!username) {
-      setError("User is not logged in");
-      return "no";
-    }
-
-    try {
-      const response = await axiosInstance.get<string>(
-        `http://localhost:3002/student/isenrolled/${courseid}`
-      );
-      return response.data; // Returns "yes" or "no"
-    } catch (err) {
-      console.error("Error checking enrollment:", err);
-      setError("Error checking enrollment");
-      return "no";
-    }
-  };
-
-  const filterCourses = () => {
+ const filterCourses = () => {
     const filtered = allCourses.filter((course) =>
       course.title?.toLowerCase().includes(searchQuery.toLowerCase().trim())
     );
@@ -156,11 +120,7 @@ const HomePage = () => {
         return "";
     }
   };
-//username is from token and other is the one i want to message
-  const handleRedirectToChat = (receiverUsername: string | undefined) => {
-    const currentUsername = username;
-    router.push(`/student/private-chats/${currentUsername}/${receiverUsername}`);
-  };
+
 
   const renderResult = (item: UserorCourseData) => {
     if (selectedCategory === "course") {
@@ -174,20 +134,7 @@ const HomePage = () => {
           <p className="text-gray-600">Description: {item.description}</p>
           <p className="text-gray-600">Instructor: {item.created_by}</p>
           <p className="text-gray-600">Average Rating: {item.average_rating || "N/A"}</p>
-          {username && (
-            <div>
-              {enrollmentStatus[item._id] === "yes" ? (
-                <p className="text-blue-600">You are enrolled in the course!</p>
-              ) : (
-                <button
-                  onClick={() => handleEnroll(item.course_code)}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg"
-                >
-                  Enroll
-                </button>
-              )}
-            </div>
-          )}
+
         </div>
       );
     } else {
@@ -199,36 +146,13 @@ const HomePage = () => {
           <h3 className="font-bold text-lg text-blue-600">{item.name}</h3>
           <p className="text-gray-600">Email: {item.email}</p>
           <p className="text-gray-600">Username: {item.username}</p>
-          {/* Add "Message" button for students */}
-          {selectedCategory === "student" && (
-            <button
-              onClick={() => handleRedirectToChat(item.username)}
-              className="mt-2 bg-gradient-to-br from-sky-600 to-sky-900 text-white px-4 py-2 rounded-lg hover:shadow-xl hover:bg-gradient-to-br from-slate-500 via-indigo-900 to-zinc-800"
-            >
-              Message
-            </button>
-          )}
         </div>
       );
     }
   };
   
 
-  useEffect(() => {
-    // Check enrollment status for all courses when data is available
-    const fetchEnrollmentStatus = async () => {
-      const status: Record<string, string> = {};
-      for (const course of allCourses) {
-        const enrollment = await handleIsEnrolled(course._id);
-        status[course._id] = enrollment;
-      }
-      setEnrollmentStatus(status);
-    };
 
-    if (allCourses.length > 0 && username) {
-      fetchEnrollmentStatus();
-    }
-  }, [allCourses, username]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
@@ -257,7 +181,7 @@ const HomePage = () => {
         </div>
       </header>
 
-        {/* Main Content */}
+      {/* Main Content */}
       <main className="container mx-auto px-6 py-8">
         <h2 className="text-3xl font-bold text-gray-700 text-center mb-6">
           Search Results
