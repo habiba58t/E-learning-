@@ -43,21 +43,30 @@ export default function ProgressPage() {
 
             console.log("Initial progress data:", progresses);
 
+    
+
+
             // Collect progress data with additional information
             const progressWithAdditionalData: Progress[] = [];
 
             for (const course of progresses) {
                 try {
+                    const course_code = course.course_code
+
+                    const getCourse = await axiosInstance.get(`http://localhost:3002/courses/${course_code}`)
+                    console.log(getCourse.data)
                     // Fetch avgScore and level for each course
                     const avgScoreResponse = await axiosInstance.get<number>(
-                        `${backend_url}/student/${username}/score/${course._id}`
+                       // `${backend_url}/student/${username}/level/${course._id}`
+                        `http://localhost:3002/student/${username}/score/${getCourse.data._id}`
                     );
                     const levelResponse = await axiosInstance.get<string>(
-                        `${backend_url}/student/${username}/level/${course._id}`
+                         `http://localhost:3002/student/${username}/level/${getCourse.data._id}`
+                        
                     );
 
-                    console.log("Average Score Response:", avgScoreResponse);
-                    console.log("Level Response:", levelResponse);
+                    console.log("Average Score Response:", avgScoreResponse.data);
+                    console.log("Level Response:", levelResponse.data);
 
                     // Check for null or undefined values
                     const avgScore = avgScoreResponse.data ?? "No score available";
@@ -122,20 +131,20 @@ export default function ProgressPage() {
                                         <h2 className="text-xl font-semibold text-gray-800">
                                             {course.course_code}
                                         </h2>
-                                        <p className="text-gray-600">
+                                        {/* <p className="text-gray-600">
                                             Last Accessed: {new Date(course.last_accessed).toLocaleDateString()}
-                                        </p>
-                                        <p>Average Score: {course.avgScore}</p>
+                                        </p> */}
+                                        <p className="text-gray-800">Average Score: {course.avgScore}</p>
                                         <p>Level: {course.level}</p>
                                     </div>
-                                    <div className="text-gray-700 font-bold">
+                                    <div className="text-gray-700 font-bold ">
                                         {course.completion_percentage}%
                                     </div>
                                 </div>
 
                                 <div className="relative w-full h-4 bg-gray-300 rounded-full mt-4">
                                     <div
-                                        className="absolute h-4 bg-blue-500 rounded-full"
+                                        className="absolute h-4 bg-blue-500 rounded-full "
                                         style={{
                                             width: `${course.completion_percentage}%`,
                                         }}
