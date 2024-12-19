@@ -23,6 +23,7 @@ interface Course {
     modules: string[];
     averageRating:string
     totalStudents:string
+   
 }
 
 interface Module {

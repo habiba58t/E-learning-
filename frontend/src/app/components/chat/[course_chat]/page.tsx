@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import axiosInstance from "@/app/utils/axiosInstance";
+import Picker from 'emoji-picker-react';
 
 const fetchUsernameFromCookies = async (): Promise<string | null> => {
   try {
@@ -17,15 +18,30 @@ const fetchUsernameFromCookies = async (): Promise<string | null> => {
   }
 };
 
-
 // Add user to the group when they click "Join"
-const joinGroupChat = async (groupName: string, username: string) => {
+const joinGroupChat = async (groupName: string, username: string, onSuccess: () => void) => {
   try {
     await axiosInstance.post(`http://localhost:3002/group-chat/${groupName}/add-user/${username}`);
     alert("Successfully joined the group!");
+    onSuccess();
   } catch (error) {
     console.error("Error adding user to group:", error);
     alert("Failed to join the group.");
+  }
+};
+
+// Create a new group chat
+const createGroupChat = async (courseCode: string, groupName: string, createdBy: string, onSuccess: () => void) => {
+  try {
+    await axiosInstance.post(`http://localhost:3002/group-chat/${courseCode}`, {
+      group_name: groupName,
+      createdBy: createdBy,
+    });
+    alert("Group chat created successfully!");
+    onSuccess();
+  } catch (error) {
+    console.error("Error creating group chat:", error);
+    alert("Failed to create group chat.");
   }
 };
 
@@ -33,7 +49,8 @@ const joinGroupChat = async (groupName: string, username: string) => {
 interface Chat {
   messages: Message[];
   group_name: string;
-  members: string[]
+  members: string[];
+  course_code: string;
 }
 
 interface Message {
@@ -44,12 +61,15 @@ interface Message {
 
 const ChatPage: React.FC = () => {
   const params = useParams();
-  const course_code = params.course_chat;
+  const course_code = params.course_chat && typeof params.course_chat === 'string' ? params.course_chat : "";
   const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [messageInput, setMessageInput] = useState<string>("");
   const [username, setUsername] = useState<string | null>(null);
+  const [newGroupName, setNewGroupName] = useState<string>("");
+  const [showGroupForm, setShowGroupForm] = useState<boolean>(false); // New state to toggle form visibility
+  const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
 
   useEffect(() => {
     const fetchUsername = async () => {
@@ -77,21 +97,22 @@ const ChatPage: React.FC = () => {
     fetchChats();
   }, [course_code]);
 
-  const fetchMessages = async (groupId: string) => {
-    if (!groupId) {
-      console.error("groupId is undefined or empty");
-      return;
-    }
-
+  const fetchMessages = async (groupName: string) => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get<Chat>(`http://localhost:3002/group-chat/${groupId}/messages`);
+      const response = await axiosInstance.get<Chat>(`http://localhost:3002/group-chat/${groupName}/messages`);
       setSelectedChat(response.data);
     } catch (error) {
       console.error("Error fetching group messages:", error);
     } finally {
       setLoading(false);
     }
+  };
+
+
+  const handleEmojiClick = (emoji: string) => {
+    setMessageInput(prev => prev + emoji);
+    setEmojiPickerVisible(false);
   };
 
   const sendMessage = async () => {
@@ -103,21 +124,19 @@ const ChatPage: React.FC = () => {
       };
 
       try {
-        const response = await axiosInstance.post(
+        await axiosInstance.post(
           `http://localhost:3002/group-chat/${selectedChat.group_name}/message`,
           newMessage
         );
 
-        setSelectedChat((prevChat) => {
-          if (prevChat) {
-            return {
-              group_name: prevChat.group_name,
-              messages: [...prevChat.messages, newMessage],
-              members: prevChat.members,
-            };
-          }
-          return prevChat;
-        });
+        setSelectedChat((prevChat) =>
+          prevChat
+            ? {
+                ...prevChat,
+                messages: [...prevChat.messages, newMessage],
+              }
+            : prevChat
+        );
 
         setMessageInput("");
       } catch (error) {
@@ -160,18 +179,81 @@ const ChatPage: React.FC = () => {
       {/* Sidebar with Chat Groups */}
       <div className="w-1/4 bg-blue-600 text-white rounded-lg shadow-lg p-6 mr-6 flex flex-col">
         <h1 className="text-3xl font-semibold text-center mb-8">Course Chats</h1>
+        {/* Create Group Form */}
+        <div className="mb-4">
+          {/* Button to toggle form */}
+          <button
+            className="mb-2 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-700"
+            onClick={() => setShowGroupForm(!showGroupForm)}
+          >
+            {showGroupForm ? "Cancel" : "Create Group"}
+          </button>
+          {showGroupForm && (
+            <div className="mb-4">
+              <input
+  type="text"
+  className="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+  placeholder="Enter new group name"
+  value={newGroupName}
+  onChange={(e) => setNewGroupName(e.target.value)}
+/>
+              <button
+                className="mt-2 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-700"
+                onClick={() =>
+                  createGroupChat(course_code, newGroupName, username ?? "", () => {
+                    setNewGroupName(""); // Clear input after creating group
+                    setShowGroupForm(false); // Hide form after creating group
+                    setChats((prevChats) => [
+                      ...prevChats,
+                      { group_name: newGroupName, messages: [],  members: [username ?? ""], course_code },
+                    ]);
+                  })
+                }
+              >
+                Create Group
+              </button>
+            </div>
+          )}
+        </div>
+
         {/* Chat Groups */}
         <div className="space-y-4">
           {chats.length > 0 ? (
-            chats.map((chat) => (
-              <div
-                key={chat.group_name}
-                className="bg-blue-500 p-4 rounded-lg cursor-pointer hover:bg-blue-700 transition-all"
-                onClick={() => fetchMessages(chat.group_name)} // Fetch messages for the selected chat
-              >
-                <h2 className="text-xl font-bold">{chat.group_name}</h2>
-              </div>
-            ))
+            chats.map((chat) => {
+              const isMember = chat.members.includes(username || "");
+              return (
+                <div
+                  key={chat.group_name}
+                  className="bg-blue-500 p-4 rounded-lg cursor-pointer hover:bg-blue-700 transition-all flex justify-between items-center"
+                >
+                  <h2
+                    className={`text-xl font-bold ${
+                      isMember ? "cursor-pointer" : "cursor-default"
+                    }`}
+                    onClick={() => isMember && fetchMessages(chat.group_name)}
+                  >
+                    {chat.group_name}
+                  </h2>
+                  {!isMember && (
+                    <button
+                      className="bg-green-500 text-white py-1 px-3 rounded-lg hover:bg-green-700"
+                      onClick={() =>
+                        joinGroupChat(chat.group_name, username || "", () => {
+                          const updatedChats = chats.map((c) =>
+                            c.group_name === chat.group_name
+                              ? { ...c, members: [...c.members, username!] }
+                              : c
+                          );
+                          setChats(updatedChats);
+                        })
+                      }
+                    >
+                      Join
+                    </button>
+                  )}
+                </div>
+              );
+            })
           ) : (
             <div className="text-center text-gray-300">No group chats available for this course.</div>
           )}
@@ -210,7 +292,9 @@ const ChatPage: React.FC = () => {
                         className={`flex-1 ${isYourMessage ? "mr-4" : "ml-4"} max-w-xs`}
                       >
                         <div
-                          className={`p-4 rounded-lg shadow-md ${isYourMessage ? "bg-orange-200 text-black" : "bg-blue-100 text-black"}`}
+                          className={`p-4 rounded-lg shadow-md ${
+                            isYourMessage ? "bg-orange-200 text-black" : "bg-blue-100 text-black"
+                          }`}
                         >
                           <div className="flex justify-between mb-2">
                             <span className="font-semibold">
@@ -244,8 +328,17 @@ const ChatPage: React.FC = () => {
                 className="bg-blue-600 text-white py-2 px-4 rounded-full hover:bg-blue-700 transition-all"
                 onClick={sendMessage} // Send the message
               >
-                <span className="material-icons">send</span> {/* You can use any icon */}
+                <span className="material-icons">send</span>
               </button>
+              <button
+              className="p-1 bg-yellow-400 text-white rounded-lg hover:bg-yellow-600"
+              onClick={() => setEmojiPickerVisible(!emojiPickerVisible)}
+            >
+              😊
+            </button>
+            {emojiPickerVisible && (
+              <Picker onEmojiClick={(emojiData, event) => handleEmojiClick(emojiData.emoji)} />
+            )}
             </div>
           </div>
         )}
@@ -253,7 +346,5 @@ const ChatPage: React.FC = () => {
     </div>
   );
 };
-  
-
 
 export default ChatPage;
