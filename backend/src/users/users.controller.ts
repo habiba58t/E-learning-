@@ -25,7 +25,7 @@ export class UsersController {
     return this.usersService.findUserByUsername(username);
   }
  //GETT ALL USERS ENROLLED IN A COURSE
- @UseGuards(AuthorizationGuard)
+ @UseGuards(AuthGuard,AuthorizationGuard)
 @Roles(Role.User, Role.Admin, Role.Instructor)
  @Get() 
    async getEnrolledStudents(@Param('objectId')objectId: mongoose.Types.ObjectId): Promise<string[]>{
@@ -69,4 +69,12 @@ async updateProfile(@Param('username') username: string,@Body() updateUserDto: U
     user: updatedUser,
   };
 }
+
+@UseGuards(AuthGuard,AuthorizationGuard)
+@Roles(Role.Admin)
+@Get(':username/validation')
+  async validation(@Param('username') username: string): Promise<boolean> {
+   return await this.usersService.validation(username);
+  }
+
 }

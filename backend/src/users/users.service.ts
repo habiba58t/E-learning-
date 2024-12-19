@@ -128,5 +128,10 @@ async updateProfile(username: string, updateUserDto: UpdateUserDto): Promise<use
   return user;
 }
 
+async validation(username: string): Promise<boolean> {
+  const user = await this.userModel.findOne({ username }).exec();
+  return !!user;
+}
+
 
 }
