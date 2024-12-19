@@ -266,6 +266,10 @@ const ModulePage = () => {
     router.push(`/components/instructor/courses/${courseCode}/Quiz/${moduleId}`);
   };
 
+  const handleChat= () => {
+    router.push(`/components/instructor/courses/${courseCode}/Chat/${courseCode}`);
+  };
+
   if (error) {
     return <div className="text-red-500">{error}</div>;
   }
@@ -322,6 +326,12 @@ const ModulePage = () => {
           onClick={() => setShowModal(true)}
         >
           Add Content
+        </button>
+        <button
+          className="px-3 py-1 rounded-lg bg-blue-500 text-white shadow-md hover:opacity-80"
+          onClick={() => handleChat()}
+        >
+          Chat
         </button>
 
         {showModal && (
@@ -414,6 +424,8 @@ const ModulePage = () => {
               {module.enableNotes ? 'Notes Disabled' : 'Notes Enabled'}
             </button>
         </div>
+
+
       </div>
  
       <div className="mt-8">

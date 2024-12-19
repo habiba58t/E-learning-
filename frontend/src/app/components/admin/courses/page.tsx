@@ -120,6 +120,22 @@ export default function AdminPage (){
   };
 
   const handleCreateCourse = async () => {
+    if (
+      !newCourse.course_code ||
+      !newCourse.title ||
+      !newCourse.description ||
+      !newCourse.category ||
+      !newCourse.level ||
+      !newCourse.created_by
+    ) {
+      alert("All fields are required to create a course.");
+      return;
+    }
+    const isUsernameValid = await validateUsername(newCourse.created_by);
+    if (!isUsernameValid) {
+      alert("Invalid username. Please check the instructor username.");
+      return;
+    }
     try {
       const cookieResponse = await fetch(`${backend_url}/auth/get-cookie-data`, {
         credentials: "include",
@@ -150,6 +166,7 @@ export default function AdminPage (){
       });
       setShowCreateForm(false);
       fetchCookieData(); // Refresh course list
+      alert("Course created successfully!");
     } catch (err) {
       console.error("Error creating course:", err);
       setError("Failed to create course. Please try again.");
@@ -160,23 +177,20 @@ export default function AdminPage (){
     try {
       const response = await axiosInstance.get(`${backend_url}/users/${username}/validation`);
       const data = response.data;
-      if (!data.isValid) {
-        setError("Invalid username");
-        setIsValid(false);
-        return false;
-      } else {
-        setError("");
-        setIsValid(true);
+      console.log("is it valid?", data);
+      if (data===true) {
+   
         return true;
+      } else {
+        
+        return false;
       }
     } catch (error) {
-      console.error("Error validating username:", error);
+    //  console.error("Error validating username:", error);
       setError("Failed to validate username");
-      setIsValid(false);
       return false;
     }
   };
-
   const handleToggleOutdated = async (course_code: string) => {
     try {
         // Fetch user data from cookie
@@ -312,37 +326,28 @@ export default function AdminPage (){
         name="created_by"
         value={newCourse.created_by}
         onChange={handleFormChange}
-        onBlur={() => validateUsername(newCourse.created_by)}
         placeholder="Instructor Username"
         className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
-      {error && (
-        <div className="mt-2 text-sm text-red-600">
-          {error}
-        </div>
-      )}
-    </div>
-          <div className="mt-4 flex justify-end gap-4">
-          <button
-  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:opacity-90 transition-all"
-  onClick={() => {
-    if (!newCourse.course_code || !newCourse.title || !newCourse.description || !newCourse.category || !newCourse.level || !newCourse.created_by) {
-      alert("All fields are required to create a course.");
-      return; // Exit if any field is missing
-    }
-    handleCreateCourse(); // Call the function to create the course
-  }}
->
-  Confirm Create
-</button>
-            <button
-              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:opacity-90 transition-all"
-              onClick={() => setShowCreateForm(false)}
-            >
-              Cancel
-            </button>
+</div>
+<div className="mt-4 flex justify-end gap-4">
+  <button
+    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:opacity-90 transition-all"
+    onClick={handleCreateCourse}
+  >
+    Confirm Create
+  </button>
+  <button
+      className="px-4 py-2 bg-red-500 text-white rounded-lg hover:opacity-90 transition-all"
+    onClick={() => setShowCreateForm(false)}
+  >
+    Cancel
+  </button>
+</div>
+
+
           </div>
-        </div>
+
       )}
   
       {/* Courses List */}
