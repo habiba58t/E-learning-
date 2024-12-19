@@ -32,6 +32,7 @@ export default function AdminPage (){
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [showCreateForm, setShowCreateForm] = useState<boolean>(false);
+  const [isValid, setIsValid] = useState(false); // Track if username is valid
   const [newCourse, setNewCourse] = useState({
     course_code: '',
     title: '',
@@ -152,6 +153,27 @@ export default function AdminPage (){
     } catch (err) {
       console.error("Error creating course:", err);
       setError("Failed to create course. Please try again.");
+    }
+  };
+
+  const validateUsername = async (username: string) => {
+    try {
+      const response = await axiosInstance.get(`${backend_url}/users/${username}/validation`);
+      const data = response.data;
+      if (!data.isValid) {
+        setError("Invalid username");
+        setIsValid(false);
+        return false;
+      } else {
+        setError("");
+        setIsValid(true);
+        return true;
+      }
+    } catch (error) {
+      console.error("Error validating username:", error);
+      setError("Failed to validate username");
+      setIsValid(false);
+      return false;
     }
   };
 
@@ -290,10 +312,16 @@ export default function AdminPage (){
         name="created_by"
         value={newCourse.created_by}
         onChange={handleFormChange}
+        onBlur={() => validateUsername(newCourse.created_by)}
         placeholder="Instructor Username"
         className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
-          </div>
+      {error && (
+        <div className="mt-2 text-sm text-red-600">
+          {error}
+        </div>
+      )}
+    </div>
           <div className="mt-4 flex justify-end gap-4">
           <button
   className="px-4 py-2 bg-green-500 text-white rounded-lg hover:opacity-90 transition-all"
