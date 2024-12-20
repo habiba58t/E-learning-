@@ -1,5 +1,5 @@
 'use client';
-import Sidebar from "@/app/components/student-sidebar/page";
+
 import { Bar, Pie } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from "chart.js";
 import { useRouter } from 'next/navigation';
@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { Course } from "../components/instructor/courses/[courseCode]/viewCourse/page";
 import axiosInstance from "../utils/axiosInstance";
 import { jsPDF } from "jspdf"; // Import jsPDF
+import InstructorSidebar from "../components/instructor/instructor-sidebar/page";
 
 // Register chart components
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
@@ -147,7 +148,7 @@ const Analytics = () => {
     return (
         <div className="flex">
             {/* Sidebar */}
-            <Sidebar />
+            <InstructorSidebar />
 
             {/* Main Content */}
             <div className="flex-1 p-6">

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Put, Delete,NotFoundException  } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete,NotFoundException, Patch  } from '@nestjs/common';
 import { UsersService } from './users.service';
 import * as mongoose from 'mongoose';
 import { Courses } from 'src/courses/courses.schema';
@@ -61,13 +61,18 @@ export class UsersController {
   }
 
   //Update student profile
-@Put(':username')
+@Put('update/:username')
 async updateProfile(@Param('username') username: string,@Body() updateUserDto: UpdateUserDto, ): Promise<any>{
   const updatedUser = await this.usersService.updateProfile(username, updateUserDto);
   return {
     message: 'User profile updated successfully.',
     user: updatedUser,
   };
+}
+
+@Delete('delete/:username')
+async deleteProfile(@Param('username') username: string):Promise<userDocument>{
+  return await this.usersService.deleteUser(username);
 }
 
 

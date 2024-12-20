@@ -110,8 +110,7 @@ async findUsers(username?: string, role?: Role): Promise<Users[]> {
 }
 
 //UPDATE STUDENT PROFILE
-@UseGuards(AuthorizationGuard)
-@Roles(Role.User, Role.Admin, Role.Instructor)
+
 async updateProfile(username: string, updateUserDto: UpdateUserDto): Promise<userDocument> {
   // Find the student by username
   const user = await this.userModel.findOne({ username }).exec();
@@ -126,6 +125,10 @@ async updateProfile(username: string, updateUserDto: UpdateUserDto): Promise<use
   await user.save();
 
   return user;
+}
+
+async deleteUser(username: string):Promise<userDocument>{
+  return await this.userModel.findOneAndDelete({username});
 }
 
 

@@ -33,7 +33,7 @@ async setRating(@Param('username') username: string, @Param('score')score:number
 
 @UseGuards(AuthorizationGuard)
 @Roles(Role.Instructor, Role.Admin)
-@Delete(':username')
+@Delete('deleteInstructo/:username')
 async deleteInstructor(@Param('username') username: string): Promise<{ message: string }> {
   return await this.instructorService.deleteInstructor(username);
 }
