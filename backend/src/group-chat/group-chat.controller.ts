@@ -1,7 +1,10 @@
-import { Body, Controller, Param, Post, Get } from '@nestjs/common';
+import { Body, Controller, Param, Post, Get, Delete ,UseGuards, Put} from '@nestjs/common';
 import { GroupChatService } from './group-chat.service';
 import { CreateMessageDto } from 'src/message/dto/CreateMessage.dto';
 import { GroupDocument } from './group-chat.schema';
+import { Role, Roles } from 'src/auth/decorators/role.decorator';
+import { AuthGuard } from 'src/auth/guards/authentication.guard';
+import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
 
 @Controller('group-chat')
 export class GroupChatController {
@@ -56,4 +59,36 @@ async getGroupChatsByCourseCode(@Param('courseCode') courseCode: string): Promis
       throw new Error(error.message);
     }
   }
+
+   @UseGuards(AuthGuard, AuthorizationGuard)
+   @Roles(Role.Admin, Role.Instructor,Role.User)
+  @Delete('/:groupName/:username/:course_code/delete')
+  async deletegroup( 
+  @Param('groupName') groupName: string, // Extract groupName from the URL param
+  @Param('username') username: string,
+  @Param('course_code') course_code:string ): Promise<GroupDocument>{
+    try{
+      const deletedGroupChat = await this.groupchatService.deleteChat(groupName,username,course_code);
+      return deletedGroupChat;
+    } catch(error){
+      throw new Error(error.message)
+    }
+  }
+
+  @UseGuards(AuthGuard, AuthorizationGuard)
+  @Roles(Role.Admin, Role.Instructor,Role.User)
+  @Post('/:groupName/:username/:course_code/exit')
+  async exitgroup(
+  @Param('groupName') groupName: string, // Extract groupName from the URL param
+  @Param('username') username: string,
+  @Param('course_code') course_code:string ): Promise<GroupDocument>{
+    try{
+      const chat = await this.groupchatService.exitChat(groupName,username,course_code);
+      return chat;
+    }catch(error){
+      throw new Error(error.message)
+    }
+  }
+
+    
 }

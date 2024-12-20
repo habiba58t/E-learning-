@@ -8,6 +8,8 @@ import { CreateMessageDto } from 'src/message/dto/CreateMessage.dto';
 import { MessageDocument } from 'src/message/message.schema';
 import { NotificationService } from 'src/notification/notification.service';
 import { Message } from 'src/message/message.schema';
+import { CoursesService } from 'src/courses/courses.service';
+import { UsersService } from 'src/users/users.service';
 @Injectable()
 export class GroupChatService {
     constructor(
@@ -16,6 +18,8 @@ export class GroupChatService {
         @InjectModel(Message.name) private readonly messageModel: Model<MessageDocument>,
          @Inject(forwardRef(() => MessageService)) private readonly messageService: MessageService,
          @Inject(forwardRef(() => NotificationService)) private readonly notificationService: NotificationService,
+         @Inject(forwardRef(() => CoursesService)) private readonly coursesService: CoursesService,
+         @Inject(forwardRef(() => UsersService)) private readonly userService: UsersService,
     ){}
  // create group chat
     async createGroupChat(course_code: string, group_name: string, createdBy: string) {
@@ -96,6 +100,59 @@ export class GroupChatService {
         return await groupChat.save();
     }
 
+//delete chat only admin of group and instructor 
+
+async deleteChat(groupName: string, username: string, course_code: string): Promise<GroupDocument> {
+    // Fetch the group chat
+    const groupChat = await this.groupChat.findOne({ group_name: groupName });
+  
+    if (!groupChat) {
+      throw new Error('Group chat not found');
+    }
+  
+    // Fetch the course to get the instructor
+    const course = await this.coursesService.findOne(course_code);
+  
+    if (!course) {
+      throw new Error('Course not found');
+    }
+
+  
+    // Check authorization
+    const isCreatedByUser = groupChat.createdBy === username;
+    const isInstructor = course.created_by === username;
+  
+    if (!isCreatedByUser && !isInstructor) {
+      throw new Error('You are not authorized to delete this group chat');
+    }
+  
+    // Proceed with deletion
+    const deletedGroupChat = await this.groupChat.findOneAndDelete({ group_name: groupName });
+  
+    if (!deletedGroupChat) {
+      throw new Error('Failed to delete group chat');
+    }
+  
+    return deletedGroupChat;
+  }
+
+  async exitChat(groupName: string, username: string, course_code: string):Promise<GroupDocument> {
+    const chat = await this.groupChat.findOne({group_name: groupName})
+
+    if (!chat) {
+        throw new Error('Group not found');
+      }
+
+      if (!chat.members.includes(username)) {
+        console.error('User is not a member');
+        throw new Error('User is not a member of this group');
+      }
+      chat.members = chat.members.filter(member => member !== username);
+      await chat.save();
+
+      return chat;
+  }
+  
 
 
 
