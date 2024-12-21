@@ -127,6 +127,79 @@ async getStudentScore(username: string, objectId: mongoose.Types.ObjectId): Prom
   return score ?? null;
 }
 
+async getnumberOfEasyLevel(courseId: mongoose.Types.ObjectId): Promise<number> {
+  let easyCount = 0; // Counter for easy level students
+
+
+
+  // Get all students enrolled in the course
+  const students = await this.usersService.getEnrolledStudents(courseId);
+
+  // Iterate over each student
+  for (const student of students) {
+    const username = student; // Assuming username is a property of student
+    const level = await this.getStudentLevel(username, courseId); // Pass ObjectId
+
+    // Check if the level is "easy"
+    if (level === "easy") {
+      easyCount++; // Increment the count
+    }
+  }
+
+  return easyCount; // Return the number of easy-level students
+ 
+}
+
+async getnumberMediumLevel(courseId: mongoose.Types.ObjectId): Promise<number> {
+  let mediumCount = 0; // Counter for easy level students
+
+
+
+  // Get all students enrolled in the course
+  const students = await this.usersService.getEnrolledStudents(courseId);
+
+  // Iterate over each student
+  for (const student of students) {
+    const username = student; 
+    const level = await this.getStudentLevel(username, courseId); // Pass ObjectId
+
+    // Check if the level is "easy"
+    if (level === "medium") {
+      mediumCount++; // Increment the count
+    }
+  }
+
+  return mediumCount; // Return the number of easy-level students
+}
+
+
+
+
+async getnumberHardLevel(courseId: mongoose.Types.ObjectId): Promise<number> {
+  let hadrdLevel = 0; // Counter for easy level students
+
+
+
+  // Get all students enrolled in the course
+  const students = await this.usersService.getEnrolledStudents(courseId);
+
+  // Iterate over each student
+  for (const student of students) {
+    const username = student; // Assuming username is a property of student
+    const level = await this.getStudentLevel(username, courseId); // Pass ObjectId
+
+    // Check if the level is "easy"
+    if (level === "medium") {
+      hadrdLevel++; // Increment the count
+    }
+  }
+
+  return hadrdLevel; // Return the number of easy-level students
+}
+
+
+
+
 //GET STUDENT Level
 @UseGuards(AuthorizationGuard)
 @Roles(Role.User, Role.Admin, Role.Instructor)

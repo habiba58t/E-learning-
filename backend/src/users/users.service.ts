@@ -129,4 +129,14 @@ async updateProfile(username: string, updateUserDto: UpdateUserDto): Promise<use
 }
 
 
+async deleteUser(username: string):Promise<userDocument>{
+  return await this.userModel.findOneAndDelete({username});
+}
+
+
+async validation(username: string): Promise<boolean> {
+  const user = await this.userModel.findOne({ username }).exec();
+  return !!user;
+}
+
 }

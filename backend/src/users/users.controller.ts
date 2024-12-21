@@ -24,6 +24,16 @@ export class UsersController {
   async findUserByUsername(@Param('username') username: string): Promise<userDocument> {
     return this.usersService.findUserByUsername(username);
   }
+
+  @UseGuards(AuthGuard,AuthorizationGuard)
+@Roles(Role.Admin)
+@Get(':username/validation')
+  async validation(@Param('username') username: string): Promise<boolean> {
+   return await this.usersService.validation(username);
+  }
+
+  
+  
  //GETT ALL USERS ENROLLED IN A COURSE
  @UseGuards(AuthorizationGuard)
 @Roles(Role.User, Role.Admin, Role.Instructor)
@@ -67,12 +77,22 @@ export class UsersController {
   }
 
   //Update student profile
-@Put(':username')
-async updateProfile(@Param('username') username: string,@Body() updateUserDto: UpdateUserDto, ): Promise<any>{
-  const updatedUser = await this.usersService.updateProfile(username, updateUserDto);
-  return {
-    message: 'User profile updated successfully.',
-    user: updatedUser,
-  };
+  @Put('update/:username')
+  async updateProfile(@Param('username') username: string,@Body() updateUserDto: UpdateUserDto, ): Promise<any>{
+    const updatedUser = await this.usersService.updateProfile(username, updateUserDto);
+    return {
+      message: 'User profile updated successfully.',
+      user: updatedUser,
+    };
+  }
+
+
+  @Delete('delete/:username')
+async deleteProfile(@Param('username') username: string):Promise<userDocument>{
+  return await this.usersService.deleteUser(username);
 }
+
+
+
+
 }

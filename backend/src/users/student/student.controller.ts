@@ -76,6 +76,22 @@ export class StudentController {
     return { message: 'Student and related data deleted successfully.' };
   }
 
+    @Roles(Role.User, Role.Admin, Role.Instructor)
+    @Get('levelEasy/:courseId')
+  async getEasylevell(@Param('courseId') courseId:mongoose.Types.ObjectId){
+    return await this.studentService.getnumberOfEasyLevel(courseId);
+  }
+@Roles(Role.User, Role.Admin, Role.Instructor)
+@Get('mediumLevel/:courseId')
+async getMediumLevel(@Param('courseId') courseId:mongoose.Types.ObjectId){
+  return await this.studentService.getnumberMediumLevel(courseId);
+}
+@Roles(Role.User, Role.Admin, Role.Instructor)
+@Get('hardLevel/:courseId')
+async getHardLevel(@Param('courseId') courseId:mongoose.Types.ObjectId){
+  return await this.studentService.getnumberHardLevel(courseId);
+  
+}
   
 }
 
