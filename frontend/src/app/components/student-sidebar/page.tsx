@@ -56,7 +56,7 @@ const Sidebar = () => {
           </Link>
         </li>
         <li>
-          <Link href="/forum" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
+          <Link href="/instructor/discussion-forum" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
             Forum
           </Link>
         </li>
