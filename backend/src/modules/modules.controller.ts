@@ -6,7 +6,7 @@ import { extname } from 'path';
 import { v4 as uuidv4 } from 'uuid'; // to generate unique file names
 import { ModulesService } from './modules.service';
 import * as mongoose from 'mongoose';
-import { Controller, Get, Post, Body, Param, Put, Delete,NotFoundException, InternalServerErrorException,UseGuards ,Req} from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete,NotFoundException, InternalServerErrorException,UseGuards ,Req,BadRequestException} from '@nestjs/common';
 import { Module } from './modules.schema';
 import { Quiz, QuizzesDocument } from '../quizzes/quizzes.schema';
 import { CreateModuleDto } from './dto/CreateModule.dto';
@@ -14,8 +14,7 @@ import { UpdateModuleDto } from './dto/UpdateModule.dto';
 import {Question} from '../questions/questions.schema'
 import { Notes } from 'src/notes/notes.schema';
 import { moduleDocument } from './modules.schema';
-import { Content } from './content/content.schema';
-import { contentDocument } from './content/content.schema';
+import { Content } from 'src/content/content.schema';
 import { notesDocument } from 'src/notes/notes.schema';
 import { Role, Roles } from 'src/auth/decorators/role.decorator';
 import { AuthGuard } from 'src/auth/guards/authentication.guard';
@@ -23,7 +22,7 @@ import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
 
 
 @Controller('modules')
-@UseGuards(AuthGuard)
+
 export class ModulesController {
 constructor(private readonly modulesService: ModulesService) {}
 
@@ -36,7 +35,7 @@ constructor(private readonly modulesService: ModulesService) {}
   }
 
 //GET: get one module by objectId
-@UseGuards(AuthorizationGuard)
+@UseGuards(AuthGuard,AuthorizationGuard)
 @Roles(Role.Admin,Role.Instructor, Role.User)
   @Get('id/:ObjectId')
   async findById(@Param('ObjectId') ObjectId: string): Promise<moduleDocument> {
@@ -53,7 +52,7 @@ async findByTitle(@Param('title') title: string): Promise<moduleDocument> {
 } 
 
  // POST /module: Create a new module
- @UseGuards(AuthorizationGuard)
+ @UseGuards(AuthGuard,AuthorizationGuard)
 @Roles(Role.Admin, Role.Instructor)
  @Post('/create')
  async create(@Body() createModuleDto: CreateModuleDto): Promise<moduleDocument> {
@@ -61,14 +60,14 @@ async findByTitle(@Param('title') title: string): Promise<moduleDocument> {
  }
  
  // PUT /module/:title: Update an existing module by its title
- @UseGuards(AuthorizationGuard)
+ @UseGuards(AuthGuard,AuthorizationGuard)
 @Roles(Role.Admin,Role.Instructor)
- @Put(':title')
- async update(@Req() {user},@Param('title') title: string, @Body() updateModuleDto: UpdateModuleDto): Promise<moduleDocument> {
-   return this.modulesService.update(title, updateModuleDto,user);
+ @Put(':username/:title/updateModule')
+ async update(@Param('username') username:string,@Param('title') title: string, @Body() updateModuleDto: UpdateModuleDto): Promise<moduleDocument> {
+   return this.modulesService.update(title, updateModuleDto,username);
  }
 // DELETE /modules/:title: Delete a module by its title
-@UseGuards(AuthorizationGuard)
+@UseGuards(AuthGuard,AuthorizationGuard)
 @Roles(Role.Admin, Role.Instructor)
 @Delete(':title')
 async delete(@Param('title') title: string): Promise<moduleDocument> {
@@ -88,7 +87,7 @@ async findModuleByQuizId(@Param('quizId') quizId: string): Promise<moduleDocumen
 //GET: find array of questions by moduleId
 @UseGuards(AuthorizationGuard)
 @Roles(Role.Admin,Role.Instructor)
-@Get('/question/:ObjectId')             
+@Get('id/:ObjectId')             
 async getQuestionsForModule(@Req() {user},@Param('ObjectId') ObjectId: string): Promise<Question[]> {
   const objectId = new mongoose.Types.ObjectId(ObjectId);
   return this.modulesService.getQuestionsForModule(objectId,user);
@@ -96,13 +95,14 @@ async getQuestionsForModule(@Req() {user},@Param('ObjectId') ObjectId: string): 
 
 
 //GET: find array of queizzes  by moduleId
-// @UseGuards(AuthorizationGuard)
-// @Roles(Role.Admin,Role.Instructor, Role.User)
+@UseGuards(AuthorizationGuard)
+ @Roles(Role.Admin,Role.Instructor, Role.User)
 @Get('/quiz/id/:ObjectId')             
 async getQuizzesForModule( @Param('ObjectId') ObjectId: string): Promise<QuizzesDocument[]> {
   const objectId = new mongoose.Types.ObjectId(ObjectId);
   return this.modulesService.getQuizzesForModule(objectId);
 } 
+
 //ADD QUIZ TO MODULE
 @UseGuards(AuthorizationGuard)
 @Roles(Role.Admin,Role.Instructor)
@@ -123,12 +123,11 @@ async getQuizzesForModule( @Param('ObjectId') ObjectId: string): Promise<Quizzes
   @UseGuards(AuthorizationGuard)
 @Roles(Role.Admin,Role.Instructor)
 @Put(':moduleId/add-question/:quizId')
-async addQuestionToModule(@Param('moduleId') moduleId: string, @Param('questionId') questionId: string, // Quiz ID as string
+async addQuestionToModule( @Req() {user},@Param('moduleId') moduleId: string, @Param('questionId') questionId: string, // Quiz ID as string
 ) {
   const updatedModule = await this.modulesService.addQuestionToModule(
     new mongoose.Types.ObjectId(moduleId), 
-    new mongoose.Types.ObjectId(questionId), 
-);
+    new mongoose.Types.ObjectId(questionId));
   return {
     message: 'Question successfully added to the module.',
     module: updatedModule,
@@ -136,7 +135,7 @@ async addQuestionToModule(@Param('moduleId') moduleId: string, @Param('questionI
 }
   
 //GET: find outdated attributed of specific module
-@UseGuards(AuthorizationGuard)
+@UseGuards(AuthGuard,AuthorizationGuard)
 @Roles(Role.Admin,Role.Instructor)
 @Get(':title')
   async findOutdated(@Param('title') title: string): Promise<boolean> {
@@ -144,61 +143,84 @@ async addQuestionToModule(@Param('moduleId') moduleId: string, @Param('questionI
   }
 
   //PUT: toggle outdated attributed of specific module
-  @UseGuards(AuthorizationGuard)
+  @UseGuards(AuthGuard,AuthorizationGuard)
 @Roles(Role.Admin,Role.Instructor)
-  @Put(':title')
-  async toggleOutdated(@Req() {user},@Param('title') title: string): Promise<moduleDocument> {
-    return this.modulesService.toggleOutdated(title,user);
+  @Put('toggle/:username/:title')
+  async toggleOutdated(@Param('username')username:string,@Param('title') title: string): Promise<moduleDocument> {
+    return this.modulesService.toggleOutdated(title,username);
   } 
 
 // Upload files to resourses array
-@UseGuards(AuthorizationGuard)
-@Roles(Role.Admin,Role.Instructor)
-  @Post(':moduleId/upload')
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: diskStorage({
-        destination: './uploads', // Folder to store uploaded files
-        filename: (req, file, callback) => {
-          const fileExtName = extname(file.originalname);
-          const fileName = `${uuidv4()}${fileExtName}`;
-          callback(null, fileName);
-        },
-      }),
+@UseGuards(AuthGuard, AuthorizationGuard)
+@Roles(Role.Admin, Role.Instructor)
+@Post(':username/:moduleId/upload')
+@UseInterceptors(
+  FileInterceptor('file', {
+    storage: diskStorage({
+      destination: './uploads', // Save in uploads folder
+      filename: (req, file, callback) => {
+        const fileExtName = extname(file.originalname);
+        const fileName = `${uuidv4()}${fileExtName}`;
+        callback(null, fileName);
+      },
     }),
-  )
-  async addFileToModule(@Req() {user},
-    @Param('moduleId') moduleId: string, @Param('contentTitle') contentTitle: string,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
-    // Save the file metadata (e.g., file path) in the module
-    const fileUrl = `/uploads/${file.filename}`; // Assuming files are served from '/uploads' folder
+  })
+)
+async addContentToModule(
+  @Param('username') username: string,
+  @Param('moduleId') moduleId: string,
+  @Body('contentTitle') contentTitle: string,
+  @UploadedFile() file: Express.Multer.File,
+) {
+  if (!username) throw new BadRequestException('Username is required.');
+  if (!moduleId) throw new BadRequestException('Module ID is required.');
+  if (!contentTitle) throw new BadRequestException('Content title is required.');
+  if (!file) throw new BadRequestException('File is required.');
+
+  try {
+    const fileUrl = `/uploads/${file.filename}`;
     const fileType = file.mimetype;
     const originalName = file.originalname;
 
-    // Add the file metadata to the Module's resources array
-    const updatedModule = await this.modulesService.addFileToModule(moduleId, fileUrl, originalName, fileType,contentTitle,user);
+    const updatedModule = await this.modulesService.addContentToModule(
+      moduleId,
+      fileUrl,
+      originalName,
+      fileType,
+      contentTitle,
+      username,
+    );
 
     return {
       message: 'File uploaded successfully!',
       file: fileUrl,
       module: updatedModule,
     };
+  } catch (error) {
+    console.error('Error in addContentToModule:', error);
+    throw new InternalServerErrorException('Failed to upload content.');
+  }
+}
+
+//get content for specific module
+@UseGuards(AuthGuard,AuthorizationGuard)
+@Roles(Role.Admin,Role.Instructor)
+  @Get(':username/:title/content')
+  async getContentForModule(@Param('username') username: string,@Param('title') title: string): Promise<Content[]> {
+    return this.modulesService.getContentForModule(username, title);
   }
 
 
-
-
 // Delete modules and all related quizzes and questions 
-@UseGuards(AuthorizationGuard)
+@UseGuards(AuthGuard,AuthorizationGuard)
 @Roles(Role.Admin,Role.Instructor)
-  @Delete(':moduleId')
-  async deleteModule(@Req() {user},@Param('moduleId') moduleId: string) {
+  @Delete(':username/:moduleId/deleteModule')
+  async deleteModule(@Param('username')username:string,@Param('moduleId') moduleId: string) {
     try {
       const moduleObjectId = new mongoose.Types.ObjectId(moduleId); // Convert moduleId to ObjectId
 
       // Call the service to delete the module and its related data
-      const result = await this.modulesService.deleteModule(moduleObjectId,user);
+      const result = await this.modulesService.deleteModule(moduleObjectId,username);
 
       return {
         message: result.message, // Return success message from service
@@ -231,36 +253,36 @@ async setRating(@Param('ObjectId') ObjectId: string, @Param('score')score:number
 }
 
 //GET NOTES FOR SPECIFIC USER 
-@UseGuards(AuthorizationGuard)
+@UseGuards(AuthGuard, AuthorizationGuard)
  @Roles(Role.User)
-@Get(':username/title')
+@Get(':username/:title')
   async getNotesForUserAndNote(@Param('username') username: string,@Param('title')title:string): Promise<notesDocument[]>{
    return await this.modulesService.getNotesForUserAndNote(username,title);
   }
 
-  //GET A SPECIFIC NOTE FOR A SPEICIFC MODULE
-  @UseGuards(AuthorizationGuard)
-@Roles(Role.User)
-  @Get(':objectid')
-  async getNoteForUser(@Param('notetId') notetId: mongoose.Types.ObjectId): Promise<notesDocument>{
-   return await this.modulesService.getNoteForUser(notetId);
-  }
+//   //GET A SPECIFIC NOTE FOR A SPEICIFC MODULE
+//   @UseGuards(AuthorizationGuard)
+// @Roles(Role.User)
+//   @Get(':objectid')
+//   async getNoteForUser(@Param('notetId') notetId: mongoose.Types.ObjectId): Promise<notesDocument>{
+//    return await this.modulesService.getNoteForUser(notetId);
+//   }
 
   //Delete NOTE FOR A SPECIFIC NOTE
   @UseGuards(AuthorizationGuard)
   @Roles(Role.User)
   @Delete(':title/username/notid')
-  async deleteNote(@Param('title')title:string, @Param('username')username:string,@Param('notetId') notetId: mongoose.Types.ObjectId): Promise<void>{
+  async deleteNote(@Param('title')title:string, @Param('username')username:string,@Param('notetId') notetId: string): Promise<void>{
       await this.modulesService.deleteNote(title,username,notetId);
     }
 
  //CREATE NOTE FOR A SPECIFIC NOTE
- @UseGuards(AuthorizationGuard)
- @Roles(Role.User)
-@Post(':username')
-async createNote(@Param('username')username:string,@Body('title')title:string,@Body('content')content:string): Promise<notesDocument>{
-   return await this.modulesService.createNote(title,username,content);
-  }
+//  @UseGuards(AuthorizationGuard)
+//  @Roles(Role.User)
+// @Post(':username')
+// async createNote(@Param('username')username:string,@Body('title')title:string,@Body('content')content:string): Promise<notesDocument>{
+//    return await this.modulesService.createNote(title,username,content);
+//   }
 
   //UPDATE NOTE FOR A SPECIFIC NOTE
   @UseGuards(AuthorizationGuard)
@@ -270,5 +292,14 @@ async UpdateNote(@Param('notetId') notetId: mongoose.Types.ObjectId,@Body('conte
    return await this.modulesService.UpdateNote(notetId,contentNew);
   }
 
-}
 
+
+  //toggle notes enable
+  @UseGuards(AuthGuard, AuthorizationGuard)
+    @Roles(Role.Admin, Role.Instructor)
+    @Put('toggleNote/:moduleTitle')
+    async toggleNote( @Param('moduleTitle') moduleTitle: string): Promise<void> {
+       this.modulesService.toggleNote(moduleTitle);
+    } 
+
+}

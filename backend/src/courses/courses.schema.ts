@@ -28,26 +28,26 @@ export class Courses  {
   @Prop()
   created_at: Date; 
 
-  @Prop()
+  @Prop({default: false})
   Unavailable: boolean;
 
   // Reference to Module documents using ObjectId
-  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Module' }], default: [] })
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Module' }] ,default: [] })
 modules: mongoose.Types.ObjectId[]; // Store ObjectId references
 
-    @Prop()
+    @Prop({default: 0})
 totalRating: number; //sum of ratings for course
 
-@Prop()
+@Prop({default: 0})
 totalStudents: number; //number of students who voted for course
 
-@Prop()
+@Prop({default: 0})
 averageRating: number; 
 
-  @Prop()
+  @Prop({default: false})
   isOutdated: boolean;
 
-  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Threads' }] })
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Threads' }] ,default: [] })
 threads: mongoose.Types.ObjectId[];
 }
 

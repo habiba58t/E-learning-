@@ -12,7 +12,9 @@
     "@types/canvas-confetti": "^1.6.4",
     "axios": "^1.7.9",
     "canvas-confetti": "^1.9.3",
+    "emoji-picker-react": "^4.12.0",
     "jwt-decode": "^4.0.0",
+    "lucide-react": "^0.469.0",
     "next": "^15.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
@@ -20,7 +22,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@types/node": "^20",
-    "@types/react": "^19",
+    "@types/react": "^19.0.2",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.1.0",

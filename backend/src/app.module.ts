@@ -18,10 +18,11 @@ import { ForumModule } from './forum/forum.module';
 import { PrivateChatController } from './private-chat/private-chat.controller';
 import { PrivateChatService } from './private-chat/private-chat.service';
 import { PrivateChatModule } from './private-chat/private-chat.module';
+import { GroupChatModule } from './group-chat/group-chat.module';
 
 @Module({
   imports: [PrivateChatModule, MessageModule, ProgressModule, UsersModule, CoursesModule, ModulesModule, ResponsesModule, QuizzesModule, QuestionsModule,StudentModule,NotesModule,LogModule,
-    MongooseModule.forRoot('mongodb+srv://projectdb:12345@e-learning.6bu6g.mongodb.net/E-learning-'), NotificationModule, ForumModule, PrivateChatModule],
+    MongooseModule.forRoot('mongodb+srv://projectdb:12345@e-learning.6bu6g.mongodb.net/E-learning-'), NotificationModule, ForumModule, PrivateChatModule, GroupChatModule],
   controllers: [AppController],
   providers: [AppService],
 })

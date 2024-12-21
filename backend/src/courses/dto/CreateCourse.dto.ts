@@ -6,10 +6,8 @@ export class CreateCourseDto {
     readonly description: string;
     readonly category: string;
     readonly difficulty_level: string;
-    //readonly created_by: string;
-   // readonly created_at: Date;
-    readonly  modules: mongoose.Schema.Types.ObjectId[];
-    // readonly  totalRating:number=0;
-    // readonly  totalStudents:number=0;
-    // readonly  isOutdated: boolean=false;
+    readonly created_by: string;
+    readonly  modules: mongoose.Schema.Types.ObjectId[]=[];
+    readonly  threads: mongoose.Schema.Types.ObjectId[]=[];
+
   }

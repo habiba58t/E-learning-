@@ -6,6 +6,10 @@ import { HydratedDocument } from 'mongoose';
 export type notesDocument = HydratedDocument<Notes>
 @Schema()
 export class Notes  {
+
+  @Prop()
+  Title: string;
+
   @Prop({ required: true })
   username: string;
 

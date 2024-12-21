@@ -46,7 +46,7 @@ export class ProgressController {
   }
 
   @UseGuards(AuthorizationGuard) 
-  @Roles(Role.Admin, Role.Instructor) 
+  @Roles(Role.Admin, Role.Instructor,Role.User) 
   @Get('user/:Username') // for instucters and students?? wala instucters bas
   async getProgressByUsername(@Param('Username') Username: string): Promise<Progress[]> {
     return await this.progressService.findbyUsername(Username);
@@ -89,6 +89,20 @@ async updateProgress(@Param('course_code') course_code: string,@Param('Username'
   async getStudentsCompleted(@Param('course_code') course_code: string): Promise<Progress[]> {
     return await this.progressService.findAllStudentsCompleted(course_code);
   }
+
+  @UseGuards(AuthorizationGuard) 
+  @Roles(Role.Admin, Role.Instructor) 
+  @Get('completedNumber/:course_code')
+  async getNumberCompleted(@Param('course_code') course_code:string): Promise<number>{
+    return await this.progressService.getNumberOfCompletedStudents(course_code);
+  }
+
+  @Get('avgCompletion/:course_code')
+  async getAvgCompletion(@Param('course_code') course_code:string):Promise<number>{
+    return await this.progressService.AvgCompletionForAll(course_code);
+  }
+
+  
 
   // @Get('total-modules/:course_code') // Changed path
   // async getTNModules(@Param('course_code') course_code: string): Promise<number> {

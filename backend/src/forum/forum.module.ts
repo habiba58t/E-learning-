@@ -31,8 +31,8 @@ import { NotesService } from 'src/notes/notes.service';
 import { Notes } from 'src/notes/notes.schema';
 import { Responses, ResponsesSchema } from 'src/responses/responses.schema';
 import { ResponsesService } from 'src/responses/responses.service';
-import { ContentSchema } from 'src/modules/content/content.schema';
-import { ContentService } from 'src/modules/content/content.service';
+import { ContentSchema } from 'src/content/content.schema';
+import { ContentService } from 'src/content/content.service';
 import { StudentService } from 'src/users/student/student.service';
 
 
