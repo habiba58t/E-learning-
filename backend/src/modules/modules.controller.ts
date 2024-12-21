@@ -97,12 +97,13 @@ async getQuestionsForModule(@Req() {user},@Param('ObjectId') ObjectId: string): 
 
 //GET: find array of queizzes  by moduleId
 @UseGuards(AuthorizationGuard)
-@Roles(Role.Admin,Role.Instructor)
-@Get('id/:ObjectId')             
-async getQuizzesForModule(@Param('ObjectId') ObjectId: string): Promise<Quiz[]> {
+ @Roles(Role.Admin,Role.Instructor, Role.User)
+@Get('/quiz/id/:ObjectId')             
+async getQuizzesForModule( @Param('ObjectId') ObjectId: string): Promise<QuizzesDocument[]> {
   const objectId = new mongoose.Types.ObjectId(ObjectId);
   return this.modulesService.getQuizzesForModule(objectId);
 } 
+
 //ADD QUIZ TO MODULE
 @UseGuards(AuthorizationGuard)
 @Roles(Role.Admin,Role.Instructor)
@@ -254,36 +255,36 @@ async setRating(@Param('ObjectId') ObjectId: string, @Param('score')score:number
 }
 
 //GET NOTES FOR SPECIFIC USER 
-@UseGuards(AuthorizationGuard)
+@UseGuards(AuthGuard, AuthorizationGuard)
  @Roles(Role.User)
-@Get(':username/title')
+@Get(':username/:title')
   async getNotesForUserAndNote(@Param('username') username: string,@Param('title')title:string): Promise<notesDocument[]>{
    return await this.modulesService.getNotesForUserAndNote(username,title);
   }
 
-  //GET A SPECIFIC NOTE FOR A SPEICIFC MODULE
-  @UseGuards(AuthorizationGuard)
-@Roles(Role.User)
-  @Get(':objectid')
-  async getNoteForUser(@Param('notetId') notetId: mongoose.Types.ObjectId): Promise<notesDocument>{
-   return await this.modulesService.getNoteForUser(notetId);
-  }
+//   //GET A SPECIFIC NOTE FOR A SPEICIFC MODULE
+//   @UseGuards(AuthorizationGuard)
+// @Roles(Role.User)
+//   @Get(':objectid')
+//   async getNoteForUser(@Param('notetId') notetId: mongoose.Types.ObjectId): Promise<notesDocument>{
+//    return await this.modulesService.getNoteForUser(notetId);
+//   }
 
   //Delete NOTE FOR A SPECIFIC NOTE
   @UseGuards(AuthorizationGuard)
   @Roles(Role.User)
   @Delete(':title/username/notid')
-  async deleteNote(@Param('title')title:string, @Param('username')username:string,@Param('notetId') notetId: mongoose.Types.ObjectId): Promise<void>{
+  async deleteNote(@Param('title')title:string, @Param('username')username:string,@Param('notetId') notetId: string): Promise<void>{
       await this.modulesService.deleteNote(title,username,notetId);
     }
 
  //CREATE NOTE FOR A SPECIFIC NOTE
- @UseGuards(AuthorizationGuard)
- @Roles(Role.User)
-@Post(':username')
-async createNote(@Param('username')username:string,@Body('title')title:string,@Body('content')content:string): Promise<notesDocument>{
-   return await this.modulesService.createNote(title,username,content);
-  }
+//  @UseGuards(AuthorizationGuard)
+//  @Roles(Role.User)
+// @Post(':username')
+// async createNote(@Param('username')username:string,@Body('title')title:string,@Body('content')content:string): Promise<notesDocument>{
+//    return await this.modulesService.createNote(title,username,content);
+//   }
 
   //UPDATE NOTE FOR A SPECIFIC NOTE
   @UseGuards(AuthorizationGuard)
@@ -292,6 +293,8 @@ async createNote(@Param('username')username:string,@Body('title')title:string,@B
 async UpdateNote(@Param('notetId') notetId: mongoose.Types.ObjectId,@Body('contentNew')contentNew:string): Promise<notesDocument>{
    return await this.modulesService.UpdateNote(notetId,contentNew);
   }
+
+
 
   //toggle notes enable
   @UseGuards(AuthGuard, AuthorizationGuard)

@@ -100,19 +100,18 @@ async findCourseByModuleId(@Param('moduleId') moduleId: string):Promise<courseDo
   return this.coursesService.findCourseByModuleId(mid)
 }
 
-  // Get modules for a student in a specific course
-  @UseGuards(AuthGuard, AuthorizationGuard)
- @Roles(Role.Admin, Role.User)
-  @Get(':course_code/modules')
-  async getModulesForCourseStudent(@Param('course_code') course_code: string,@Req(){user}): Promise<moduleDocument[]> {
-    try {
-      // Call the service method to get the filtered modules for the student
-      return await this.coursesService.getModulesForCourseStudent(course_code, user);
-    } catch (error) {
-      throw new NotFoundException(error.message);
-    }
-  }
-
+// Get modules for a student in a specific course
+@UseGuards(AuthGuard, AuthorizationGuard)
+@Roles(Role.Admin, Role.User)
+ @Get('/:username/:course_code/modules')
+ async getModulesForCourseStudent(@Param('course_code') course_code: string,@Param('username') username: string,): Promise<moduleDocument[]> {
+   try {
+     // Call the service method to get the filtered modules for the student
+     return await this.coursesService.getModulesForCourseStudent(course_code,username);
+   } catch (error) {
+     throw new NotFoundException(error.message);
+   }
+ }
   // Get modules for a instructor in a specific course
   @UseGuards(AuthGuard, AuthorizationGuard)
   @Roles(Role.Admin, Role.Instructor)
@@ -182,7 +181,7 @@ async getAverageScore(@Param('course_code') course_code: string): Promise<{ aver
     const objectId = new mongoose.Types.ObjectId(courseId);
     return await this.coursesService.getAverageRating(objectId);
    }
-
+   
 //SET TOTALRATING TOTALSTUDENTS AVERAGE RATING
 @UseGuards(AuthGuard, AuthorizationGuard)
  @Roles(Role.Admin,Role.User)
@@ -217,4 +216,63 @@ async getNonOutdatedCoursesForStudent(@Param('username') username: string) {
   async markCourseAsUnavailable(@Param('course_code') courseId: string, @Param('username')username:string) :Promise<courseDocument> {
     return await this.coursesService.deleteCourse(courseId,username);
   }
+
+ @UseGuards(AuthGuard, AuthorizationGuard)
+@Roles(Role.Admin, Role.User, Role.Instructor)
+@Get(':username/courses')
+async getcourseforuser(@Param('username') username: string): Promise<courseDocument[]> {
+  try {
+    // Call the service method to get the filtered modules for the student
+    return await this.coursesService.getcoursesforuser(username);
+  } catch (error) {
+    throw new NotFoundException(error.message);
+  }
+}
+
+@Get(':category/courseCategory')
+async findCourseByCategory(@Param('category') category: string) {
+  return this.coursesService.findByCategory(category);
+}
+
+@Get('/categories/get')
+async getCategories() {
+return this.coursesService.getAllCategories();
+}
+
+  // Get modules for a instructor in a specific course
+  @UseGuards(AuthGuard, AuthorizationGuard)
+  @Roles(Role.Admin, Role.Instructor)
+  @Get(':course_code/modulesinstructor')
+  async getModulesforInstructor(@Param('course_code') course_code: string, @Req(){user}): Promise<moduleDocument[]> {
+    // Call the service method to get the modules for the course
+    const modules = await this.coursesService.getModulesforInstructor(course_code,user);
+    
+    if (!modules || modules.length === 0) {
+      console.log(`No modules found for course ${course_code}`);
+    }
+
+    return modules;
+  }
+
+  @UseGuards(AuthGuard, AuthorizationGuard)
+ @Roles(Role.Admin,Role.User)
+@Get('studcour2/:username/courses')
+async getNonOutdatedCoursesForStudent2(@Param('username') username: string):Promise<courseDocument[]> {
+    const courses: courseDocument[] = await this.coursesService.getNonOutdatedCoursesForStudent2(username);
+    return courses;
+}
+
+// Get modules for a student in a specific course
+@UseGuards(AuthGuard, AuthorizationGuard)
+@Roles(Role.Admin, Role.User)
+ @Get(':course_code/modules2')
+ async getModulesForCourseStudent2(@Param('course_code') course_code: string,@Req(){user}): Promise<moduleDocument[]| []> {
+   // try {
+     // Call the service method to get the filtered modules for the student
+     return await this.coursesService.getModulesForCourseStudent2(course_code, user);
+   // } catch (error) {
+   //   throw new NotFoundException(error.message);
+   // }
+ }
+
 }
