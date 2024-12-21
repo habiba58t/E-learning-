@@ -148,7 +148,7 @@ const ProfilePage = () => {
         window.location.reload(); // Refreshes the page
       } catch (err) {
         // Handle any errors
-        console.error(err); // Log the error for debugging
+        // console.error(err); // Log the error for debugging
         alert("Failed to delete instructor account.");
       }
     } else {
@@ -258,7 +258,7 @@ const ProfilePage = () => {
               alt="Profile Picture" 
               style={styles.profilePicture} 
             />
-            {isOwnProfile&&(
+            {isOwnProfile&& (
               <button onClick={() => setIsEditing(true)} style={styles.editButton}>
                 Edit Profile
               </button>
@@ -268,19 +268,25 @@ const ProfilePage = () => {
                 Message
               </button>
             )}
-            {isOwnProfile && (
   <>
-    {profile.role === "instructor" ? (
-      <button onClick={handleDeleteInstructor} style={styles.deleteButton}>
-        Delete Instructor Account
-      </button>
-    ) : (
+  {
+  (profile.role === "instructor" && isOwnProfile) ||
+  (isAdmin && !isOwnProfile && profile.role === "instructor") ? (
+    <button onClick={handleDeleteInstructor} style={styles.deleteButton}>
+      Delete Instructor Account
+    </button>
+  ) : (
+    (isOwnProfile && profile.role !== "instructor") ||
+    (isAdmin && !isOwnProfile && profile.role !== "instructor") ? (
       <button onClick={handleDeleteStudentAndAdmin} style={styles.deleteButton}>
         Delete Account
       </button>
-    )}
+    ) : null
+  )
+}
+
   </>
-)}
+
           </>
         )}
       </div>

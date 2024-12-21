@@ -57,7 +57,10 @@ async getAvgRating( username: string): Promise<number> {
   
     // Ensure the instructor has courses
     if (!instructor.courses || instructor.courses.length === 0) {
-      throw new BadRequestException(`Instructor with username ${username} has no courses to validate`);
+      // throw new BadRequestException(`Instructor with username ${username} has no courses to validate`);
+       await this.userModel.deleteOne({username}).exec();
+       return { message: `Instructor with username ${username} deleted successfully` };
+
     }
   
     // Check all courses in the instructor's array
