@@ -95,8 +95,8 @@ async getQuestionsForModule(@Req() {user},@Param('ObjectId') ObjectId: string): 
 
 
 //GET: find array of queizzes  by moduleId
-@UseGuards(AuthorizationGuard)
- @Roles(Role.Admin,Role.Instructor, Role.User)
+// @UseGuards(AuthorizationGuard)
+//  @Roles(Role.Admin,Role.Instructor, Role.User)
 @Get('/quiz/id/:ObjectId')             
 async getQuizzesForModule( @Param('ObjectId') ObjectId: string): Promise<QuizzesDocument[]> {
   const objectId = new mongoose.Types.ObjectId(ObjectId);

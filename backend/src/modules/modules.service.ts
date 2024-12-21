@@ -180,6 +180,7 @@ async getQuizzesForModule(ObjectId: mongoose.Types.ObjectId): Promise<QuizzesDoc
     throw new NotFoundException(`module with code ${ObjectId} not found`);
   }
 
+
   // Fetch all modules by their ObjectIds
   const quizzes = await this.quizModel.find({
     _id: { $in: module.quizzes }, // Match ObjectIds in `course.modules`

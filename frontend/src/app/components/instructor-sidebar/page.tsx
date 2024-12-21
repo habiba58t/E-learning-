@@ -32,13 +32,13 @@ const InstructorSidebar = () => {
           </Link>
         </li>
         <li>
-          <Link href="/feedback" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
+          <Link href="/instructor/analytics" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
             Student Feedback
           </Link>
         </li>
 
         <li>
-          <Link href="/instructor/discussion-forum" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
+          <Link href="/discussion-forum" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
              Forums
           </Link>
         </li>
