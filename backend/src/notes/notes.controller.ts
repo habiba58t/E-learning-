@@ -17,15 +17,15 @@ export class NotesController {
 
   //GET: notes by objectId
   @Get('id/:noteId')
-  async findByIdNote(@Param('noteId') noteId: mongoose.Types.ObjectId): Promise<notesDocument> {
+  async findByIdNote(@Param('noteId') noteId: string): Promise<notesDocument> {
     return this.notesService.findByIdNote(noteId);
   }
 
   //GET NOTES by usernmae,coursecode,last updated
-  // @Get()
-  // async findNote(@Param('username') username: string, @Param('course_code')course_code:string, @Param('lastUpdated')lastUpdated:Date): Promise<notesDocument> {
-  //   return this.notesService.findNote(username,course_code,lastUpdated);
-  // }
+  @Get()
+  async findNotebyUsername(@Param('username') username: string): Promise<notesDocument[]> {
+    return this.notesService.findNotebyUsername(username);
+  }
 
   // CREATE NOTE
   @Post(`/note/:module_title`)
@@ -46,8 +46,9 @@ export class NotesController {
   }
 
 //UPDATE NOTE
-  @Put()
-  async updateNote(@Param('noteId') noteId: mongoose.Types.ObjectId,@Body() updateNoteDto: UpdateNoteDto,): Promise<notesDocument> {
-    return await this.notesService.updateNote(noteId, updateNoteDto);
+  @Put('/:noteId')
+  async updateNote(@Param('noteId') noteId:string,@Body() updateNoteDto: UpdateNoteDto,): Promise<notesDocument> {
+    const id = new mongoose.Types.ObjectId(noteId)
+    return await this.notesService.updateNote(id, updateNoteDto);
   }
 }

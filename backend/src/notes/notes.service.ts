@@ -27,16 +27,17 @@ async findAll(): Promise<Notes[]> {
     return await this.noteModel.find().exec();
   }
   //GET NOTE BY OBJECT ID
-  async findByIdNote(noteId: mongoose.Types.ObjectId): Promise<notesDocument> {
-    const note = await this.noteModel.findById(noteId).exec();
+  async findByIdNote(noteId: string): Promise<notesDocument> {
+    const id = new mongoose.Types.ObjectId(noteId)
+    const note = await this.noteModel.findById(id).exec();
     if (!note) {
       throw new NotFoundException(`Note with Object ID ${noteId} not found`);
     }
     return note;
   }
   // //GET NOTES by usernmae,coursecode,last updated
-   async findNote(username: string,course_code:string,lastUpdated:Date): Promise<notesDocument> {
-     return await this.noteModel.findOne({username,course_code,lastUpdated});
+   async findNotebyUsername(username: string): Promise<notesDocument[]> {
+     return await this.noteModel.findOne({username});
 
    }
 
@@ -88,7 +89,7 @@ async findAll(): Promise<Notes[]> {
 
   // Update an existing note
   async updateNote(noteId: mongoose.Types.ObjectId, updateNoteDto: UpdateNoteDto): Promise<notesDocument> {
-    const note= await this.noteModel.findOneAndUpdate({noteId}, updateNoteDto, { new: true }).exec();
+    const note= await this.noteModel.findByIdAndUpdate(noteId, updateNoteDto).exec();
     note.lastUpdated = new Date();
     await note.save();
     return note;

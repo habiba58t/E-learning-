@@ -407,41 +407,67 @@ async getAverageRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
  //GET NOTES FOR A SPECIFIC USER
 //  @UseGuards(AuthorizationGuard)
 //  @Roles(Role.User)
- async getNotesForUserAndNote(username: string, title: string): Promise<notesDocument[]> {
-  const module = await this.findByTitle(title) as moduleDocument;
+// 
+
+async getNotesForUserAndNote(username: string, title: string): Promise<notesDocument[]> {
+  // Step 1: Fetch the module by title and decode the title
+  const decodedTitle = decodeURIComponent(title);
+  const module = await this.findByTitle(decodedTitle);
+
   if (!module || !module._id) {
     throw new NotFoundException(`Module with title "${title}" not found`);
   }
 
-  const notesId = await this.studentService.getAllNotesForModule(module._id, username);
-  if (!notesId || notesId.length === 0) {
-    return []; 
+  // Step 2: Extract note IDs directly from the module if available
+  const noteIds = module.notes || []; // Assuming `module.notes` is an array of ObjectIDs
+  if (!noteIds || noteIds.length === 0) {
+    return []; // No notes found for this module
   }
 
-  const notes: notesDocument[] = [];
-  for (const noteId of notesId) {
-    const note = await this.notesService.findByIdNote(noteId);
-    notes.push(note); // Add the note to the array
+  // Step 3: Fetch each note by its ID and filter by username
+  try {
+    // Filtered notes based on the username
+    const notes = await Promise.all(
+      noteIds.map(async (noteId) => {
+        // Fetch the note by its ID
+        const noteIdString = noteId.toString();
+        const note = await this.notesService.findByIdNote(noteIdString);
+
+        // Check if the note belongs to the specified username
+        if (note.username === username) {
+          return note; // Return the note only if the username matches
+        }
+
+        return null; // Return null if it doesn't match
+      })
+    );
+
+    // Remove any null entries (non-matching notes)
+    return notes.filter((note) => note !== null) as notesDocument[];
+  } catch (error) {
+    console.error('Error fetching notes:', error);
+    throw new InternalServerErrorException('Failed to fetch notes.');
   }
-
-  return notes;
 }
 
-//GET A SPECIFIC NOTE FOR A SPEICIFC MODULE
-// @UseGuards(AuthorizationGuard)
-// @Roles(Role.User)
-async getNoteForUser(notetId: mongoose.Types.ObjectId): Promise<notesDocument>{
- return await this.notesService.findByIdNote(notetId);
-}
+
+
+// //GET A SPECIFIC NOTE FOR A SPEICIFC MODULE
+// // @UseGuards(AuthorizationGuard)
+// // @Roles(Role.User)
+// async getNoteForUser(notetId: mongoose.Types.ObjectId): Promise<notesDocument>{
+//  return await this.notesService.findByIdNote(notetId);
+// }
 
 //Delete NOTE FOR A SPECIFIC NOTE
 // @UseGuards(AuthorizationGuard)
 // @Roles(Role.User)
-async deleteNote(title:string,username:string,notetId: mongoose.Types.ObjectId): Promise<void>{
+async deleteNote(title:string,username:string,notetId: string): Promise<void>{
   const module = await this.findByTitle(title) as moduleDocument;
   if (!module || !module._id) {
     throw new NotFoundException(`Module with title "${title}" not found`);
   }
+  const id= new mongoose.Types.ObjectId(notetId)
   const note= await this.notesService.findByIdNote(notetId);
   const student = await this.usersService.findUserByUsername(username);
 
@@ -454,7 +480,7 @@ async deleteNote(title:string,username:string,notetId: mongoose.Types.ObjectId):
   }
   await student.save(); 
 
-  await this.notesService.deleteNote(notetId);
+  await this.notesService.deleteNote(id);
 
 }
 

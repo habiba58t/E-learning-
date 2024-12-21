@@ -232,26 +232,26 @@ async setRating(@Param('ObjectId') ObjectId: string, @Param('score')score:number
 }
 
 //GET NOTES FOR SPECIFIC USER 
-@UseGuards(AuthorizationGuard)
+@UseGuards(AuthGuard, AuthorizationGuard)
  @Roles(Role.User)
-@Get(':username/title')
+@Get(':username/:title')
   async getNotesForUserAndNote(@Param('username') username: string,@Param('title')title:string): Promise<notesDocument[]>{
    return await this.modulesService.getNotesForUserAndNote(username,title);
   }
 
-  //GET A SPECIFIC NOTE FOR A SPEICIFC MODULE
-  @UseGuards(AuthorizationGuard)
-@Roles(Role.User)
-  @Get(':objectid')
-  async getNoteForUser(@Param('notetId') notetId: mongoose.Types.ObjectId): Promise<notesDocument>{
-   return await this.modulesService.getNoteForUser(notetId);
-  }
+//   //GET A SPECIFIC NOTE FOR A SPEICIFC MODULE
+//   @UseGuards(AuthorizationGuard)
+// @Roles(Role.User)
+//   @Get(':objectid')
+//   async getNoteForUser(@Param('notetId') notetId: mongoose.Types.ObjectId): Promise<notesDocument>{
+//    return await this.modulesService.getNoteForUser(notetId);
+//   }
 
   //Delete NOTE FOR A SPECIFIC NOTE
   @UseGuards(AuthorizationGuard)
   @Roles(Role.User)
   @Delete(':title/username/notid')
-  async deleteNote(@Param('title')title:string, @Param('username')username:string,@Param('notetId') notetId: mongoose.Types.ObjectId): Promise<void>{
+  async deleteNote(@Param('title')title:string, @Param('username')username:string,@Param('notetId') notetId: string): Promise<void>{
       await this.modulesService.deleteNote(title,username,notetId);
     }
 
