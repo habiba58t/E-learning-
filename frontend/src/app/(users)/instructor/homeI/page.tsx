@@ -18,6 +18,8 @@ interface UserorCourseData {
   course_code: string; // For courses
 }
 
+
+
 const HomePage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("student");
@@ -25,6 +27,8 @@ const HomePage = () => {
   const [results, setResults] = useState<UserorCourseData[]>([]);
   const [allCourses, setAllCourses] = useState<UserorCourseData[]>([]);
   const [username, setUsername] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState<any[]>([]); // State for storing notifications
+  const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false); // State to control the sliding panel visibility
 
   const router = useRouter(); // Use the hook here
 
@@ -120,6 +124,20 @@ const HomePage = () => {
     }
   };
 
+  const fetchNotifications = async () => {
+    try {
+      const response = await axiosInstance.get(`http://localhost:3002/notification/usernotifications/${username}`); 
+      console.log("API Response:", response.data);
+      
+      setNotifications(response.data || []); 
+     // setIsNotificationPanelOpen(true);
+      console.log("Notifications fetched", response.data);
+    } catch (error) {
+      console.error("Error fetching notifications", error);
+    }
+    setIsNotificationPanelOpen(true); // Open the notification panel when notifications are fetched
+  };
+
   const renderResult = (item: UserorCourseData) => {
     if (selectedCategory === "course") {
       return (
@@ -153,29 +171,67 @@ const HomePage = () => {
       <Sidebar />
       {/* Header */}
       <header className="bg-teal-600 text-white py-4 shadow-md">
-  <div className="container mx-auto flex justify-between items-center px-6">
-    <h1 className="text-2xl font-bold">Home</h1>
-    <div className="flex items-center gap-4">
-      <input
-        type="text"
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        className="bg-white text-gray-700 rounded-lg px-4 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-teal-300"
-        placeholder="Search by name or title..."
-      />
-      <select
-        value={selectedCategory}
-        onChange={(e) => setSelectedCategory(e.target.value)}
-        className="bg-white text-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-300"
-      >
-        <option value="student">Students</option>
-        <option value="instructor">Instructors</option>
-        <option value="course">Courses</option>
-      </select>
-    </div>
-  </div>
-</header>
+        <div className="container mx-auto flex justify-between items-center px-6">
+          <h1 className="text-2xl font-bold">Home</h1>
+          <div className="flex items-center gap-4">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-white text-gray-700 rounded-lg px-4 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-teal-300"
+              placeholder="Search by name or title..."
+            />
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="bg-white text-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-300"
+            >
+              <option value="student">Students</option>
+              <option value="instructor">Instructors</option>
+              <option value="course">Courses</option>
+            </select>
+            {/* Notification Button */}
+            <button
+              onClick={fetchNotifications}
+              className="relative p-2 rounded-full bg-teal-700 hover:bg-teal-800"
+            >
+              <span className="text-white">🔔</span>
+              {/* Notification Count Badge (if there are notifications) */}
+              {notifications.length > 0 && (
+                <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-2">
+                  {notifications.length}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+      </header>
 
+      {/* Notification Sliding Panel */}
+      {isNotificationPanelOpen && (
+        <div className="fixed top-0 right-0 w-80 bg-white shadow-lg h-full z-50 p-4">
+          <button
+            onClick={() => setIsNotificationPanelOpen(false)}
+            className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+          >
+            ❌
+          </button>
+          <h2 className="text-xl font-bold mb-4">Notifications</h2>
+          <div className="space-y-4">
+  {notifications.length > 0 ? (
+    notifications.map((notification, index) => (
+      <div key={index} className="bg-gray-100 p-2 rounded-lg shadow-sm">
+        <h3 className="font-bold">{notification.title}</h3>
+        <p>{notification.message}</p>
+        <p className="text-sm text-gray-500">{new Date(notification.createdAt).toLocaleString()}</p>
+      </div>
+    ))
+  ) : (
+    <p>No new notifications</p>
+  )}
+</div>;
+        </div>
+      )}
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8">

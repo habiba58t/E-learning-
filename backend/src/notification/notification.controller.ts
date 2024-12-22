@@ -16,10 +16,9 @@ export class NotificationController {
  //get notification  
  @UseGuards(AuthGuard, AuthorizationGuard)
  @Roles(Role.Admin, Role.Instructor, Role.User) 
-@Get('usernotifications')
-  async getNotification(@Req() {user}): Promise<notificationDocument[]> {
-    console.log("user is:",user);
-    return this.notificationService.getNotification(user);
+@Get('usernotifications/:username')
+  async getNotification(@Param('username')username: string): Promise<notificationDocument[]> {
+    return this.notificationService.getNotification(username);
   }
 
 //create notification for module
