@@ -90,6 +90,18 @@ async enrollStudentInCourse(user: any, courseId: string): Promise<userDocument> 
         return student;
       }
 
+  
+      
+      async getisEnrolled(username:string, objectId:string): Promise<string>{  // i have course objectid 
+        const cid = new mongoose.Types.ObjectId(objectId)
+        const student =await this.userModel.findOne({username})
+        if (!student || !student.courses) {
+          return "no"; // User not found or no courses array
+        }
+        const isEnrolled = student.courses.includes(cid);
+      
+        return isEnrolled? "yes": "no";
+      }
       
 
 //GET STUDENT SCORE
@@ -114,6 +126,79 @@ async getStudentScore(username: string, objectId: mongoose.Types.ObjectId): Prom
   // Return the score or null if not found
   return score ?? null;
 }
+
+async getnumberOfEasyLevel(courseId: mongoose.Types.ObjectId): Promise<number> {
+  let easyCount = 0; // Counter for easy level students
+
+
+
+  // Get all students enrolled in the course
+  const students = await this.usersService.getEnrolledStudents(courseId);
+
+  // Iterate over each student
+  for (const student of students) {
+    const username = student; // Assuming username is a property of student
+    const level = await this.getStudentLevel(username, courseId); // Pass ObjectId
+
+    // Check if the level is "easy"
+    if (level === "easy") {
+      easyCount++; // Increment the count
+    }
+  }
+
+  return easyCount; // Return the number of easy-level students
+ 
+}
+
+async getnumberMediumLevel(courseId: mongoose.Types.ObjectId): Promise<number> {
+  let mediumCount = 0; // Counter for easy level students
+
+
+
+  // Get all students enrolled in the course
+  const students = await this.usersService.getEnrolledStudents(courseId);
+
+  // Iterate over each student
+  for (const student of students) {
+    const username = student; 
+    const level = await this.getStudentLevel(username, courseId); // Pass ObjectId
+
+    // Check if the level is "easy"
+    if (level === "medium") {
+      mediumCount++; // Increment the count
+    }
+  }
+
+  return mediumCount; // Return the number of easy-level students
+}
+
+
+
+
+async getnumberHardLevel(courseId: mongoose.Types.ObjectId): Promise<number> {
+  let hadrdLevel = 0; // Counter for easy level students
+
+
+
+  // Get all students enrolled in the course
+  const students = await this.usersService.getEnrolledStudents(courseId);
+
+  // Iterate over each student
+  for (const student of students) {
+    const username = student; // Assuming username is a property of student
+    const level = await this.getStudentLevel(username, courseId); // Pass ObjectId
+
+    // Check if the level is "easy"
+    if (level === "medium") {
+      hadrdLevel++; // Increment the count
+    }
+  }
+
+  return hadrdLevel; // Return the number of easy-level students
+}
+
+
+
 
 //GET STUDENT Level
 @UseGuards(AuthorizationGuard)

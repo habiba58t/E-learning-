@@ -1,7 +1,7 @@
 import { Injectable, UseGuards,Inject,forwardRef } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Question, QuestionsDocument } from './questions.schema';
-import mongoose, { mongo } from 'mongoose';
+import mongoose, { mongo, Types } from 'mongoose';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { UpdateQuestionDto } from './dto/update-question.dto';
 import { ModulesService } from '../modules/modules.service'; // Corrected import path
@@ -33,19 +33,38 @@ export class QuestionsService {
 
   ) {}
 
-  // Create a question and add it to a module's quiz array (only for instructors)
 
-  // async create(questionData: CreateQuestionDto, moduleId: mongoose.Types.ObjectId): Promise<QuestionsDocument> {
-  //   const newQuestion = new this.questionModel(questionData);
-    
-  //   // Save the question first
-  //   await newQuestion.save();
 
-  //   // Add question ID to the module's quiz array via the ModuleService
-  //   await this.moduleService.addQuestionToModule(moduleId, newQuestion._id);
+  async getQuestionById(questionId: string):Promise<QuestionsDocument>{
+    const qid = new mongoose.Types.ObjectId(questionId);
+    const question = await this.questionModel.findOne({_id: qid});
+    return question;
+  }
+//  Create a question and add it to a module's quiz array (only for instructors)
+async create(
+  username: string,
+  questionData: CreateQuestionDto, 
+  moduleId: mongoose.Types.ObjectId, 
+): Promise<QuestionsDocument> {
+  // Create the new question object with data from `questionData` and the `created_by` field
+  const newQuestion = new this.questionModel({
+    ...questionData, // Spread the data into the new question object
+    created_by: username, // Add the creator's username
+  });
 
-  //   return newQuestion; // Return the saved document (of type `QuestionsDocument`)
-  // }
+  // Save the question to the database
+  await newQuestion.save();
+
+  // Add the question's ID to the module's quiz array
+  await this.moduleService.addQuestionToModule(moduleId, newQuestion._id);
+
+  return newQuestion; // Return the saved question document
+}
+
+  async findAllByCreator(username: string): Promise<QuestionsDocument[]> {
+    return this.questionModel.find({ created_by: username }).exec();
+  }
+
 
   // Get all questions for a specific module (accessible by instructors and admins)
     async findAllByModuleId(moduleId: mongoose.Types.ObjectId): Promise<QuestionsDocument[]> {

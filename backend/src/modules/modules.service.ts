@@ -13,9 +13,10 @@ import { QuestionsService } from 'src/questions/questions.service';
 import { Notes } from 'src/notes/notes.schema';
 import { NotesService } from 'src/notes/notes.service';
 import { moduleDocument } from './modules.schema';
-import { Content } from './content/content.schema';
-import { contentDocument } from './content/content.schema';
-import { ContentService } from './content/content.service';
+import { Content } from 'src/content/content.schema';
+import { ContentService } from 'src/content/content.service';
+import { contentDocument } from 'src/content/content.schema';
+
 //import {quizDocument} from 'src/quizzes/quizzes.service'
 //import { QqestionsDocument } from 'src/questions/questions.schema';
 import { CoursesService } from 'src/courses/courses.service';
@@ -70,32 +71,33 @@ export class ModulesService {
         return module;
       }
  //get module by title 
-      async findByTitle(title: string): Promise<moduleDocument> {
-        const module = await this.moduleModel.findOne({title}).exec();
-        if (!module) {
-          throw new NotFoundException(`Module with title ${title} not found`);
-        }
-        return module;
-      }
+ async findByTitle(title: string): Promise<moduleDocument> {
+  console.log("Searching for module with title:", title);
+  const module = await this.moduleModel.findOne({ title });
+  if (!module) {
+    console.log("Module not found for title:", title);
+    return null;
+  }
+  return module;
+}
 
 
 
 // Create a new Module
-// @UseGuards(AuthorizationGuard)
-// @Roles(Role.Admin, Role.Instructor)
 async create(createModuleDto: CreateModuleDto): Promise<moduleDocument> {
   const newModule = new this.moduleModel(createModuleDto);
   newModule.created_at= new Date(); 
   return await newModule.save();
 }
 // Update an existing module by title
-// @UseGuards(AuthorizationGuard)
-// @Roles(Role.Admin,Role.Instructor)
-async update(title: string, updateModuleDto: UpdateModuleDto,user:any): Promise<moduleDocument> {
-  const module = await this.moduleModel.findOne({title}).exec();
+async update(titleM: string, updateModuleDto: UpdateModuleDto,username:string): Promise<moduleDocument> {
+  const user = await this.usersService.findUserByUsername(username);
+  const module = await this.moduleModel.findOne({title:titleM}).exec();
         if (!module) {
-          throw new NotFoundException(`Module with title ${title} not found`);
+          throw new NotFoundException(`Module with title ${titleM} not found`);
   }
+  console.log("module",module);
+  console.log("dto",updateModuleDto);
   // check if instructor who i updated is the one who created 
   const course = await this.coursesService.findCourseByModuleId(module._id)
 
@@ -105,7 +107,10 @@ async update(title: string, updateModuleDto: UpdateModuleDto,user:any): Promise<
   if (!isInstructor && !isAdmin) {
     throw new UnauthorizedException('You are not authorized to view questions of this module');
   }
-  const updatedModule = await this.moduleModel.findOneAndUpdate({title, updateModuleDto}, { new: true });
+  const updatedModule = await this.moduleModel.findOneAndUpdate({title:titleM},updateModuleDto ,{ new: true });
+  if (!updatedModule) {
+    throw new NotFoundException(`not updated ${updatedModule} not found`);
+  }
   return updatedModule;
 }
 
@@ -123,16 +128,21 @@ async delete(title: string): Promise<moduleDocument> {
 //implemented by farah for use in quiz
 // @UseGuards(AuthorizationGuard)
 // @Roles(Role.Admin,Role.Instructor)
-async findModuleByQuizId(quizId: mongoose.Types.ObjectId): Promise<moduleDocument>{
-  const module = await this.moduleModel.findOne({quizzes: {$in: [quizId]}})
+//implemented by farah for use in quiz
+// @UseGuards(AuthorizationGuard)
+// @Roles(Role.Admin,Role.Instructor)
+//implemented by farah for use in quiz
+// @UseGuards(AuthorizationGuard)
+// @Roles(Role.Admin,Role.Instructor)
+async findModuleByQuizId(quizId: string): Promise<moduleDocument>{
+  const qid = new mongoose.Types.ObjectId(quizId)
+  const module = await this.moduleModel.findOne({quizzes: {$in: [qid]}})
   return module;
 }
 
 
 // Add question to modules array
-// @UseGuards(AuthorizationGuard)
-// @Roles(Role.Admin,Role.Instructor)
-async addQuestionToModule(moduleId: mongoose.Types.ObjectId, questionId: mongoose.Types.ObjectId,user:any): Promise<moduleDocument> {
+async addQuestionToModule(moduleId: mongoose.Types.ObjectId, questionId: mongoose.Types.ObjectId): Promise<moduleDocument> {
   // Find the module by ID
   const module = await this.moduleModel.findById(moduleId).exec();
   if (!module) {
@@ -141,12 +151,12 @@ async addQuestionToModule(moduleId: mongoose.Types.ObjectId, questionId: mongoos
 
   const course = await this.coursesService.findCourseByModuleId(module._id)
 
-  const isInstructor = course.created_by === user.username;
-  const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
+  // const isInstructor = course.created_by === user.username;
+  // const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
 
-  if (!isInstructor && !isAdmin) {
-    throw new UnauthorizedException('You are not authorized to add quiz to module');
-  }
+  // if (!isInstructor && !isAdmin) {
+  //   throw new UnauthorizedException('You are not authorized to add quiz to module');
+  // }
 
   // Check if the quiz is already in the array
   if (module.quizzes.some((existingQuizId) => existingQuizId.equals(questionId))) {
@@ -163,8 +173,6 @@ async addQuestionToModule(moduleId: mongoose.Types.ObjectId, questionId: mongoos
 }
 
 //get all quizzes of module by module objectid
-// @UseGuards(AuthorizationGuard)
-// @Roles(Role.Admin,Role.Instructor)
 async getQuizzesForModule(ObjectId: mongoose.Types.ObjectId): Promise<QuizzesDocument[]> {
   const module = await this.findById(ObjectId);
 
@@ -260,9 +268,8 @@ async findOutdated(title: string): Promise<boolean> {
 }
 
 //PUT: change outdated of module
-// @UseGuards(AuthorizationGuard)
-// @Roles(Role.Admin,Role.Instructor)
-async toggleOutdated(title: string,user:any): Promise<moduleDocument> {
+async toggleOutdated(title: string,username:string): Promise<moduleDocument> {
+  const user= await this.usersService.findUserByUsername(username);
   const module = await this.moduleModel.findOne({ title }).exec();
   if (!module) {
     throw new NotFoundException(`Course with module ${title} not found`);
@@ -285,54 +292,112 @@ async toggleOutdated(title: string,user:any): Promise<moduleDocument> {
 }
 
 // Method to add file metadata to a Module's resources
-// @UseGuards(AuthorizationGuard)
-// @Roles(Role.Admin,Role.Instructor)
-async addFileToModule(moduleId: string, fileUrl: string, originalName: string, fileType: string,contentTitle:string,user:any): Promise<moduleDocument> {
-  const module = await this.moduleModel.findById(moduleId).exec();
-  if (!module) {
-    throw new Error(`Module with ID ${moduleId} not found`);
-  }
+async addContentToModule(moduleId: string,fileUrl: string,originalName: string,fileType: string,contentTitle: string,username: string,
+): Promise<moduleDocument> {
+  try {
+    const module = await this.moduleModel.findById(moduleId).exec();
+    if (!module) {
+      throw new NotFoundException(`Module with ID ${moduleId} not found.`);
+    }
+    console.log(`Module with ID ${moduleId}`, module);
 
+    const course = await this.coursesService.findCourseByModuleId(module._id);
+    if (!course) {
+      throw new NotFoundException(`Course with ID ${module._id} not found.`);
+    }
+
+    const user = await this.usersService.findUserByUsername(username);
+    if (!user) {
+      throw new NotFoundException(`User with username ${username} not found.`);
+    }
+
+    const isInstructor = course.created_by === user.username;
+    const isAdmin = user.role === 'admin';
+
+    if (!isInstructor && !isAdmin) {
+      throw new UnauthorizedException(
+        'You are not authorized to upload files to this module.',
+      );
+    }
+
+    // File metadata
+    const fileMetadata = {
+      filePath: fileUrl,
+      fileType: fileType,
+      originalName: originalName,
+    };
+
+    // Content DTO
+    const contentDto = {
+      title: contentTitle,
+      resources: [fileMetadata],
+    };
+    
+
+    const content = await this.contentService.createContent(contentDto);
+    if (!content) {
+      throw new InternalServerErrorException('Failed to create content.');
+    }
+
+    // Add content ID to the module
+    module.content.push(content._id);
+
+    // Save the updated module
+    await module.save();
+    return module;
+  } catch (error) {
+    console.error('Error in addContentToModule service:', error);
+    throw new InternalServerErrorException('Failed to update the module.');
+  }
+}
+
+
+//get content for a speicifc module
+async getContentForModule( username: string, title: string): Promise<Content[]> {
+  const module = await this.moduleModel.findOne({title}).exec();
+  if (!module) {
+    throw new NotFoundException(`Module with title ${title} not found`);
+  }
   const course = await this.coursesService.findCourseByModuleId(module._id)
   if (!course) {
     throw new NotFoundException(`course with code ${module._id} not found`);
   }
+  // const user = await this.usersService.findUserByUsername(username);
+  // const isInstructor = course.created_by === user.username;
+  // const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
 
-  const isInstructor = course.created_by === user.username;
-  const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
+  // if (!isInstructor && !isAdmin) {
+  //   throw new UnauthorizedException('You are not authorized to upload files to this module');
+  // }
 
-  if (!isInstructor && !isAdmin) {
-    throw new UnauthorizedException('You are not authorized to upload files to this module');
+  const contentIds= module.content;
+  if (!contentIds || contentIds.length === 0) {
+    console.log("empty", contentIds);
+    return []; // Return an empty array if no content IDs are provided
   }
+  console.log("not empty", contentIds);
 
+  try {
+    // Use Promise.all to resolve all async calls
+    const contents = await Promise.all(
+      contentIds.map(async (id) => {
+        const content = await this.contentService.findById(id);
+        console.log("content:", content);
+        if (!content) {
+          throw new NotFoundException(`Content with ID ${id} not found`);
+        }
+        return content; // Return the content object
+      })
+    );
 
-  // Create metadata for the uploaded file
-  const fileMetadata = {
-    filePath: fileUrl,
-    fileType: fileType,
-    originalName: originalName,
-  };
-// Create contentDto to match the CreateContentDto structure
-// Create contentDto to match the CreateContentDto structure
-const contentDto = {
-  title: contentTitle, // The title field should match 'title' in CreateContentDto
-  resources: [fileMetadata], // resources should be an array of file metadata objects
-};
-
-// Create content and pass it to the content service
-const contents = await this.contentService.createContent(contentDto);
- module.content.push(contents._id);
- 
-  // Save the updated module
-  await module.save();
-
-  return module;
+    return contents; // Return the resolved array of contents
+  } catch (error) {
+    console.error("Error fetching contents:", error);
+    throw new InternalServerErrorException("Failed to retrieve contents");
+  }
 }
-
 // delete module and all related quizzes and questions 
-// @UseGuards(AuthorizationGuard)
-// @Roles(Role.Admin,Role.Instructor)
-async deleteModule(moduleId: mongoose.Types.ObjectId,user:any): Promise<any> {
+async deleteModule(moduleId: mongoose.Types.ObjectId,username:string): Promise<any> {
   // Step 1: Find the module to delete
   const module = await this.moduleModel.findById(moduleId).exec();
   if (!module) {
@@ -342,7 +407,7 @@ const course = await this.coursesService.findCourseByModuleId(module._id)
   if (!course) {
     throw new NotFoundException(`course with code ${module._id} not found`);
   }
-
+const user = await this.usersService.findUserByUsername(username);
   const isInstructor = course.created_by === user.username;
   const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
 
@@ -387,16 +452,12 @@ const course = await this.coursesService.findCourseByModuleId(module._id)
 }
 
 //GET AVERAGE RATING
-// @UseGuards(AuthorizationGuard)
-// @Roles(Role.Admin,Role.Instructor,Role.User)
 async getAverageRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
   const course = await this.moduleModel.findById(ObjectId);
   return course.averageRating;
  }
  
  //SET RATING,TOTAL,AVERAGE
-//  @UseGuards(AuthorizationGuard)
-//  @Roles(Role.User)
  async setRating(ObjectId: mongoose.Types.ObjectId,score:number): Promise<void> {
    const module = await this.moduleModel.findById(ObjectId);
    module.totalRating = module.totalRating + score;
@@ -405,43 +466,65 @@ async getAverageRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
  }
 
  //GET NOTES FOR A SPECIFIC USER
-//  @UseGuards(AuthorizationGuard)
-//  @Roles(Role.User)
  async getNotesForUserAndNote(username: string, title: string): Promise<notesDocument[]> {
-  const module = await this.findByTitle(title) as moduleDocument;
+  // Step 1: Fetch the module by title and decode the title
+  const decodedTitle = decodeURIComponent(title);
+  const module = await this.findByTitle(decodedTitle);
+
   if (!module || !module._id) {
     throw new NotFoundException(`Module with title "${title}" not found`);
   }
 
-  const notesId = await this.studentService.getAllNotesForModule(module._id, username);
-  if (!notesId || notesId.length === 0) {
-    return []; 
+  // Step 2: Extract note IDs directly from the module if available
+  const noteIds = module.notes || []; // Assuming `module.notes` is an array of ObjectIDs
+  if (!noteIds || noteIds.length === 0) {
+    return []; // No notes found for this module
   }
 
-  const notes: notesDocument[] = [];
-  for (const noteId of notesId) {
-    const note = await this.notesService.findByIdNote(noteId);
-    notes.push(note); // Add the note to the array
+  // Step 3: Fetch each note by its ID and filter by username
+  try {
+    // Filtered notes based on the username
+    const notes = await Promise.all(
+      noteIds.map(async (noteId) => {
+        // Fetch the note by its ID
+        const noteIdString = noteId.toString();
+        const note = await this.notesService.findByIdNote(noteIdString);
+
+        // Check if the note belongs to the specified username
+        if (note.username === username) {
+          return note; // Return the note only if the username matches
+        }
+
+        return null; // Return null if it doesn't match
+      })
+    );
+
+    // Remove any null entries (non-matching notes)
+    return notes.filter((note) => note !== null) as notesDocument[];
+  } catch (error) {
+    console.error('Error fetching notes:', error);
+    throw new InternalServerErrorException('Failed to fetch notes.');
   }
-
-  return notes;
 }
 
-//GET A SPECIFIC NOTE FOR A SPEICIFC MODULE
-// @UseGuards(AuthorizationGuard)
-// @Roles(Role.User)
-async getNoteForUser(notetId: mongoose.Types.ObjectId): Promise<notesDocument>{
- return await this.notesService.findByIdNote(notetId);
-}
+
+
+// //GET A SPECIFIC NOTE FOR A SPEICIFC MODULE
+// // @UseGuards(AuthorizationGuard)
+// // @Roles(Role.User)
+// async getNoteForUser(notetId: mongoose.Types.ObjectId): Promise<notesDocument>{
+//  return await this.notesService.findByIdNote(notetId);
+// }
 
 //Delete NOTE FOR A SPECIFIC NOTE
 // @UseGuards(AuthorizationGuard)
 // @Roles(Role.User)
-async deleteNote(title:string,username:string,notetId: mongoose.Types.ObjectId): Promise<void>{
+async deleteNote(title:string,username:string,notetId: string): Promise<void>{
   const module = await this.findByTitle(title) as moduleDocument;
   if (!module || !module._id) {
     throw new NotFoundException(`Module with title "${title}" not found`);
   }
+  const id= new mongoose.Types.ObjectId(notetId)
   const note= await this.notesService.findByIdNote(notetId);
   const student = await this.usersService.findUserByUsername(username);
 
@@ -454,7 +537,7 @@ async deleteNote(title:string,username:string,notetId: mongoose.Types.ObjectId):
   }
   await student.save(); 
 
-  await this.notesService.deleteNote(notetId);
+  await this.notesService.deleteNote(id);
 
 }
 
@@ -462,21 +545,21 @@ async deleteNote(title:string,username:string,notetId: mongoose.Types.ObjectId):
  //CREATE NOTE FOR A SPECIFIC NOTE
 //  @UseGuards(AuthorizationGuard)
 //  @Roles(Role.User)
- async createNote(title:string,username:string,content: string): Promise<notesDocument>{
-  const course = await this.coursesService.getCourseForModule(title);
-  const module= await this.findByTitle(title) as moduleDocument;
+//  async createNote(title:string,username:string,content: string): Promise<notesDocument>{
+//   const course = await this.coursesService.getCourseForModule(title);
+//   const module= await this.findByTitle(title) as moduleDocument;
 
-  const notesDto = {
-    username: username, 
-    course_code: course.course_code,
-    content: content,
-  };
-  const note = await this.notesService.createNote(notesDto) as notesDocument;
-  const user = await this.usersService.findUserByUsername(username);
-  user.notes.get(module._id)?.push(note._id);
-  await user.save();
-  return note;
- }
+//   const notesDto = {
+//     username: username, 
+//     course_code: course.course_code,
+//     content: content,
+//   };
+//   const note = await this.notesService.createNote(notesDto) as notesDocument;
+//   const user = await this.usersService.findUserByUsername(username);
+//   user.notes.get(module._id)?.push(note._id);
+//   await user.save();
+//   return note;
+//  }
 
  //UPDATE NOTE FOR A SPECIFIC NOTE
 //  @UseGuards(AuthorizationGuard)
@@ -489,7 +572,11 @@ async UpdateNote(notetId: mongoose.Types.ObjectId,contentNew:string): Promise<no
   return note;
 }
 
+ //toggle notes enable
+    async toggleNote(moduleTitle: string): Promise<void> {
+       const module = await this.moduleModel.findOne({title:moduleTitle});
+       module.enableNotes = !module.enableNotes;
+        await module.save();
 
+    } 
 }
-
-//add guards to courses and modules, update users, ask amany, start notifcations

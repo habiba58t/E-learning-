@@ -7,18 +7,18 @@ const InstructorSidebar = () => {
       <h2 className="text-2xl text-center text-gray-200 mb-10">Instructor Dashboard</h2>
       <ul className="space-y-6">
         <li>
-          <Link href="/" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
+          <Link href="/instructor/home" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
             Home
           </Link>
         </li>
         <li>
-          <Link href="/components/instructor/courses" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
+          <Link href="/instructor/courses" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
             My Courses
           </Link>
         </li>
         <li>
-          <Link href="/create-quiz" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
-            Create Quiz
+          <Link href="/instructor/quizzes" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
+             My Quizzes
           </Link>
         </li>
         <li>
@@ -27,13 +27,19 @@ const InstructorSidebar = () => {
           </Link>
         </li>
         <li>
-          <Link href="/question-bank" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
+          <Link href="/instructor/questions" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
             Question Bank
           </Link>
         </li>
         <li>
-          <Link href="/feedback" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
+          <Link href="/instructor/analytics" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
             Student Feedback
+          </Link>
+        </li>
+
+        <li>
+          <Link href="/discussion-forum" className="block text-lg hover:bg-gray-700 py-2 px-4 rounded">
+             Forums
           </Link>
         </li>
       </ul>

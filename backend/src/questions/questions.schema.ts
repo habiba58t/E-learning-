@@ -4,7 +4,6 @@ import mongoose, { Document } from 'mongoose';
 // The Question schema
 @Schema()
 export class Question {
-
   @Prop({ required: true, unique: true })
   keywordTitle: string;
 
@@ -15,14 +14,18 @@ export class Question {
   difficulty_level: string;
 
   @Prop({ required: true })
-  correct_answer: string;
+  correct_answer: string; // Example: 'B'
 
   @Prop({ required: true })
   created_by: string;
 
-  @Prop({required:true, enum: ['mcq', 't/f', 'both']})
-  type:string;
+  @Prop({ required: true, enum: ['mcq', 't/f', 'both'] })
+  type: string;
+
+  @Prop({ required: false, type: [String] })
+  options: string[]; // Example: ['Option A', 'Option B', 'Option C', 'Option D']
 }
+
 
 // Create the schema
 export const QuestionsSchema = SchemaFactory.createForClass(Question);
