@@ -138,5 +138,9 @@ async validation(username: string): Promise<boolean> {
   const user = await this.userModel.findOne({ username }).exec();
   return !!user;
 }
+  async getTotalNumberOfUsers():Promise<number>{
+        return this.userModel.countDocuments();
+      }
 
+      
 }

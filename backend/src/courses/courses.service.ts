@@ -21,6 +21,7 @@ import { Public } from 'src/auth/decorators/public.decorator';
 import {NotificationService} from 'src/notification/notification.service';
 import {notificationDocument} from 'src/notification/notification.schema';
 import { UsersService } from 'src/users/users.service';
+import { promises } from 'dns';
 
 @Injectable()
 export class CoursesService {
@@ -559,5 +560,7 @@ if (!found ) {
   return validModules;
 }
 
-
+async getTotalCourses():Promise<number>{
+  return await this.courseModel.countDocuments();
+}
 }
