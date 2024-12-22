@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import axiosInstance from "@/app/utils/axiosInstance";
 import { Types } from 'mongoose';
 import axios, { AxiosError } from 'axios';
+import InstructorSidebar from '@/app/components/instructor/instructor-sidebar/page';
 
 export interface Course {
   _id: string;
@@ -262,230 +263,235 @@ const CourseDetails = () => {
   }
   
   return (
-    <div className="container mx-auto px-4 py-8">
-            {updateMode ? (
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg rounded-lg p-6 mb-6">
-          <h2 className="text-2xl font-semibold text-blue-600 mb-4">Update Course</h2>
-          <form>
-            <div className="mb-4">
-              <label className="block text-gray-700">Title</label>
-              <input
-                type="text"
-                value={updatedCourse.title}
-                onChange={(e) => setUpdatedCourse({ ...updatedCourse, title: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700">Description</label>
-              <textarea
-                value={updatedCourse.description}
-                onChange={(e) => setUpdatedCourse({ ...updatedCourse, description: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700">Category</label>
-              <input
-                type="text"
-                value={updatedCourse.category}
-                onChange={(e) => setUpdatedCourse({ ...updatedCourse, category: e.target.value })}
-                className="w-full px-4 py-2 border rounded-lg"
-              />
-            </div>
-            <div className="mb-4">
-  <label className="block text-gray-700">Difficulty Level</label>
-  <select
-    value={updatedCourse.level || ""}
-    onChange={(e) => setUpdatedCourse({ ...updatedCourse, level: e.target.value })}
-    className="w-full px-4 py-2 border rounded-lg"
-  >
-    <option value="" disabled>
-      Select Difficulty Level
-    </option>
-    <option value="easy">Easy</option>
-    <option value="medium">Medium</option>
-    <option value="hard">Hard</option>
-  </select>
-</div>
-            <div className="flex gap-4">
-              <button
-                type="button"
-                onClick={() => {
-                  if (!updatedCourse.title && !updatedCourse.description && !updatedCourse.category && !updatedCourse.level) {
-                    alert("must fill at least one field");
-                    return; // Exit if any field is missing
-                  }
-                  handleUpdateCourse(); // Call the function to create the course
-                }}
-                className="px-4 py-2 bg-green-500 text-white rounded-lg"
-              >
-                Confirm Update
-              </button>
-              <button
-                type="button"
-                onClick={() => setUpdateMode(false)}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      ) : course ? (
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg rounded-lg p-6 mb-6">
-          <h1 className="text-3xl font-semibold text-blue-600 mb-4">{course.title}</h1>
-          <div className="text-gray-700 mb-6">
-            <p><strong>Code:</strong> {course.course_code}</p>
-            <p><strong>Description:</strong> {course.description}</p>
-            <p><strong>Category:</strong> {course.category}</p>
-            <p><strong>Level:</strong> {course.level}</p>
-            <p><strong>Average Rating:</strong> {course.averageRating ?? 'N/A'}</p>
-            <p><strong>Number of Students Enrolled:</strong>{totalStudents}</p>
+  <div className="container mx-auto px-4 py-8">
+    <InstructorSidebar/>
+    {updateMode ? (
+      <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
+        <h2 className="text-2xl font-semibold text-teal-600 mb-4">Update Course</h2>
+        <form>
+          <div className="mb-4">
+            <label className="block text-gray-700">Title</label>
+            <input
+              type="text"
+              value={updatedCourse.title}
+              onChange={(e) => setUpdatedCourse({ ...updatedCourse, title: e.target.value })}
+              className="w-full px-4 py-2 border rounded-lg"
+            />
           </div>
-
-          <div className="flex flex-wrap gap-4">
-            <button onClick={() => setUpdateMode(true)} className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:opacity-90">
-              Update Course
-            </button>
-            <button onClick={handleDelete} className="px-4 py-2 bg-gradient-to-r from-red-400 via-red-500 to-red-600 text-white rounded-lg shadow-md hover:opacity-90 transition-all">
-              Delete Course
-            </button>
-            <button
-        onClick={() => setShowForm((prev) => !prev)}
-        className="px-4 py-2 bg-gradient-to-r from-blue-400 via-purple-500 to-indigo-500 text-white rounded-lg shadow-md hover:opacity-90 transition-all"
-      >
-        Create Module
-      </button>
-    {/* Modal Form */}
-      {showForm && (
-        <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Create New Module</h3>
-
-            <div className="mb-4">
-              <label htmlFor="moduleTitle" className="block text-gray-700 font-medium mb-1">
-                Module Title:
-              </label>
-              <input
-                type="text"
-                id="moduleTitle"
-                value={moduleTitle}
-                onChange={(e) => setModuleTitle(e.target.value)}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter module title"
-              />
-            </div>
-
-            <div className="mb-4">
-              <label htmlFor="moduleLevel" className="block text-gray-700 font-medium mb-1">
-                Level:
-              </label>
-              <select
-                id="moduleLevel"
-                value={moduleLevel}
-                onChange={(e) => setModuleLevel(e.target.value as "easy" | "medium" | "hard")}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="easy">Easy</option>
-                <option value="medium">Medium</option>
-                <option value="hard">Hard</option>
-              </select>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <button
-                onClick={handleCreateModule}
-                className="px-4 py-2 bg-green-500 text-white rounded-lg shadow-md hover:bg-green-600 transition-all"
-              >
-                Confirm Create
-              </button>
-              <button
-                onClick={() => setShowForm(false)}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg shadow-md hover:bg-red-600 transition-all"
-              >
-                Cancel
-              </button>
-              </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">Description</label>
+            <textarea
+              value={updatedCourse.description}
+              onChange={(e) => setUpdatedCourse({ ...updatedCourse, description: e.target.value })}
+              className="w-full px-4 py-2 border rounded-lg"
+            />
           </div>
-        </div>
-            )}
-            <button
-        onClick={toggleModal}
-        className="px-4 py-2 bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 text-white rounded-lg shadow-md hover:opacity-90 transition-all"
-      >
-        Enrolled Students
-      </button>
-       {/* Modal */}
-       {modalOpen && (
-        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-lg w-96 p-6 relative">
-            {/* Close Button */}
-            <button
-              onClick={toggleModal}
-              className="absolute top-2 right-2 text-gray-600 hover:text-gray-800"
+          <div className="mb-4">
+            <label className="block text-gray-700">Category</label>
+            <input
+              type="text"
+              value={updatedCourse.category}
+              onChange={(e) => setUpdatedCourse({ ...updatedCourse, category: e.target.value })}
+              className="w-full px-4 py-2 border rounded-lg"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700">Difficulty Level</label>
+            <select
+              value={updatedCourse.level || ""}
+              onChange={(e) => setUpdatedCourse({ ...updatedCourse, level: e.target.value })}
+              className="w-full px-4 py-2 border rounded-lg"
             >
-              &times;
-            </button>
-
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Enrolled Students</h2>
-
-            {loading && <p className="text-gray-500">Loading...</p>}
-            {error && <p className="text-red-500">{error}</p>}
-
-            {!loading && !error && students && (
-              <ul className="space-y-2">
-                {students.length > 0 ? (
-                  students.map((username) => (
-                    <li key={username}>
-                      <button
-                        onClick={() => handleUserClick(username)}
-                        className="text-blue-600 hover:underline w-full text-left"
-                      >
-                        {username}
-                      </button>
-                    </li>
-                  ))
-                ) : (
-                  <p className="text-gray-500">No students enrolled.</p>
-                )}
-              </ul>
-            )}
+              <option value="" disabled>
+                Select Difficulty Level
+              </option>
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+            </select>
           </div>
+          <div className="flex gap-4">
+            <button
+              type="button"
+              onClick={() => {
+                if (!updatedCourse.title && !updatedCourse.description && !updatedCourse.category && !updatedCourse.level) {
+                  alert("must fill at least one field");
+                  return; // Exit if any field is missing
+                }
+                handleUpdateCourse(); // Call the function to update the course
+              }}
+              className="px-4 py-2 bg-teal-500 text-white rounded-lg"
+            >
+              Confirm Update
+            </button>
+            <button
+              type="button"
+              onClick={() => setUpdateMode(false)}
+              className="px-4 py-2 bg-red-500 text-white rounded-lg"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    ) : course ? (
+      <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
+        <h1 className="text-3xl font-semibold text-teal-600 mb-4">{course.title}</h1>
+        <div className="text-gray-700 mb-6">
+          <p><strong>Code:</strong> {course.course_code}</p>
+          <p><strong>Description:</strong> {course.description}</p>
+          <p><strong>Category:</strong> {course.category}</p>
+          <p><strong>Level:</strong> {course.level}</p>
+          <p><strong>Average Rating:</strong> {course.averageRating ?? 'N/A'}</p>
+          <p><strong>Number of Students Enrolled:</strong> {totalStudents}</p>
         </div>
-      )}      
+
+        <div className="flex flex-wrap gap-4">
+          <button onClick={() => setUpdateMode(true)} className="px-4 py-2 bg-teal-500 text-white rounded-lg shadow-md hover:opacity-90">
+            Update Course
+          </button>
+          <button onClick={handleDelete} className="px-4 py-2 bg-gradient-to-r from-red-400 via-red-500 to-red-600 text-white rounded-lg shadow-md hover:opacity-90 transition-all">
+            Delete Course
+          </button>
+          <button
+            onClick={() => setShowForm((prev) => !prev)}
+            className="px-4 py-2 bg-gradient-to-r from-blue-400 via-purple-500 to-indigo-500 text-white rounded-lg shadow-md hover:opacity-90 transition-all"
+          >
+            Create Module
+          </button>
+
+          {/* Modal Form */}
+          {showForm && (
+            <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center z-50">
+              <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Create New Module</h3>
+
+                <div className="mb-4">
+                  <label htmlFor="moduleTitle" className="block text-gray-700 font-medium mb-1">
+                    Module Title:
+                  </label>
+                  <input
+                    type="text"
+                    id="moduleTitle"
+                    value={moduleTitle}
+                    onChange={(e) => setModuleTitle(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    placeholder="Enter module title"
+                  />
+                </div>
+
+                <div className="mb-4">
+                  <label htmlFor="moduleLevel" className="block text-gray-700 font-medium mb-1">
+                    Level:
+                  </label>
+                  <select
+                    id="moduleLevel"
+                    value={moduleLevel}
+                    onChange={(e) => setModuleLevel(e.target.value as "easy" | "medium" | "hard")}
+                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  >
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={handleCreateModule}
+                    className="px-4 py-2 bg-teal-500 text-white rounded-lg shadow-md hover:bg-teal-600 transition-all"
+                  >
+                    Confirm Create
+                  </button>
+                  <button
+                    onClick={() => setShowForm(false)}
+                    className="px-4 py-2 bg-red-500 text-white rounded-lg shadow-md hover:bg-red-600 transition-all"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <button
+            onClick={toggleModal}
+            className="px-4 py-2 bg-gradient-to-r from-teal-400 via-teal-500 to-teal-600 text-white rounded-lg shadow-md hover:opacity-90 transition-all"
+          >
+            Enrolled Students
+          </button>
+
+          {/* Modal */}
+          {modalOpen && (
+            <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg shadow-lg w-96 p-6 relative">
+                {/* Close Button */}
+                <button
+                  onClick={toggleModal}
+                  className="absolute top-2 right-2 text-gray-600 hover:text-gray-800"
+                >
+                  &times;
+                </button>
+
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4">Enrolled Students</h2>
+
+                {loading && <p className="text-gray-500">Loading...</p>}
+                {error && <p className="text-red-500">{error}</p>}
+
+                {!loading && !error && students && (
+                  <ul className="space-y-2">
+                    {students.length > 0 ? (
+                      students.map((username) => (
+                        <li key={username}>
+                          <button
+                            onClick={() => handleUserClick(username)}
+                            className="text-teal-600 hover:underline w-full text-left"
+                          >
+                            {username}
+                          </button>
+                        </li>
+                      ))
+                    ) : (
+                      <p className="text-gray-500">No students enrolled.</p>
+                    )}
+                  </ul>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    ) : (
+      <div>No course found with the specified code.</div>
+    )}
+
+    {/* Modules Section */}
+    <h2 className="text-2xl font-semibold text-teal-600 mb-4">Modules</h2>
+    {modules.length > 0 ? (
+      modules.map((module) => (
+        <div key={module._id} className="border-b border-gray-300 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <h3 className="text-xl text-teal-600">{module.title}</h3>
+              <span className="text-sm text-gray-500 bg-gray-200 px-2 py-1 rounded-md">{module.level}</span>
+            </div>
+            <div className="flex gap-2 ml-auto">
+              <button
+                onClick={() => handleViewModule(module.title)}
+                className="px-3 py-1 bg-teal-500 text-white rounded-lg shadow-md hover:opacity-80"
+              >
+                View Module
+              </button>
             </div>
           </div>
-      ) : (
-        <div>No course found with the specified code.</div>
-      )}
+        </div>
+      ))
+    ) : (
+      <p>No modules available.</p>
+    )}
+  </div>
+);
 
-      {/* Modules Section */}
-      <h2 className="text-2xl font-semibold text-gray-800 mb-4">Modules</h2>
-      {modules.length > 0 ? (
-               modules.map((module) => (
-                <div key={module._id} className="border-b border-gray-300 py-4">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-xl text-blue-600">{module.title}</h3>
-                      <span className="text-sm text-gray-500 bg-gray-200 px-2 py-1 rounded-md">{module.level}</span>
-                    </div>
-                    <div className="flex gap-2 ml-auto">
-                      <button
-                        onClick={() => handleViewModule(module.title)}
-                        className="px-3 py-1 bg-teal-500 text-white rounded-lg shadow-md hover:opacity-80"
-                      >
-                        View Module
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p>No modules available.</p>
-            )}
-          </div>
-        );
 };
 
 export default CourseDetails;

@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from "next/navigation";
 import axiosInstance from '@/app/utils/axiosInstance';
+import InstructorSidebar from '@/app/components/instructor/instructor-sidebar/page';
+import Navbar from '@/app/components/NavBar/page';
 
 interface QuestionData {
   _id: number;
@@ -301,264 +303,270 @@ const QuestionPage = () => {
   if (error) {
     return <div>Error: {error}</div>;
   }
-
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <h1 className="text-3xl font-bold text-center text-black mb-6">Instructor Question Management</h1>
+     <div className="min-h-screen bg-gray-100">
+      <Navbar />
+      <div className="p-8">
+        <h1 className="text-3xl font-bold text-center text-black mb-6">Instructor Question Management</h1>
 
-      <button
-        className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 mb-4"
-        onClick={handleCreate}
-      >
-        Create New Question
-      </button>
+        <button
+          className="bg-teal-600 text-white py-2 px-4 rounded-md hover:bg-teal-700 mb-4"
+          onClick={handleCreate}
+        >
+          Create New Question
+        </button>
 
-    {/* Render edit form or create form based on context */}
-{showCreateForm || editIndex !== null ? (
-  <form onSubmit={editIndex === null ? handleCreateSubmit : handleSave} className="max-w-2xl mx-auto mt-8 bg-white p-6 rounded-md shadow-md">
-    <h2 className="text-2xl font-semibold text-black mb-4">{editIndex === null ? 'Create New Question' : 'Edit Question'}</h2>
+        {/* Render edit form or create form based on context */}
+        {showCreateForm || editIndex !== null ? (
+          <form onSubmit={editIndex === null ? handleCreateSubmit : handleSave} className="max-w-2xl mx-auto mt-8 bg-white p-6 rounded-md shadow-md">
+            <h2 className="text-2xl font-semibold text-black mb-4">{editIndex === null ? 'Create New Question' : 'Edit Question'}</h2>
 
-    {/* Keyword Title */}
-    <input
-      type="text"
-      className="w-full p-3 border text-black border-gray-300 rounded-md mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      placeholder="Keyword Title"
-      value={editIndex === null ? newQuestion.keywordTitle : editData.keywordTitle}
-      onChange={(e) =>
-        editIndex === null
-          ? handleInputChange(e, 'keywordTitle')
-          : setEditData((prevState) => ({ ...prevState, keywordTitle: e.target.value }))}
-      required
-    />
-
-    {/* Only show Course and Module dropdown in create form */}
-    {editIndex === null && (
-      <>
-        {/* Course Dropdown */}
-        <div className="mb-6">
-          <label className="block text-black mb-2" htmlFor="course">Course</label>
-          <select
-            id="course"
-            className="w-full p-3 border text-black border-gray-300 rounded-md mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={selectedCourse || ''}
-            onChange={(e) => handleCourseSelect(e.target.value)}
-            required
-          >
-            <option value="">Select Course</option>
-            {courses.map((course, index) => (
-              <option key={index} value={course.course_code}>{course.title}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Module Dropdown */}
-        <div className="mb-6">
-          <label className="block text-black mb-2" htmlFor="module">Module</label>
-          <select
-            id="module"
-            className="w-full p-3 border text-black border-gray-300 rounded-md mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={selectedModule || ''}
-            onChange={(e) => handleModuleSelect(e.target.value)}
-            disabled={!selectedCourse} // Disable module selection if no course is selected
-            required
-          >
-            <option value="">Select Module</option>
-            {modules.map((module, index) => (
-              <option key={index} value={module._id}>{module.title}</option>
-            ))}
-          </select>
-        </div>
-      </>
-    )}
-
-    {/* Question Text */}
-    <textarea
-      className="w-full p-3 border text-black border-gray-300 rounded-md mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      placeholder="Question Text"
-      value={editIndex === null ? newQuestion.question_text : editData.question_text}
-      onChange={(e) =>
-        editIndex === null
-          ? handleInputChange(e, 'question_text')
-          : setEditData((prevState) => ({ ...prevState, question_text: e.target.value }))}
-      required
-    />
-
-    {/* Difficulty Level */}
-    <div className="mb-6">
-      <label className="block text-black mb-2" htmlFor="difficulty_level">Difficulty Level</label>
-      <select
-        id="difficulty_level"
-        className="w-full p-3 border border-gray-300 rounded-md text-black focus:outline-none focus:ring-2 focus:ring-blue-500"               value={editIndex === null ? newQuestion.difficulty_level : editData.difficulty_level}
-        onChange={(e) =>
-          editIndex === null
-            ? handleInputChange(e, 'difficulty_level')
-            : setEditData((prevState) => ({ ...prevState, difficulty_level: e.target.value }))}
-        required
-      >
-        <option value="">Select difficulty level</option>
-        <option value="easy">easy</option>
-        <option value="medium">medium</option>
-        <option value="hard">hard</option>
-      </select>
-    </div>
-
- {/* Question Type */}
-<div className="mb-6">
-  <label className="block text-black mb-2" htmlFor="type">Type</label>
-  <select
-    id="type"
-    className="w-full p-3 border border-gray-300 rounded-md text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
-    value={editIndex === null ? newQuestion.type : editData.type}
-    onChange={(e) => {
-      const newType = e.target.value;
-      const updatedData = { ... (editIndex === null ? newQuestion : editData), type: newType };
-
-      // Set options based on selected type
-      if (newType === 't/f') {
-        updatedData.options = ['True', 'False'];
-      } else if (newType === 'mcq') {
-        updatedData.options = [];
-      }
-
-      if (editIndex === null) {
-        setNewQuestion(updatedData);
-      } else {
-        setEditData(updatedData);
-      }
-    }}
-    required
-  >
-    <option value="">Select Type</option>
-    <option value="t/f">True/False</option>
-    <option value="mcq">Multiple Choice</option>
-  </select>
-</div>
-
-
-    {/* Options (only for mcq type) */}
-    {(editIndex === null ? newQuestion.type : editData.type) === 'mcq' && (
-      <div className="mb-6">
-        <label className="block text-black mb-2">Options</label>
-        {(editIndex === null ? newQuestion.options : editData.options).map((option, index) => (
-          <div key={index} className="flex items-center mb-2">
+            {/* Keyword Title */}
             <input
               type="text"
-              className="w-full p-3 border border-gray-300 rounded-md mr-4 focus:outline-none focus:ring-2 focus:ring-blue-500"              placeholder={`Option ${index + 1}`}
-              value={option}
-              onChange={(e) => {
-                if (editIndex === null) {
-                  const updatedOptions = [...newQuestion.options];
-                  updatedOptions[index] = e.target.value;
-                  setNewQuestion((prev) => ({ ...prev, options: updatedOptions }));
-                } else {
-                  const updatedOptions = [...editData.options];
-                  updatedOptions[index] = e.target.value;
-                  setEditData((prev) => ({ ...prev, options: updatedOptions }));
-                }
-              }}
+              className="w-full p-3 border text-black border-teal-300 rounded-md mb-6 focus:outline-none focus:ring-2 focus:ring-teal-500"
+              placeholder="Keyword Title"
+              value={editIndex === null ? newQuestion.keywordTitle : editData.keywordTitle}
+              onChange={(e) =>
+                editIndex === null
+                  ? handleInputChange(e, 'keywordTitle')
+                  : setEditData((prevState) => ({ ...prevState, keywordTitle: e.target.value }))
+              }
+              required
             />
-            <button
-              type="button"
-              className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600"
-              onClick={() => {
-                if (editIndex === null) {
-                  const updatedOptions = newQuestion.options.filter((_, i) => i !== index);
-                  setNewQuestion((prev) => ({ ...prev, options: updatedOptions }));
-                } else {
-                  const updatedOptions = editData.options.filter((_, i) => i !== index);
-                  setEditData((prev) => ({ ...prev, options: updatedOptions }));
+
+            {/* Only show Course and Module dropdown in create form */}
+            {editIndex === null && (
+              <>
+                {/* Course Dropdown */}
+                <div className="mb-6">
+                  <label className="block text-black mb-2" htmlFor="course">Course</label>
+                  <select
+                    id="course"
+                    className="w-full p-3 border text-black border-teal-300 rounded-md mb-6 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    value={selectedCourse || ''}
+                    onChange={(e) => handleCourseSelect(e.target.value)}
+                    required
+                  >
+                    <option value="">Select Course</option>
+                    {courses.map((course, index) => (
+                      <option key={index} value={course.course_code}>{course.title}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Module Dropdown */}
+                <div className="mb-6">
+                  <label className="block text-black mb-2" htmlFor="module">Module</label>
+                  <select
+                    id="module"
+                    className="w-full p-3 border text-black border-teal-300 rounded-md mb-6 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    value={selectedModule || ''}
+                    onChange={(e) => handleModuleSelect(e.target.value)}
+                    disabled={!selectedCourse} // Disable module selection if no course is selected
+                    required
+                  >
+                    <option value="">Select Module</option>
+                    {modules.map((module, index) => (
+                      <option key={index} value={module._id}>{module.title}</option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            )}
+
+            {/* Question Text */}
+            <textarea
+              className="w-full p-3 border text-black border-teal-300 rounded-md mb-6 focus:outline-none focus:ring-2 focus:ring-teal-500"
+              placeholder="Question Text"
+              value={editIndex === null ? newQuestion.question_text : editData.question_text}
+              onChange={(e) =>
+                editIndex === null
+                  ? handleInputChange(e, 'question_text')
+                  : setEditData((prevState) => ({ ...prevState, question_text: e.target.value }))
+              }
+              required
+            />
+
+            {/* Difficulty Level */}
+            <div className="mb-6">
+              <label className="block text-black mb-2" htmlFor="difficulty_level">Difficulty Level</label>
+              <select
+                id="difficulty_level"
+                className="w-full p-3 border border-teal-300 rounded-md text-black focus:outline-none focus:ring-2 focus:ring-teal-500"
+                value={editIndex === null ? newQuestion.difficulty_level : editData.difficulty_level}
+                onChange={(e) =>
+                  editIndex === null
+                    ? handleInputChange(e, 'difficulty_level')
+                    : setEditData((prevState) => ({ ...prevState, difficulty_level: e.target.value }))
                 }
-              }}
+                required
+              >
+                <option value="">Select difficulty level</option>
+                <option value="easy">easy</option>
+                <option value="medium">medium</option>
+                <option value="hard">hard</option>
+              </select>
+            </div>
+
+            {/* Question Type */}
+            <div className="mb-6">
+              <label className="block text-black mb-2" htmlFor="type">Type</label>
+              <select
+                id="type"
+                className="w-full p-3 border border-teal-300 rounded-md text-black focus:outline-none focus:ring-2 focus:ring-teal-500"
+                value={editIndex === null ? newQuestion.type : editData.type}
+                onChange={(e) => {
+                  const newType = e.target.value;
+                  const updatedData = { ...(editIndex === null ? newQuestion : editData), type: newType };
+
+                  // Set options based on selected type
+                  if (newType === 't/f') {
+                    updatedData.options = ['True', 'False'];
+                  } else if (newType === 'mcq') {
+                    updatedData.options = [];
+                  }
+
+                  if (editIndex === null) {
+                    setNewQuestion(updatedData);
+                  } else {
+                    setEditData(updatedData);
+                  }
+                }}
+                required
+              >
+                <option value="">Select Type</option>
+                <option value="t/f">True/False</option>
+                <option value="mcq">Multiple Choice</option>
+              </select>
+            </div>
+
+            {/* Options (only for mcq type) */}
+            {(editIndex === null ? newQuestion.type : editData.type) === 'mcq' && (
+              <div className="mb-6">
+                <label className="block text-black mb-2">Options</label>
+                {(editIndex === null ? newQuestion.options : editData.options).map((option, index) => (
+                  <div key={index} className="flex items-center mb-2">
+                    <input
+                      type="text"
+                      className="w-full p-3 border border-teal-300 rounded-md mr-4 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      placeholder={`Option ${index + 1}`}
+                      value={option}
+                      onChange={(e) => {
+                        if (editIndex === null) {
+                          const updatedOptions = [...newQuestion.options];
+                          updatedOptions[index] = e.target.value;
+                          setNewQuestion((prev) => ({ ...prev, options: updatedOptions }));
+                        } else {
+                          const updatedOptions = [...editData.options];
+                          updatedOptions[index] = e.target.value;
+                          setEditData((prev) => ({ ...prev, options: updatedOptions }));
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-700"
+                      onClick={() => {
+                        if (editIndex === null) {
+                          const updatedOptions = newQuestion.options.filter((_, i) => i !== index);
+                          setNewQuestion((prev) => ({ ...prev, options: updatedOptions }));
+                        } else {
+                          const updatedOptions = editData.options.filter((_, i) => i !== index);
+                          setEditData((prev) => ({ ...prev, options: updatedOptions }));
+                        }
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  className="bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700"
+                  onClick={() => {
+                    if (editIndex === null) {
+                      setNewQuestion((prev) => ({ ...prev, options: [...prev.options, ''] }));
+                    } else {
+                      setEditData((prev) => ({ ...prev, options: [...prev.options, ''] }));
+                    }
+                  }}
+                >
+                  Add Option
+                </button>
+              </div>
+            )}
+
+            {/* Correct Answer */}
+            <div className="mb-4">
+              <label className="block text-black mb-2" htmlFor="correct_answer">Correct Answer</label>
+              <input
+                type="text"
+                id="correct_answer"
+                className="w-full p-3 border border-teal-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                placeholder="Correct Answer"
+                value={editIndex === null ? newQuestion.correct_answer : editData.correct_answer}
+                onChange={(e) =>
+                  editIndex === null
+                    ? handleInputChange(e, 'correct_answer')
+                    : setEditData((prevState) => ({ ...prevState, correct_answer: e.target.value }))
+                }
+                required
+              />
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              className="bg-teal-600 text-white py-2 px-4 rounded-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500"
             >
-              Remove
+              {editIndex === null ? 'Create Question' : 'Save Changes'}
             </button>
-          </div>
-        ))}
-        <button
-          type="button"
-          className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
-          onClick={() => {
-            if (editIndex === null) {
-              setNewQuestion((prev) => ({ ...prev, options: [...prev.options, ''] }));
-            } else {
-              setEditData((prev) => ({ ...prev, options: [...prev.options, ''] }));
-            }
-          }}
-        >
-          Add Option
-        </button>
-      </div>
-    )}
+          </form>
+        ) : null}
 
-    {/* Correct Answer */}
-    <div className="mb-4">
-      <label className="block text-black mb-2" htmlFor="correct_answer">Correct Answer</label>
-      <input
-        type="text"
-        id="correct_answer"
-        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"        placeholder="Correct Answer"
-        value={editIndex === null ? newQuestion.correct_answer : editData.correct_answer}
-        onChange={(e) =>
-          editIndex === null
-            ? handleInputChange(e, 'correct_answer')
-            : setEditData((prevState) => ({ ...prevState, correct_answer: e.target.value }))}
-        required
-      />
-    </div>
-
-    {/* Submit Button */}
-    <button
-      type="submit"
-      className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600
-      focus:outline-none focus:ring-2 focus:ring-blue-500"
-    >
-      {editIndex === null ? 'Create Question' : 'Save Changes'}
-    </button>
-  </form>
-) : null}
-
-
-        <>
-          <div className="mt-8">
+        {/* Table */}
+        <div className="mt-8">
           <h2 className="text-xl font-semibold mb-4 text-gray-700">Questions</h2>
           <table className="min-w-full border-collapse bg-white shadow-lg">
-              <thead>
-                <tr>
-                  <th className="py-3 px-4 border-b text-left text-black">Keyword Title</th>
-                  <th className="py-3 px-4 border-b text-left text-black">Question Text</th>
-                  <th className="py-3 px-4 border-b text-left text-black">Correct Answer</th>
-                  <th className="py-3 px-4 border-b text-left text-black">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {questions.map((question, index) => (
-                  <tr key={question._id}>
-                    <td className="py-2 px-4 border-b text-gray-700">{question.keywordTitle}</td>
-                    <td className="py-2 px-4 border-b text-gray-700">{question.question_text}</td>
-                    <td className="py-2 px-4 border-b text-gray-700">{question.correct_answer}</td>
-                    <td className="py-2 px-4 border-b flex space-x-2">
+            <thead>
+              <tr>
+                <th className="py-3 px-4 border-b text-left text-black">Keyword Title</th>
+                <th className="py-3 px-4 border-b text-left text-black">Question Text</th>
+                <th className="py-3 px-4 border-b text-left text-black">Correct Answer</th>
+                <th className="py-3 px-4 border-b text-left text-black">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {questions.map((question, index) => (
+                <tr key={question._id}>
+                  <td className="py-2 px-4 border-b text-gray-700">{question.keywordTitle}</td>
+                  <td className="py-2 px-4 border-b text-gray-700">{question.question_text}</td>
+                  <td className="py-2 px-4 border-b text-gray-700">{question.correct_answer}</td>
+                  <td className="py-2 px-4 border-b flex space-x-2">
                     <button
-                    className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-900"
-                    onClick={() => handleEdit(index)}
-                  >
-                        Edit
-                      </button>
-                      <button
-                          className="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-700"
-                          onClick={() => handleDelete(index, String(question._id))} // Convert _id to string
-                        >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </>
-      )
+                      className="bg-teal-600 text-white py-2 px-4 rounded-md hover:bg-teal-700"
+                      onClick={() => handleEdit(index)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-700"
+                      onClick={() => handleDelete(index, String(question._id))} // Convert _id to string
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 };
 
 export default QuestionPage;
+
+
