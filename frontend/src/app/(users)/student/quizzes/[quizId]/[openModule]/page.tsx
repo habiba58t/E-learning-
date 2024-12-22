@@ -1,22 +1,23 @@
-"use client";
-
+"use client"
 import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import axiosInstance from "@/app/utils/axiosInstance";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 
-interface CourseData{
-    course_code:string;
+interface CourseData {
+  course_code: string;
 }
-interface Response{
-    _id:string;
+
+interface Response {
+  _id: string;
 }
-interface ResponseData{
-    response: Response;
-    message: string;
-    
+
+interface ResponseData {
+  response: Response;
+  message: string;
 }
+
 const TakeQuizPage = () => {
   const { quizId, openModule } = useParams(); // Access quizId from the dynamic URL
 
@@ -24,11 +25,15 @@ const TakeQuizPage = () => {
   const [answers, setAnswers] = useState<{ questionId: string; answer: string }[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [username, setUsername] = useState<string | null>(null);
-  const[course_code, setCourseCode] = useState<string>("");
+  const [username, setUsername] = useState<string>("");
+  const [course_code, setCourseCode] = useState<string>("");
+  const [isRatingPopupVisible, setIsRatingPopupVisible] = useState(false); // State for showing rating popup
+  const [rating, setRating] = useState<number | null>(null); // State to track the rating
+  const [hasTakenQuiz, setHasTakenQuiz] = useState<boolean | null>(null); // Track if the student has taken the quiz
+ // const[responseId, setResponse] = useState<ResponseData|any>();
+  
+  const router = useRouter();
 
-
-  const router=useRouter();
   // Fetch cookie data to get the username
   const fetchCookieData = async () => {
     try {
@@ -50,7 +55,6 @@ const TakeQuizPage = () => {
     }
   };
 
-
   // Fetch quiz data from the API
   const fetchQuizData = async (user: string) => {
     try {
@@ -67,6 +71,27 @@ const TakeQuizPage = () => {
     }
   };
 
+  // Check if the user has already taken the quiz
+  const checkQuizStatus = async () => {
+    try {
+      const response = await axiosInstance.get(
+        `http://localhost:3002/quizzes/check-status/${quizId}/${username}`,
+        { withCredentials: true }
+      );
+
+      // Only show rating popup if the student has not responded to the quiz
+      if (response.data.message !== "Student has responded to the quiz") {
+        setHasTakenQuiz(false);
+        setIsRatingPopupVisible(true);
+      } else {
+        setHasTakenQuiz(true);
+      }
+    } catch (err: any) {
+      console.error("Error checking quiz status:", err);
+      setHasTakenQuiz(false);
+    }
+  };
+
   useEffect(() => {
     if (quizId) {
       (async () => {
@@ -78,6 +103,7 @@ const TakeQuizPage = () => {
   useEffect(() => {
     if (username && quizId) {
       fetchQuizData(username);
+      checkQuizStatus(); // Check if the quiz has been taken before
     }
   }, [username]);
 
@@ -96,26 +122,56 @@ const TakeQuizPage = () => {
 
   const handleSubmit = async () => {
     try {
-      const course = await axiosInstance.get<CourseData>(`http://localhost:3002/courses/module/${openModule}`)
+      // Get course code
+      const course = await axiosInstance.get<CourseData>(`http://localhost:3002/courses/module/${openModule}`);
       console.log(course.data);
 
+      // Prepare answers for submission
       const transformedAnswers = Object.fromEntries(
         answers.map(({ questionId, answer }) => [questionId, answer])
       );
+
+      // Submit quiz answers
       const response1 = await axiosInstance.post<ResponseData>(
         `http://localhost:3002/quizzes/${course.data.course_code}/${quizId}/${username}/submit`,
         transformedAnswers,
         { withCredentials: true }
       );
-      console.log(response1.data.message)
-      alert("Your responses have been submitted successfully!");
-      const responseId= response1.data.response._id;
-      
-      router.push(`/student/quizzes/${quizId}/${openModule}/${responseId}`)
+     // setResponse(response1.data.response._id)
+      console.log(response1.data.response._id);
+      const responseId = response1.data.response._id;      alert("Your responses have been submitted successfully!");
+
+      // After submission, check if the student has taken the quiz and show rating popup if applicable
+      await checkQuizStatus(); // Ensure this is awaited to properly update the state
+      router.push(`/student/quizzes/${quizId}/${openModule}/${responseId}`);
+      // If the student hasn't taken the quiz before, show the rating popup
     } catch (err: any) {
       console.error("Error submitting responses:", err);
       alert(err.response?.data?.message || "Failed to submit your responses");
     }
+
+  };
+
+  const handleRateQuiz = async (rating: number) => {
+    // Logic for handling the rating (e.g., save to the server)
+    console.log("Rated quiz with rating:", rating);
+
+    // Save the rating to the server (update the open module's rating)
+    try {
+      await axiosInstance.put(
+        `http://localhost:3002/modules/setRating/${openModule}/${rating}`,
+        { withCredentials: true }
+      );
+      // After rating, set the rating state and close the popup
+      setRating(rating);
+      setIsRatingPopupVisible(false);
+    } catch (error) {
+      console.error("Error updating module rating:", error);
+    }
+  };
+
+  const closeRatePopup = () => {
+    setIsRatingPopupVisible(false); // Close the popup if user clicks "Close"
   };
 
   if (loading) {
@@ -164,9 +220,7 @@ const TakeQuizPage = () => {
                       name={question._id}
                       value={option}
                       onChange={() => handleOptionChange(question._id, option)}
-                      checked={
-                        answers.find((ans) => ans.questionId === question._id)?.answer === option
-                      }
+                      checked={answers.find((ans) => ans.questionId === question._id)?.answer === option}
                       className="w-5 h-5 text-blue-600 focus:ring-blue-500"
                     />
                     <span className="text-lg text-gray-700 font-medium">
@@ -189,6 +243,32 @@ const TakeQuizPage = () => {
           </div>
         </form>
       </div>
+
+      {/* Rating Popup */}
+      {!hasTakenQuiz && isRatingPopupVisible && (
+        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <h2 className="text-2xl font-bold mb-4">Rate the Quiz</h2>
+            <div className="flex space-x-4">
+              {[1, 2, 3, 4, 5].map((rating) => (
+                <button
+                  key={rating}
+                  onClick={() => handleRateQuiz(rating)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  {rating}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={closeRatePopup}
+              className="mt-4 px-4 py-2 bg-gray-300 text-black rounded-md"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

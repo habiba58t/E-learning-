@@ -124,7 +124,7 @@ const QuizResponses = () => {
               ? "Excellent job! 🎉"
               : parseFloat(scorePercentage) >= 50
               ? "Good effort, keep improving!"
-              : "Don't give up, try again!"}
+              : "You did not pass the quiz, please revise this module and retake the quiz when you are ready!"}
           </p>
         </div>
 

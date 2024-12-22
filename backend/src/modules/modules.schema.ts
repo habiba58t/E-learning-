@@ -36,13 +36,13 @@ export class Module {
   @Prop({ required: true, default: Date.now })
   created_at: Date;
 
-  @Prop()
+  @Prop({default:0})
   totalRating: number; //sum of ratings for module
   
-  @Prop()
+  @Prop({default:0})
   totalStudents: number; //number of students who voted for module
 
-  @Prop()
+  @Prop({default:0})
    averageRating: number; 
 
   @Prop()

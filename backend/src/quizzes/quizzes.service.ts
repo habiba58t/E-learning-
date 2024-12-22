@@ -507,7 +507,7 @@ async submitQuiz(
 
   // Prepare and return the message
   const message = scorePercentage < 0.5
-    ? 'YOu did not pass the quiz, please revise this module and retake the quiz when you are ready!'
+    ? 'You did not pass the quiz, please revise this module and retake the quiz when you are ready!'
     : 'You passed the quiz!';
 
   return { message, response };

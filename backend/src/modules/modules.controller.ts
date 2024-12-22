@@ -1,5 +1,5 @@
 
-import {  UseInterceptors, UploadedFile,} from '@nestjs/common';
+import {  UseInterceptors, UploadedFile, Patch,} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -244,13 +244,17 @@ async addContentToModule(
   }
 
 //SET TOTALRATING TOTALSTUDENTS AVERAGE RATING
-@UseGuards(AuthorizationGuard)
- @Roles(Role.User)
-@Put(':objectid/score')
-async setRating(@Param('ObjectId') ObjectId: string, @Param('score')score:number): Promise<void> {
-  const objectId = new mongoose.Types.ObjectId(ObjectId);
-  await this.modulesService.setRating(objectId,score);
+// @UseGuards(AuthorizationGuard)
+//  @Roles(Role.User)
+@Put('/setRating/:objectId/:score')
+async setRating(
+  @Param('objectId') objectId: string,
+  @Param('score') score: number
+): Promise<void> {
+  const objectIdInstance = new mongoose.Types.ObjectId(objectId);
+  await this.modulesService.setRating(objectIdInstance, score);
 }
+
 
 //GET NOTES FOR SPECIFIC USER 
 @UseGuards(AuthGuard, AuthorizationGuard)
