@@ -30,7 +30,10 @@ import { NoteSchema } from 'src/notes/notes.schema';
 import {Notification} from 'src/notification/notification.schema';
 import {NotificationSchema} from 'src/notification/notification.schema';
 import {NotificationService} from 'src/notification/notification.service';
-
+import { GroupChatService } from 'src/group-chat/group-chat.service';
+import { GroupChat, GroupChatSchema } from 'src/group-chat/group-chat.schema';
+import { MessageService } from 'src/message/message.service';
+import { Message, MessageSchema } from 'src/message/message.schema';
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Progress.name, schema: ProgressSchema }]),
@@ -43,9 +46,11 @@ import {NotificationService} from 'src/notification/notification.service';
     MongooseModule.forFeature([{ name: Content.name, schema: ContentSchema }]),
     MongooseModule.forFeature([{ name: Notes.name, schema: NoteSchema }]),
     MongooseModule.forFeature([{ name: Notification.name, schema: NotificationSchema }]),
+    MongooseModule.forFeature([{ name: GroupChat.name, schema: GroupChatSchema }]),
+    MongooseModule.forFeature([{ name: Message.name, schema: MessageSchema}]),
   ],
   controllers: [ProgressController],
-  providers: [ProgressService,CoursesService,QuizzesService,ModulesService,UsersService,QuestionsService,ResponsesService,StudentService,ContentService,NotesService,NotificationService],
-  exports:[ProgressService,CoursesService,QuizzesService,ModulesService,UsersService,QuestionsService,ResponsesService,StudentService,ContentService,NotesService,NotificationService],
+  providers: [ProgressService,CoursesService,QuizzesService,ModulesService,UsersService,QuestionsService,ResponsesService,StudentService,ContentService,NotesService,NotificationService,GroupChatService,MessageService ],
+  exports:[ProgressService,CoursesService,QuizzesService,ModulesService,UsersService,QuestionsService,ResponsesService,StudentService,ContentService,NotesService,NotificationService,GroupChatService,MessageService ],
 })
 export class ProgressModule {}

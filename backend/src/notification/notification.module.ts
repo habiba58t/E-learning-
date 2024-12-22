@@ -10,6 +10,7 @@ import { UsersModule } from 'src/users/users.module';
 import { CoursesService } from 'src/courses/courses.service';
 import { UsersService } from 'src/users/users.service';
 
+
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Notification.name, schema: NotificationSchema }]),

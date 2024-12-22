@@ -28,6 +28,10 @@ import { NoteSchema } from 'src/notes/notes.schema';
 import {Notification} from 'src/notification/notification.schema';
 import {NotificationSchema} from 'src/notification/notification.schema';
 import {NotificationService} from 'src/notification/notification.service';
+import { GroupChatService } from 'src/group-chat/group-chat.service';
+import { GroupChat, GroupChatSchema } from 'src/group-chat/group-chat.schema';
+import { Message, MessageSchema } from 'src/message/message.schema';
+import { MessageService } from 'src/message/message.service';
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Quiz.name, schema: QuizzesSchema }]),
@@ -40,10 +44,13 @@ import {NotificationService} from 'src/notification/notification.service';
     MongooseModule.forFeature([{ name: Content.name, schema: ContentSchema }]),
     MongooseModule.forFeature([{ name: Notes.name, schema: NoteSchema }]),
     MongooseModule.forFeature([{ name: Notification.name, schema: NotificationSchema }]),
+    MongooseModule.forFeature([{ name: GroupChat.name, schema: GroupChatSchema }]),
+    MongooseModule.forFeature([{ name: Message.name, schema: MessageSchema }]),
+    
   ],
   controllers: [QuizzesController],
-  providers: [StudentService, CoursesService,ModulesService,QuizzesService,QuestionsService,NotesService,StudentService,InstructorService,UsersService,ContentService,ProgressService,ResponsesService,NotificationService],
-  exports: [StudentService, CoursesService,ModulesService,QuizzesService,QuestionsService,NotesService,StudentService,InstructorService,UsersService,ContentService,ProgressService,ResponsesService,NotificationService],
+  providers: [StudentService, CoursesService,ModulesService,QuizzesService,QuestionsService,NotesService,StudentService,InstructorService,UsersService,ContentService,ProgressService,ResponsesService,NotificationService,GroupChatService,MessageService],
+  exports: [StudentService, CoursesService,ModulesService,QuizzesService,QuestionsService,NotesService,StudentService,InstructorService,UsersService,ContentService,ProgressService,ResponsesService,NotificationService,GroupChatService,MessageService],
 }
 )
 export class QuizzesModule {}

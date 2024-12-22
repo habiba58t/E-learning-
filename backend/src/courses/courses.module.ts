@@ -32,6 +32,11 @@ import {Notification} from 'src/notification/notification.schema';
 import {NotificationSchema} from 'src/notification/notification.schema';
 import {NotificationService} from 'src/notification/notification.service';
 import { NotificationModule } from 'src/Notification/Notification.module';
+import { GroupChatService } from 'src/group-chat/group-chat.service';
+import { GroupChat, GroupChatSchema } from 'src/group-chat/group-chat.schema';
+import { Message, MessageSchema } from 'src/message/message.schema';
+import { MessageService } from 'src/message/message.service';
+
 
 @Module({
   imports: [
@@ -48,10 +53,12 @@ import { NotificationModule } from 'src/Notification/Notification.module';
     forwardRef(() => AuthModule), // Resolve circular dependency
     forwardRef(() => UsersModule), // Resolve circular dependency
     forwardRef(() => NotificationModule),
+    MongooseModule.forFeature([{ name: GroupChat.name, schema: GroupChatSchema }]),
+    MongooseModule.forFeature([{ name: Message.name, schema: MessageSchema }]),
   ],
 
-  providers: [ProgressService, NotesService, ResponsesService, ModulesService, CoursesService,ModulesService,QuizzesService,QuestionsService,NotesService,StudentService,InstructorService,UsersService,ContentService,NotificationService],
+  providers: [ProgressService, NotesService, ResponsesService, ModulesService, CoursesService,ModulesService,QuizzesService,QuestionsService,NotesService,StudentService,InstructorService,UsersService,ContentService,NotificationService,GroupChatService,MessageService],
   controllers: [CoursesController],
-  exports: [ProgressService, NotesService, ResponsesService, ModulesService, CoursesService,ModulesService,QuizzesService,QuestionsService,NotesService,StudentService,InstructorService,UsersService,ContentService,NotificationService],
+  exports: [ProgressService, NotesService, ResponsesService, ModulesService, CoursesService,ModulesService,QuizzesService,QuestionsService,NotesService,StudentService,InstructorService,UsersService,ContentService,NotificationService,GroupChatService,MessageService],
 })
 export class CoursesModule {}

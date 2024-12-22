@@ -26,6 +26,7 @@ export class GroupChatService {
         const newGroup = new this.groupChat({ course_code, group_name, createdBy, members: [createdBy] });
 
         // notify all users in the course 
+        await this.notificationService.createPublicChatNotification(createdBy,course_code);
        
         return newGroup.save();
         
@@ -45,6 +46,7 @@ export class GroupChatService {
       
           // Save the updated module
           await group.save();
+          await this.notificationService.sendPublicChatNotification(groupName)
         
           return group;
           // notify the user of a new message 
@@ -61,10 +63,10 @@ export class GroupChatService {
     return groupChat;
   }
  // fetch a group by its id 
-    async getGroupById(groupId: string): Promise<GroupDocument> {
-        const groupChat = await this.groupChat.findById(groupId);
+    async getGroupById(groupName: string): Promise<GroupDocument> {
+        const groupChat = await this.groupChat.findOne({group_name: groupName});
         if (!groupChat) {
-            throw new NotFoundException(`Group with ID ${groupId} not found`);
+            throw new NotFoundException(`Group with ID ${groupName} not found`);
         }
         return groupChat;
     }

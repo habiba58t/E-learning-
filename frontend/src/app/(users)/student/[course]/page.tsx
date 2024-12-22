@@ -40,6 +40,9 @@ const CourseDetails = () => {
     const [error, setError] = useState<string | null>(null); // State to handle errors
     const [loading, setLoading] = useState<boolean>(true); // State for loading status
     const [modules, setModules] = useState<Module[] | null>(null); // State to hold fetched modules
+    const [students, setStudents] = useState<string[]>([]); // State to store enrolled students
+    const [studentsLoading, setStudentsLoading] = useState<boolean>(false);
+    const [studentsError, setStudentsError] = useState<string | null>(null);
     const router = useRouter();
      const [isClient, setIsClient] = useState(false);
 
@@ -89,6 +92,30 @@ const CourseDetails = () => {
         }
     };
 
+
+
+
+
+    const handleViewstudents = async () => {
+        setStudentsLoading(true);
+        setStudentsError(null);
+        try {
+            const response = await axiosInstance.get<string[]>(
+                `http://localhost:3002/progress/enrolledStudents/${courseCode}`
+            );
+            console.log(response.data)
+            setStudents(response.data); // Set the students in the state
+        } catch (err) {
+            setStudentsError('Failed to load enrolled students.');
+        } finally {
+            setStudentsLoading(false);
+        }
+        
+    };
+
+
+
+
     const handleViewModuleDetails = (module_title: string) => {
         if (isClient) {
             router.push(`${courseCode}/${module_title}`);
@@ -130,7 +157,7 @@ const CourseDetails = () => {
                 </div>
                 <div className="flex justify-center mt-6">
                 <button
-                       // onClick={handleViewModules}
+                        onClick={handleViewstudents}
                         className="bg-white text-blue-600 font-bold py-2 px-6 rounded-full shadow-md hover:bg-gray-100 transition-all"
                     >
                         View Other Students
@@ -152,6 +179,20 @@ const CourseDetails = () => {
                 </button>
                 </div>
             </div>
+
+            {/* Enrolled Students Section */}
+            {studentsLoading && <div>Loading students...</div>}
+            {studentsError && <div>{studentsError}</div>}
+            {students.length > 0 && (
+                <div className="mt-12">
+                    <h2 className="text-3xl font-semibold text-blue-800 mb-6 text-center">Enrolled Students</h2>
+                    <ul>
+                        {students.map((student, index) => (
+                            <li key={index} className="text-lg text-center">{student}</li>
+                        ))}
+                    </ul>
+                </div>
+            )}
             
             
 
