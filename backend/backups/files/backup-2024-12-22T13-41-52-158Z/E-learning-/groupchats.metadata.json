@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"group_name":{"$numberInt":"1"}},"name":"group_name_1","background":true,"unique":true}],"uuid":"bfc542c37b4a4f68a5d01c494b5825e4","collectionName":"groupchats","type":"collection"}
