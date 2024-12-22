@@ -237,7 +237,7 @@ async addContentToModule(
   // //Get AverageRating  of module
   @UseGuards(AuthorizationGuard)
 @Roles(Role.Admin,Role.Instructor,Role.User)
-  @Get(':moduleId')
+  @Get(':ObjectId')
   async getAverageRating(@Param('ObjectId') ObjectId: string): Promise<number> {
     const objectId = new mongoose.Types.ObjectId(ObjectId);
    return await this.modulesService.getAverageRating(objectId);

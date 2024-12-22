@@ -23,6 +23,11 @@ export class InstructorController {
     const objectId = new mongoose.Types.ObjectId(ObjectId)
    return await this.instructorService.getAvgRating(objectId);
   }
+  
+  @Get('rating/:username')
+  async getAvgRatingByUser(@Param('username') username: string): Promise<number> {
+   return await this.instructorService.getAvgRatingByUsername(username);
+  }
 
 //SET TOTALRATING TOTALSTUDENTS AVERAGE RATING
 @UseGuards(AuthorizationGuard)
