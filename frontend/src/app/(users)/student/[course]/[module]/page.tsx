@@ -3,11 +3,12 @@
 import axiosInstance from '@/app/utils/axiosInstance';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import axios, { AxiosError } from 'axios';
 
 interface Module {
   title: string;
   description: string;
-  content: [];
+  content: ContentWithDownload[];
   level: string;
 }
 
@@ -16,6 +17,17 @@ interface Note {
   content: string;
   Title:string
 }
+export interface Content {
+  _id: string
+  title: string;
+  isOutdated: boolean;
+  resources: { filePath: string; fileType: string; originalName: string }[];
+}
+
+interface ContentWithDownload extends Content {
+  download?: () => void; // Optional, as some contents may not have resources
+}
+const backend_url = "http://localhost:3002";
 
 const fetchUsernameFromCookies = async (): Promise<string | null> => {
   try {
@@ -50,27 +62,69 @@ const ModuleDetails = () => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [autoSaveTimeout, setAutoSaveTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [contentList, setContentList] = useState<{   _id: string,title: string; resources: any[] }[] | null>(null);
 
   useEffect(() => {
     const fetchModuleDetails = async () => {
-      if (!module_title) {
-        console.error('Module title is undefined!');
-        return;
-      }
       try {
-        const response = await axiosInstance.get<Module>(
-          `http://localhost:3002/modules/mtitle/${module_title}`
+        const username = await fetchUsernameFromCookies();
+        if (!username) {
+          console.error("Username is undefined or missing from cookies!");
+          setError("Authentication failed. Please log in again.");
+          return;
+        }
+  
+        console.log("Username:", username);
+        console.log("Module Title:", module_title);
+  
+        if (!module_title) {
+          console.error("Module title is undefined!");
+          setError("Module title is missing.");
+          return;
+        }
+  
+        const moduleResponse = await axiosInstance.get<Module>(`${backend_url}/modules/mtitle/${module_title}`
         );
-        setModules(response.data);
+        setModules(moduleResponse.data);
+        console.log("modules:",moduleResponse.data) //till here ok
+        try {
+          const contentResponse = await axios.get(
+            `${backend_url}/modules/${username}/${module_title}/content`,
+            { withCredentials: true }
+          );
+  
+          const contents = contentResponse.data;
+  
+          const modifiedContent: ContentWithDownload[] = contents.map((item: any) => ({
+            ...item,
+            download: item.resources?.length
+              ? () => downloadFile(item.resources[0].filePath, item.resources[0].originalName)
+              : undefined,
+          }));
+  
+          setContentList(modifiedContent);
+        } catch (contentErr) {
+          console.error("Error fetching content:", contentErr);
+          setError("Failed to load the module content.");
+        }
       } catch (err) {
-        setError('Failed to load module details.');
+        console.error("Error fetching module details:", err);
+        setError("Failed to load module details.");
       } finally {
         setLoading(false);
       }
     };
-
+  
     fetchModuleDetails();
   }, [module_title]);
+  
+
+  const downloadFile = (filePath: string, fileName: string) => {
+    const anchor = document.createElement("a");
+    anchor.href = `${backend_url}${filePath}`;
+    anchor.download = fileName;
+    anchor.click();
+  };
 
   const handleNoteChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setNote(e.target.value);
@@ -265,13 +319,43 @@ const ModuleDetails = () => {
           <p className="text-gray-600 mb-6 text-lg">{module?.description}</p>
           <div className="bg-gray-50 p-6 rounded-lg shadow-inner">
             <h2 className="text-2xl font-semibold text-gray-700 mb-4">Content</h2>
-            <ul className="list-disc list-inside space-y-3">
-              {module?.content.map((item, index) => (
-                <li key={index} className="text-gray-600 text-lg">
-                  {item}
+            {contentList && contentList.length > 0 ? (
+               <ul className="list-disc list-inside space-y-3">
+            {contentList.map((content, index) => (
+        <li
+          key={content._id || `content-${index}`}
+          className="border-b border-gray-300 py-4 flex items-center relative"
+        >
+          {/* Content Title */}
+          <h3 className="text-xl font-semibold text-blue-600 pr-16">{content.title}</h3>
+          {/* Resource List */}
+          <ul className="mt-2 w-full">
+            {content.resources && content.resources.length > 0 ? (
+              content.resources.map((resource, resourceIndex) => (
+                <li
+                  key={`${content._id || "no-id"}-${resource.filePath}-${resourceIndex}`}
+                  className="flex items-center gap-2"
+                >
+                  <a
+                    href={`${backend_url}${resource.filePath}`}
+                    download
+                    className="text-blue-500 hover:underline"
+                  >
+                    {resource.originalName} ({resource.fileType})
+                  </a>
                 </li>
-              ))}
-            </ul>
+              ))
+            ) : (
+              <li className="text-gray-500">No resources available.</li>
+            )}
+          </ul>
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <p>No contents available.</p>
+  )}
+
           </div>
           <div className="mt-6 flex justify-between items-center">
             <span className="inline-block bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-semibold">

@@ -204,7 +204,7 @@ async addContentToModule(
 
 //get content for specific module
 @UseGuards(AuthGuard,AuthorizationGuard)
-@Roles(Role.Admin,Role.Instructor)
+@Roles(Role.Admin,Role.Instructor, Role.User)
   @Get(':username/:title/content')
   async getContentForModule(@Param('username') username: string,@Param('title') title: string): Promise<Content[]> {
     return this.modulesService.getContentForModule(username, title);

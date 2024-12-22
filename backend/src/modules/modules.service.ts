@@ -362,13 +362,13 @@ async getContentForModule( username: string, title: string): Promise<Content[]> 
   if (!course) {
     throw new NotFoundException(`course with code ${module._id} not found`);
   }
-  const user = await this.usersService.findUserByUsername(username);
-  const isInstructor = course.created_by === user.username;
-  const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
+  // const user = await this.usersService.findUserByUsername(username);
+  // const isInstructor = course.created_by === user.username;
+  // const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
 
-  if (!isInstructor && !isAdmin) {
-    throw new UnauthorizedException('You are not authorized to upload files to this module');
-  }
+  // if (!isInstructor && !isAdmin) {
+  //   throw new UnauthorizedException('You are not authorized to upload files to this module');
+  // }
 
   const contentIds= module.content;
   if (!contentIds || contentIds.length === 0) {
