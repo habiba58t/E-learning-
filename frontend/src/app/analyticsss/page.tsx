@@ -49,8 +49,8 @@ const AnalyticsPage = () => {
   }, []);
 
   // Handle redirection to analytics page for each course
-  const viewCourseAnalytics = (courseCode: string) => {
-    router.push(`/analyticsss/${courseCode}`); // Navigate to the instructor's analytics page
+  const viewCourseAnalytics = (course_code: string) => {
+    router.push(`/analyticsss/${course_code}`); // Navigate to the instructor's analytics page
   };
 
   if (loading) {
@@ -77,7 +77,7 @@ const AnalyticsPage = () => {
             boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
           }}>
             <span style={{ fontWeight: 'bold', color: 'black' }}>{course.title}</span>
-            <span style={{ color: 'black' }}>{course.course_code}</span> {/* Course code shown in black */}
+           
             <button
               style={{
                 padding: '8px 15px',
