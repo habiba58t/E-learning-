@@ -29,6 +29,10 @@ import { Quiz } from 'src/quizzes/quizzes.schema';
 import {Notification} from 'src/notification/notification.schema';
 import {NotificationSchema} from 'src/notification/notification.schema';
 import {NotificationService} from 'src/notification/notification.service';
+import { GroupChatService } from 'src/group-chat/group-chat.service';
+import { GroupChat, GroupChatSchema } from 'src/group-chat/group-chat.schema';
+import { Message, MessageSchema } from 'src/message/message.schema';
+import { MessageService } from 'src/message/message.service';
 
 @Module({
   imports: [
@@ -41,7 +45,10 @@ import {NotificationService} from 'src/notification/notification.service';
     MongooseModule.forFeature([{ name: Quiz.name, schema: QuizzesSchema }]),
     MongooseModule.forFeature([{ name: 'Question', schema: QuestionsSchema }]),
     MongooseModule.forFeature([{ name: 'Notes', schema: NoteSchema }]), 
-    MongooseModule.forFeature([{ name: Notification.name, schema: NotificationSchema }]), 
+    MongooseModule.forFeature([{ name: Notification.name, schema: NotificationSchema }]),
+    MongooseModule.forFeature([{ name: GroupChat.name, schema: GroupChatSchema }]), 
+    MongooseModule.forFeature([{ name: Message.name, schema: MessageSchema}]),
+    
   ],
   providers: [
     StudentService,
@@ -55,6 +62,7 @@ import {NotificationService} from 'src/notification/notification.service';
     ResponsesService,
     ModulesService,
     NotificationService,
+    GroupChatService,MessageService
   ],
   controllers: [UsersController],
   exports: [
@@ -70,6 +78,7 @@ import {NotificationService} from 'src/notification/notification.service';
     ResponsesService,
     ModulesService,
     NotificationService,
+    GroupChatService,MessageService
   ],
 })
 export class UsersModule {}

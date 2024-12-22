@@ -458,11 +458,16 @@ async getAverageRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
  }
  
  //SET RATING,TOTAL,AVERAGE
- async setRating(ObjectId: mongoose.Types.ObjectId,score:number): Promise<void> {
-   const module = await this.moduleModel.findById(ObjectId);
-   module.totalRating = module.totalRating + score;
+ async setRating(objectId: mongoose.Types.ObjectId ,score:number): Promise<void> {
+   const module = await this.moduleModel.findById(objectId);
+   if (!module) {
+    throw new Error(`Module with ID ${objectId} not found`);
+  }
+   module.totalRating += + score;
    module.totalStudents += 1;
    module.averageRating = module.totalRating/module.totalStudents;
+   await module.save()
+
  }
 
  //GET NOTES FOR A SPECIFIC USER
@@ -537,7 +542,7 @@ async deleteNote(title:string,username:string,notetId: string): Promise<void>{
   }
   await student.save(); 
 
-  await this.notesService.deleteNote(id);
+ // await this.notesService.deleteNote(id);
 
 }
 
@@ -579,4 +584,8 @@ async UpdateNote(notetId: mongoose.Types.ObjectId,contentNew:string): Promise<no
         await module.save();
 
     } 
+
+
+
+    
 }

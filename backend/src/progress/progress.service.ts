@@ -6,7 +6,7 @@ import { CoursesService } from 'src/courses/courses.service';
 import { Courses, CoursesSchema } from 'src/courses/courses.schema';
 import { CreateProgressDTo } from './dto/createProgress.dto';
 import { UsersService } from 'src/users/users.service';
-import { Users } from 'src/users/users.schema';
+import { userDocument, Users } from 'src/users/users.schema';
 import Module from 'module';
 import { moduleDocument } from 'src/modules/modules.schema';
 import { Quiz } from 'src/quizzes/quizzes.schema';
@@ -109,6 +109,8 @@ async deleteProgressByUsername(Username: string) {
         
         return usernames;
     }
+
+    
 
       //completed: the array aboth, filter who finished. kol student check if completetion is 100 . getStudentsCOmpleted
       async findAllStudentsCompleted(course_code: string): Promise<Progress[]> {

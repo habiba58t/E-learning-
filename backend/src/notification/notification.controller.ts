@@ -58,12 +58,12 @@ async createPublicChatNotification(@Param('username') username: string, @Param('
 
 //create notification for chat inform members of this chat message is sent
 //username is sender of the message
-// @UseGuards(AuthGuard, AuthorizationGuard)
-// @Roles(Role.Admin, Role.User, Role.Instructor) 
-// @Post('public-chatsent/:chatId/:username')
-// async sendPublicChatNotification(@Param('username') username: string, @Param('chatId') chatId:string): Promise<void>{
-//     return this.notificationService.sendPublicChatNotification(username, chatId );
-// }
+@UseGuards(AuthGuard, AuthorizationGuard)
+@Roles(Role.Admin, Role.User, Role.Instructor) 
+@Post('public-chatsent/:chatId')
+async sendPublicChatNotification( @Param('chatId') chatId:string): Promise<void>{
+    return this.notificationService.sendPublicChatNotification( chatId );
+}
 
 
 

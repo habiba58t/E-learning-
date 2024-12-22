@@ -48,6 +48,8 @@ const ChatPage: React.FC = () => {
   const [showMenu, setShowMenu] = useState<string | null>(null);// State to track which message menu is shown
   const [menuVisible, setMenuVisible] = useState(false);
   const [isChatListChanged, setIsChatListChanged] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [menuTimeout, setMenuTimeout] = useState<NodeJS.Timeout | null>(null);
 
   const fetchUsernameFromCookies = async (): Promise<string | null> => {
     try {
@@ -165,7 +167,21 @@ const ChatPage: React.FC = () => {
 
   
 
-  
+  useEffect(() => {
+    if (showMenu) {
+      // Set timeout to hide the menu after 5 seconds
+      const timeout = setTimeout(() => {
+        setShowMenu(null);
+      }, 5000); // 5 seconds timeout
+      setMenuTimeout(timeout);
+    }
+
+    return () => {
+      if (menuTimeout) {
+        clearTimeout(menuTimeout); // Cleanup timeout if menu is closed early
+      }
+    };
+  }, [showMenu]);
   
 
   const handleDeleteGroup = async (groupName: string, username: string, course_code: string) => {
@@ -180,7 +196,8 @@ const ChatPage: React.FC = () => {
       );
       setChats((prevChats) => prevChats.filter((chat) => chat.group_name !== groupName));
       
-      alert("Group deleted successfully!");
+      setErrorMessage("Group chat deleted successfully!");
+      setTimeout(() => setErrorMessage(null), 5000); // Hide after 5 seconds
 
       if (selectedChat?.group_name === groupName) {
         setSelectedChat(null);
@@ -206,13 +223,14 @@ const ChatPage: React.FC = () => {
         createdBy: createdBy,
       });
       
-      alert("Group chat created successfully!");
+      setErrorMessage("Group chat created successfully!");
+      setTimeout(() => setErrorMessage(null), 5000); // Hide after 5 seconds
       onSuccess();
       
       
     } catch (error) {
-      console.error("Error creating group chat:", error);
-      alert("Failed to create group chat.");
+      setErrorMessage("Failed to create group chat.");
+      setTimeout(() => setErrorMessage(null), 5000);
     }
   };
   const handleExitGroup = async (groupName: string, username: string, course_code: string) => {
@@ -234,11 +252,12 @@ const ChatPage: React.FC = () => {
       // Optionally clear the selected chat (or adjust depending on your desired behavior)
       setSelectedChat(null);
   
-      alert("You have exited the group.");
+      setErrorMessage("You have exited the group.");
+      setTimeout(() => setErrorMessage(null), 5000);
       
     } catch (error) {
-      console.error("Error exiting the group:", error);
-      alert("Failed to exit the group.");
+      setErrorMessage("Failed to exit the group.");
+      setTimeout(() => setErrorMessage(null), 5000);
     }
   };
 
@@ -248,6 +267,12 @@ const ChatPage: React.FC = () => {
     <div className="container mx-auto px-4 py-8 flex h-screen">
       {/* Sidebar with Chat Groups */}
       <div className="w-1/4 bg-blue-600 text-white rounded-lg shadow-lg p-6 mr-6 flex flex-col">
+      {/* Error Message */}
+      {errorMessage && (
+          <div className="bg-green-500 text-white p-2 rounded-md mb-4">
+            {errorMessage}
+          </div>
+        )}
         <h1 className="text-3xl font-semibold text-center mb-8">Course Chats</h1>
         {/* Create Group Form */}
         <div className="mb-4">
