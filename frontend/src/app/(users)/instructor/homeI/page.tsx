@@ -1,8 +1,9 @@
-"use client"
+'use client';
 
 import React, { useState, useEffect } from "react";
 import axiosInstance from "@/app/utils/axiosInstance";
 import router, { useRouter } from "next/navigation";
+import Sidebar from "@/app/components/instructor/instructor-sidebar/page";
 
 interface UserorCourseData {
   _id: string;
@@ -38,8 +39,6 @@ const HomePage = () => {
       fetchResults();  // Always fetch results when category is not 'course'
     }
   }, [selectedCategory, searchQuery]); // Both selectedCategory and searchQuery will trigger this effect
-
-  
 
   useEffect(() => {
     // Fetch user data on component mount
@@ -104,7 +103,7 @@ const HomePage = () => {
     }
   };
 
- const filterCourses = () => {
+  const filterCourses = () => {
     const filtered = allCourses.filter((course) =>
       course.title?.toLowerCase().includes(searchQuery.toLowerCase().trim())
     );
@@ -121,7 +120,6 @@ const HomePage = () => {
     }
   };
 
-
   const renderResult = (item: UserorCourseData) => {
     if (selectedCategory === "course") {
       return (
@@ -134,7 +132,6 @@ const HomePage = () => {
           <p className="text-gray-600">Description: {item.description}</p>
           <p className="text-gray-600">Instructor: {item.created_by}</p>
           <p className="text-gray-600">Average Rating: {item.average_rating || "N/A"}</p>
-
         </div>
       );
     } else {
@@ -150,36 +147,35 @@ const HomePage = () => {
       );
     }
   };
-  
-
-
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-teal-100">
+      <Sidebar />
       {/* Header */}
-      <header className="bg-blue-600 text-white py-4 shadow-md">
-        <div className="container mx-auto flex justify-between items-center px-6">
-          <h1 className="text-2xl font-bold">Home</h1>
-          <div className="flex items-center gap-4">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-white text-gray-700 rounded-lg px-4 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-blue-300"
-              placeholder="Search by name or title..."
-            />
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="bg-white text-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300"
-            >
-              <option value="student">Students</option>
-              <option value="instructor">Instructors</option>
-              <option value="course">Courses</option>
-            </select>
-          </div>
-        </div>
-      </header>
+      <header className="bg-teal-600 text-white py-4 shadow-md">
+  <div className="container mx-auto flex justify-between items-center px-6">
+    <h1 className="text-2xl font-bold">Home</h1>
+    <div className="flex items-center gap-4">
+      <input
+        type="text"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        className="bg-white text-gray-700 rounded-lg px-4 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-teal-300"
+        placeholder="Search by name or title..."
+      />
+      <select
+        value={selectedCategory}
+        onChange={(e) => setSelectedCategory(e.target.value)}
+        className="bg-white text-gray-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-teal-300"
+      >
+        <option value="student">Students</option>
+        <option value="instructor">Instructors</option>
+        <option value="course">Courses</option>
+      </select>
+    </div>
+  </div>
+</header>
+
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8">
@@ -192,8 +188,8 @@ const HomePage = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {results.length > 0 ? (
             results
-            .filter(item => (item.username ? item.username !== username : item))
-            .map(item => renderResult(item))) : (
+              .filter(item => (item.username ? item.username !== username : item))
+              .map(item => renderResult(item))) : (
             <p className="text-center text-gray-500">No results found</p>
           )}
         </div>

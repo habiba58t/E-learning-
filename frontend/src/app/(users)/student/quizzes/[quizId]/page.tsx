@@ -79,9 +79,10 @@ const TakeQuizPage = () => {
 
   const handleSubmit = async () => {
     try {
+      console.log(answers)
       await axiosInstance.post(
-        "http://localhost:3002/quizzes/submit-response",
-        { quizId, answers },
+        `http://localhost:3002/quizzes/${quizId}/${username}/submit`,
+        {  answers },
         { withCredentials: true }
       );
       alert("Your responses have been submitted successfully!");

@@ -11,18 +11,15 @@ export default function Navbar() {
         <div className="flex justify-between h-16">
           <div className="flex">
             <Link href="/" className="flex-shrink-0 flex items-center">
-              <span className="text-xl font-bold">Academiq</span>
+              <span className="text-gray-600 text-xl font-bold">Academiq</span>
             </Link>
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
-            <Link href="/main-page" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900">Home</Link>
-            <Link href="/courses" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900">Browse Topics</Link>
-            <Link href="#how-it-works" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900">How it works</Link>
-            <Link href="#contact" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900">Contact</Link>
-
+            <Link href="/" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900">Home</Link>
+            <Link href="/courses" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900">Browse Courses</Link>
+            <Link href="/about" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900">About</Link>
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
-            {/* Add Link around the User icon to redirect to login page */}
             <Link href="/login">
               <button className="p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none">
                 <User className="h-6 w-6" />
@@ -41,11 +38,10 @@ export default function Navbar() {
       </div>
       {isOpen && (
         <div className="sm:hidden">
-          <div className="pt-2 pb-3 space-y-1">
-            <Link href="#home" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Home</Link>
-            <Link href="#browse-topics" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Browse Topics</Link>
-            <Link href="#how-it-works" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">How it works</Link>
-            <Link href="#contact" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Contact</Link>
+            <div className="pt-2 pb-3 space-y-1">
+            <Link href="/" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Home</Link>
+            <Link href="#browse-topics" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Browse Courses</Link>
+            <Link href="#about" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">About</Link>
           </div>
         </div>
       )}

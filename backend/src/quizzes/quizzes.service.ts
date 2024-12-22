@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UseGuards ,forwardRef,Inject} from '@nestjs/common';
+import { Injectable, NotFoundException, UseGuards ,forwardRef,Inject, BadRequestException} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { Quiz, QuizzesDocument } from './quizzes.schema';  // Assuming your Quiz schema is defined
@@ -433,112 +433,88 @@ async checkStudentQuizStatus(
 // Method for students to submit their answers and create a response
 //creates response and adds it to the array of responses in the quiz
 async submitQuiz(
-  quizId: mongoose.Types.ObjectId,
+  quizId: string,
   studentUsername: string,
-  studentAnswersObject: Record<string, string>
+  studentAnswers: { questionId: string; answer: string }[]
 ): Promise<any> {
-  // Step 1: Retrieve the quiz by its ID
-  const quiz = await this.quizModel.findById(quizId);
-  if (!quiz) throw new Error('Quiz not found');
+  try {
+    const qId = new mongoose.Types.ObjectId(quizId);
+    const quiz = await this.quizModel.findById(qId).populate('responses');
+    const existingResponseOfUsername = await this.quizModel.findById(qId).populate('responses').select('responses').find({ username: studentUsername });
+    if(!existingResponseOfUsername) throw  new Error("oops")
+    if (!quiz) throw new Error('Quiz not found');
 
-  // Fetch all questions that are part of the quiz
-  const allQuestions = await this.questionModel.find({ '_id': { $in: quiz.questions } });
+    // Fetch all questions for the quiz
+    const allQuestions = await this.questionModel.find({ '_id': { $in: quiz.questions } });
 
-  // Check for empty quiz
-  if (allQuestions.length === 0) {
-    throw new Error('No questions found for the quiz');
-  }
-
-  // Convert studentAnswersObject to an array of { questionId, answer }
-  const studentAnswers: { questionId: mongoose.Types.ObjectId, answer: string }[] = Object.keys(studentAnswersObject).map(key => ({
-    questionId: new mongoose.Types.ObjectId(key), // Convert the key to ObjectId
-    answer: studentAnswersObject[key], // Answer is a string
-  }));
-
-  let score = 0;
-
-  // Compare student's answers with correct answers and calculate score
-  allQuestions.forEach((question) => {
-    const studentAnswer = studentAnswers.find(answer => answer.questionId.equals(question._id));
-    if (studentAnswer && question.correct_answer === studentAnswer.answer) {
-      score += 1; // Increase score for correct answers
+    if (allQuestions.length === 0) {
+      throw new Error('No questions found for the quiz');
     }
-  });
 
-  // Calculate score as a percentage
-  const scorePercentage = score / allQuestions.length;
+    // Format answers
+    const formattedAnswers = studentAnswers.map(({ questionId, answer }) => ({
+      questionId: new mongoose.Types.ObjectId(questionId),
+      answer: answer,
+    }));
 
-  // Apply penalty for failing (score < 0.5)
-  const penalty = scorePercentage < 0.5 ? -(1-scorePercentage) : 0; // Penalty if score is less than 50%
+    let score = 0;
 
-  // Prepare response data
-  const responseData = {
-    username: studentUsername,
-    quiz_id: quizId,
-    score: scorePercentage,
-    answers: studentAnswers,
-  };
-
-  // Step 2: Check if the student has already submitted a response
-  const existingResponse = await this.responseModel.findOne({ username: studentUsername, quiz_id: quizId });
-
-  let response;
-  if (existingResponse) {
-    // Update existing response if already taken
-    response = existingResponse;
-    response.score = scorePercentage;
-    response.answers = studentAnswers;
-    await response.save();
-  } else {
-    // Create a new response if not already taken
-    response = new this.responseModel(responseData);
-    await response.save();
-  }
-
-  // Step 3: Update the quiz with the new or updated response
-// Check if the response ID already exists in the quiz's responses array to avoid duplicates
-if (!quiz.responses.includes(response._id)) {
-  quiz.responses.push(response._id);
-  await quiz.save();
-}
-
-  // Step 4: Update the student's score for the course
-  const student = await this.studentModel.findOne({ username: studentUsername });
-  if (student) {
-    // Find the course by populating the modules to access quizzes
-    const course = await this.courseModel.findOne({ 'modules.quizzes._id': quizId }).populate('modules.quizzes');
-
-    if (course) {
-      // Find the existing course score entry for the student
-      //const courseStudentScore = student.studentScores.find(score => score.course_id.equals(course._id));
-      let courseStudentScore = await this.studentService.getStudentScore(studentUsername, course._id)
-
-
-      // If the course exists in the student's scores array, update the score directly
-      //it should exist since we are adding it on enroll, but just in case
-      if (courseStudentScore) {
-        // Apply penalty for failing (score < 0.5) or add the score for passing
-        courseStudentScore += (penalty ? penalty : scorePercentage);
-      } else {
-        // If the course doesn't exist in the student's scores, create a new entry
-        // enroll already adds an entry so this is probably not useful, but i added it to avoid errors
-        student.studentScore.set( course._id, courseStudentScore );
+    // Compare answers
+    allQuestions.forEach((question) => {
+      const studentAnswer = formattedAnswers.find(answer => answer.questionId.equals(question._id));
+      if (studentAnswer && question.correct_answer === studentAnswer.answer) {
+        score += 1;
       }
+    });
 
-      await student.save();
-      await this.studentService.setStudentScore(studentUsername, course._id, courseStudentScore); //this calls
-      //setStudentLevel
-    }
+    const scorePercentage = score / allQuestions.length;
+    const penalty = scorePercentage < 0.5 ? -(1 - scorePercentage) : 0;
+
+    // Fetch course and course_code
+    const module = await this.moduleModel.findOne({ quizzes: { $in: [qId] } });
+    const course = await this.courseModel.findOne({ modules: { $in: [module._id] } });
     
+        if (!course) {
+      throw new Error('Course not found');
+    }
+    const course_code = course.course_code;
+
+    const responseData = {
+      username: studentUsername,
+      score: scorePercentage,
+      answers: formattedAnswers,
+      course_code: course_code,  // Ensure course_code is included
+    };
+
+    let response;
+    if (existingResponseOfUsername) {
+      response = existingResponseOfUsername;
+      response.score = scorePercentage;
+      response.answers = formattedAnswers;
+     // await response.save();
+    } else {
+      response = await this.responseModel.create(responseData); // Create and save in one step
+    }
+
+    if (!quiz.responses.includes(response._id)) {
+      quiz.responses.push(response._id);
+   //   await quiz.save();
+    }
+
+    const student = await this.studentModel.findOne({ username: studentUsername });
+    if (student) {
+      let courseStudentScore = await this.studentService.getStudentScore(studentUsername, course._id);
+      courseStudentScore = courseStudentScore + (penalty || scorePercentage);
+      await student.save();
+      await this.studentService.setStudentScore(studentUsername, course._id, courseStudentScore);
+    }
+
+    const message = scorePercentage < 0.5 ? 'Advice student to revise this module' : 'You passed the quiz';
+
+    return { message };
+  } catch (error) {
+    throw new BadRequestException(error.message || 'Something went wrong');
   }
-
-  // Prepare message for frontend
-  const message = scorePercentage < 0.5 
-    ? 'Advice student to revise this module' 
-    : 'You passed the quiz';
-
-  // Return the result message
-  return { message };
 }
 
 

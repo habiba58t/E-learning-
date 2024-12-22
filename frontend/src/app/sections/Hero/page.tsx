@@ -6,7 +6,7 @@ export default function Hero() {
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Discover. Learn. Enjoy</h1>
-          <h6 className="text-xl text-white mb-8">platform for creatives around the world</h6>
+          <h6 className="text-xl text-white mb-8">platform for learners around the world</h6>
           <form className="mt-8">
             <div className="flex items-center bg-white rounded-full overflow-hidden p-1">
               <div className="pl-4">
@@ -14,7 +14,7 @@ export default function Hero() {
               </div>
               <input
                 type="search"
-                placeholder="Design, Code, Marketing, Finance ..."
+                placeholder="Meet our Instructors ..."
                 className="w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none"
               />
               <button

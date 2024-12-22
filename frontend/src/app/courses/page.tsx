@@ -80,7 +80,7 @@ export default function MainPage() {
         )}
 
         {/* Search Bar */}
-        <div className="mb-6 flex justify-center">
+        <div className="text-gray-400 mb-6 flex justify-center">
           <div className="relative w-2/3">
             <input
               type="text"

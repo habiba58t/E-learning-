@@ -1,5 +1,5 @@
 'use client';
-
+import Sidebar from "@/app/components/student-sidebar/page";
 import axiosInstance from '@/app/utils/axiosInstance';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -137,6 +137,9 @@ const CourseDetails = () => {
     }
 
     return (
+        <div className="flex">
+            {/* Sidebar */}
+            <Sidebar />
         <div className="container mx-auto px-4 py-8">
             {/* Course Header */}
             <div className="bg-gradient-to-br from-blue-600 to-purple-700 shadow-lg rounded-lg p-8 text-white">
@@ -231,7 +234,9 @@ const CourseDetails = () => {
                 </p>
             </div>
         </div>
+        </div>
     );
+    
 };
 
 

@@ -1,5 +1,5 @@
 'use client';
-
+import Sidebar from "@/app/components/student-sidebar/page";
 import axiosInstance from '@/app/utils/axiosInstance';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -133,6 +133,9 @@ const ModuleDetails = () => {
   };
 
   const saveNote = async () => {
+
+    setNote(""); // Clear note content
+    setNoteTitle(""); // Clear note title
     
     if (!note) {
       console.log('Note is empty!');
@@ -342,6 +345,7 @@ const ModuleDetails = () => {
  
   
   return (
+    
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-4xl mx-auto bg-white shadow-md rounded-lg overflow-hidden">
         <div className="px-6 py-8">
