@@ -29,7 +29,8 @@ import { ResponsesService } from 'src/responses/responses.service';
 import { ContentSchema } from 'src/content/content.schema';
 import { ContentService } from 'src/content/content.service';
 import { StudentService } from 'src/users/student/student.service';
-//import { GroupChatSchema } from 'src/group-chat/group-chat.schema';
+import { GroupChat, GroupChatSchema } from 'src/group-chat/group-chat.schema';
+import { GroupChatService } from 'src/group-chat/group-chat.service';
 import { MessageSchema } from './message.schema';
 import { Message } from './message.schema';
 import { MessageController } from './message.controller';
@@ -39,9 +40,22 @@ import { MessageController } from './message.controller';
 @Module({
    imports: [
       MongooseModule.forFeature([{ name: Message.name, schema: MessageSchema }]),
+      MongooseModule.forFeature([{ name: Notification.name, schema: NotificationSchema}]),
+      MongooseModule.forFeature([{ name: GroupChat.name, schema: GroupChatSchema}]),
+      MongooseModule.forFeature([{ name: Users.name, schema: UsersSchema}]),
+      MongooseModule.forFeature([{ name: Courses.name, schema: CoursesSchema}]),
+      MongooseModule.forFeature([{ name: Progress.name, schema: ProgressSchema}]),
+      MongooseModule.forFeature([{ name: 'Module', schema: ModuleSchema }]),
+      MongooseModule.forFeature([{ name: Quiz.name, schema: QuizzesSchema }]),
+      MongooseModule.forFeature([{ name: Question.name, schema: QuestionsSchema }]),
+      MongooseModule.forFeature([{ name: Notes.name, schema: NoteSchema }]),
+      MongooseModule.forFeature([{ name: Responses.name, schema: ResponsesSchema }]),
+      MongooseModule.forFeature([{ name: 'Content', schema: ContentSchema }]),
+      forwardRef(() => MessageModule), // Avoid circular dependencies
    ],
+   
   controllers: [MessageController],
-  providers: [MessageService],
-   exports: [MessageService]
+  providers: [MessageService,GroupChatService,NotificationService,UsersService,CoursesService,ProgressService,ModulesService,ContentService, QuizzesService,NotesService,ResponsesService,QuestionsService,StudentService],
+   exports: [MessageService,GroupChatService,NotificationService,UsersService,CoursesService,ProgressService,ModulesService,ContentService, QuizzesService,NotesService,ResponsesService,QuestionsService,StudentService]
 })
 export class MessageModule {}

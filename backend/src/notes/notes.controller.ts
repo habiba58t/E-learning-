@@ -34,13 +34,14 @@ export class NotesController {
   }
 
   //DELETE NOTE
-  @Delete()
-  async deleteNote(@Param('noteId') noteId: mongoose.Types.ObjectId){
-     await this.notesService.deleteNote(noteId);
+  @Delete('/:noteId/:module_title')
+  async deleteNote(@Param('noteId') noteId: string,@Param('module_title') module_title: string){
+    const id = new mongoose.Types.ObjectId(noteId)
+     await this.notesService.deleteNote(id,module_title);
   }
 
-  //DELETE NOTE by username
-  @Delete()
+ // DELETE NOTE by username
+  @Delete('/byusername')
   async deleteNoteByUsername(@Param('username') username:string){
     await this.notesService.deleteNoteByUsername(username);
   }

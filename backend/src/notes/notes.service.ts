@@ -53,13 +53,9 @@ async findAll(): Promise<Notes[]> {
     createNoteDto: CreateNoteDto,
     module_title: string,
   ): Promise<notesDocument> {
+    
     // Create the note
-    const newNote = new this.noteModel(createNoteDto);
-    newNote.createdAt = new Date();
-    newNote.lastUpdated = new Date();
 
-    // Save the note
-    const savedNote = await newNote.save();
   const module = await this.moduleService.findByTitle(module_title)
     // Add the note to the module's notes array
     
@@ -67,6 +63,17 @@ async findAll(): Promise<Notes[]> {
       throw new 
       Error(`Module with ID ${module_title} not found`);
     }
+    if(!module.enableNotes){
+      throw new 
+      Error('notes for this module are enabled')
+    }
+
+    const newNote = new this.noteModel(createNoteDto);
+    newNote.createdAt = new Date();
+    newNote.lastUpdated = new Date();
+
+    // Save the note
+    const savedNote = await newNote.save();
     module.notes.push(savedNote._id);
 
     // Save the updated module
@@ -77,9 +84,21 @@ async findAll(): Promise<Notes[]> {
   }
 
 
-  //DELETE a note by username,coursecode,last updated
-  async deleteNote(noteId: mongoose.Types.ObjectId){
-     await this.noteModel.findOneAndDelete({noteId}).exec();
+  //DELETE a note by object id
+  async deleteNote(noteId: mongoose.Types.ObjectId, module_title: string){
+     //await this.noteModel.findByIdAndDelete(noteId).exec();
+     const module = await this.moduleService.findByTitle(module_title)
+    
+      // Remove the note ID from the array of notes in the module
+  module.notes = module.notes.filter(
+    (id: mongoose.Types.ObjectId) => !id.equals(noteId)
+  );
+  await this.noteModel.findByIdAndDelete(noteId).exec();
+
+  // Save the updated module
+  await module.save();
+
+
   }
 
   //DELETE NOTE by username
@@ -90,6 +109,9 @@ async findAll(): Promise<Notes[]> {
   // Update an existing note
   async updateNote(noteId: mongoose.Types.ObjectId, updateNoteDto: UpdateNoteDto): Promise<notesDocument> {
     const note= await this.noteModel.findByIdAndUpdate(noteId, updateNoteDto).exec();
+    if(!note){
+      return;
+    }
     note.lastUpdated = new Date();
     await note.save();
     return note;

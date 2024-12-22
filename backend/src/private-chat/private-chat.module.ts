@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { forwardRef } from '@nestjs/common';
-//import { GroupChatService } from 'src/group-chat/group-chat.service';
-//import { GroupChat } from 'src/group-chat/group-chat.schema';
+import { GroupChatService } from 'src/group-chat/group-chat.service';
+import { GroupChat } from 'src/group-chat/group-chat.schema';
 import { MessageService } from '../message/message.service';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationSchema } from 'src/notification/notification.schema';
@@ -29,7 +29,7 @@ import { ResponsesService } from 'src/responses/responses.service';
 import { ContentSchema } from 'src/content/content.schema';
 import { ContentService } from 'src/content/content.service';
 import { StudentService } from 'src/users/student/student.service';
-//import { GroupChatSchema } from 'src/group-chat/group-chat.schema';
+import { GroupChatSchema } from 'src/group-chat/group-chat.schema';
 import { MessageSchema } from '../message/message.schema';
 import { Message } from '../message/message.schema';
 import { PrivateChat, PrivateChatSchema } from './private-chat.schema';
@@ -53,11 +53,13 @@ import { PrivateChatService } from './private-chat.service';
     MongooseModule.forFeature([{ name: Responses.name, schema: ResponsesSchema }]),
     MongooseModule.forFeature([{ name: Notification.name, schema: NotificationSchema }]),
     MongooseModule.forFeature([{ name: Message.name, schema: MessageSchema }]),
+    MongooseModule.forFeature([{ name: GroupChat.name, schema: GroupChatSchema }]),
+
 
 
     ],
     controllers: [PrivateChatController],
-    providers: [PrivateChatService, MessageService, ResponsesService, NotesService, UsersService, StudentService,ModulesService,QuizzesService,QuestionsService,NotesService,ContentService, CoursesService, ProgressService,NotificationService],
+    providers: [PrivateChatService, MessageService, ResponsesService, NotesService, UsersService, StudentService,ModulesService,QuizzesService,QuestionsService,NotesService,ContentService, CoursesService, ProgressService,NotificationService,GroupChatService],
     exports: [PrivateChatService]
 })
 export class PrivateChatModule {}

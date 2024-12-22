@@ -542,7 +542,7 @@ async deleteNote(title:string,username:string,notetId: string): Promise<void>{
   }
   await student.save(); 
 
-  await this.notesService.deleteNote(id);
+ // await this.notesService.deleteNote(id);
 
 }
 
@@ -584,4 +584,8 @@ async UpdateNote(notetId: mongoose.Types.ObjectId,contentNew:string): Promise<no
         await module.save();
 
     } 
+
+
+
+    
 }

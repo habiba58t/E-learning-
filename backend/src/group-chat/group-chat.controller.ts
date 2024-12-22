@@ -33,9 +33,9 @@ export class GroupChatController {
       return await this.groupchatService.getGroupMessages(group_name);
   }
 // Fetch a specific group chat by ID
-@Get('/:group_id')
-async getGroupById(@Param('group_id') groupId: string):Promise<GroupDocument>{
-    return await this.groupchatService.getGroupById(groupId);
+@Get('/:groupName')
+async getGroupById(@Param('groupName') groupName: string):Promise<GroupDocument>{
+    return await this.groupchatService.getGroupById(groupName);
 }
 
 // get groupchat bu course_code

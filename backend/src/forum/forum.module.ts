@@ -8,8 +8,8 @@ import { Reply, replySchema } from './reply.schema';
 import { Courses, CoursesSchema } from 'src/courses/courses.schema';
 import { Users, UsersSchema } from 'src/users/users.schema';
 import { forwardRef } from '@nestjs/common';
-//import { GroupChatService } from 'src/group-chat/group-chat.service';
-//import { GroupChat } from 'src/group-chat/group-chat.schema';
+import { GroupChatService } from 'src/group-chat/group-chat.service';
+import { GroupChat, GroupChatSchema } from 'src/group-chat/group-chat.schema';
 import { MessageService } from '../message/message.service';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationSchema } from 'src/notification/notification.schema';
@@ -34,6 +34,8 @@ import { ResponsesService } from 'src/responses/responses.service';
 import { ContentSchema } from 'src/content/content.schema';
 import { ContentService } from 'src/content/content.service';
 import { StudentService } from 'src/users/student/student.service';
+import { Message, MessageSchema } from 'src/message/message.schema';
+
 
 
 @Module({
@@ -50,9 +52,12 @@ import { StudentService } from 'src/users/student/student.service';
     MongooseModule.forFeature([{ name: 'Content', schema: ContentSchema }]),
     MongooseModule.forFeature([{ name: 'Progress', schema: ProgressSchema }]),
     MongooseModule.forFeature([{ name: Responses.name, schema: ResponsesSchema }]),
+    MongooseModule.forFeature([{ name: GroupChat.name, schema: GroupChatSchema }]),
+    MongooseModule.forFeature([{ name: Message.name, schema: MessageSchema }]),
+
   ],
   controllers: [ForumController],
-  providers: [ForumService, NotificationService, ResponsesService, NotesService, UsersService, StudentService,ModulesService,QuizzesService,QuestionsService,NotesService,ContentService, CoursesService, ProgressService,NotificationService],
+  providers: [ForumService, NotificationService, ResponsesService, NotesService, UsersService, StudentService,ModulesService,QuizzesService,QuestionsService,NotesService,ContentService, CoursesService, ProgressService,NotificationService,GroupChatService,MessageService],
 
 })
 export class ForumModule {}

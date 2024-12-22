@@ -1,5 +1,5 @@
 'use client';
-
+import Sidebar from "@/app/components/student-sidebar/page";
 import axiosInstance from '@/app/utils/axiosInstance';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -10,6 +10,7 @@ interface Module {
   description: string;
   content: ContentWithDownload[];
   level: string;
+  enableNotes: boolean
 }
 
 interface Note {
@@ -63,6 +64,7 @@ const ModuleDetails = () => {
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [autoSaveTimeout, setAutoSaveTimeout] = useState<NodeJS.Timeout | null>(null);
   const [contentList, setContentList] = useState<{   _id: string,title: string; resources: any[] }[] | null>(null);
+  const [noteError, setNoteError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchModuleDetails = async () => {
@@ -131,6 +133,10 @@ const ModuleDetails = () => {
   };
 
   const saveNote = async () => {
+
+    setNote(""); // Clear note content
+    setNoteTitle(""); // Clear note title
+    
     if (!note) {
       console.log('Note is empty!');
       return;
@@ -166,11 +172,34 @@ const ModuleDetails = () => {
     }
   };
 
+  const deleteNote = async () => {
+
+    if (!selectedNote) {
+      //alert("No note selected for update");
+      return;
+    }
+
+    try {
+      // Send PUT request to update the note
+       await axiosInstance.delete(
+        `http://localhost:3002/notes/${selectedNote._id}/${module_title}` 
+        );
+
+      // Handle the response (optional)
+     // console.log("Note deleted successfully:", response.data);
+      // Optionally, update the UI or show a success message
+      setSelectedNote(null); // Close the note modal after saving
+      setShowNoteModal(false);
+      setNote(""); // Clear note content
+      setNoteTitle(""); // Clear note title
+    } catch (error) {
+      console.error("Error deleteing the note:", error);
+    }
+  };
+
+
+
   const updateNote = async () => {
-    // if (!note || !noteTitle) {
-    //   alert("Note content and title are required!");
-    //   return;
-    // }
 
     if (!selectedNote) {
       //alert("No note selected for update");
@@ -275,6 +304,10 @@ const ModuleDetails = () => {
     document.addEventListener('mouseup', handleMouseUp);
   };
 
+
+ 
+
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -312,6 +345,7 @@ const ModuleDetails = () => {
  
   
   return (
+    
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-4xl mx-auto bg-white shadow-md rounded-lg overflow-hidden">
         <div className="px-6 py-8">
@@ -385,7 +419,12 @@ const ModuleDetails = () => {
                 </ul>
               )}
               <button
-                onClick={() => setShowNoteModal(true)}
+                onClick={() =>{
+                  if (!module?.enableNotes) {
+                    // If notes are disabled for this module, show an alert
+                    setNoteError("Notes for this module are disabled.");
+                } else
+                {setShowNoteModal(true)}}}
                 className="bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600 transition"
               >
                 Take a Note
@@ -393,6 +432,12 @@ const ModuleDetails = () => {
             </div>
           </div>
         </div>
+        {/* Show error message */}
+    {noteError && (
+      <div className="mt-4 bg-red-200 text-red-700 p-4 rounded-lg shadow-md">
+        <p>{noteError}</p>
+      </div>
+    )}
       </div>
   
       {/* Movable Note */}
@@ -468,7 +513,7 @@ const ModuleDetails = () => {
               <div className="space-x-4">
                
                 <button
-                 // onClick={deleteNote} // Add logic to delete the note
+                  onClick={deleteNote} // Add logic to delete the note
                   className="bg-red-500 text-white px-4 py-2 rounded-lg"
                 >
                   Delete
