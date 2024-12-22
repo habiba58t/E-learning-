@@ -39,6 +39,7 @@ const StudentCourses = () => {
   const [openModule, setOpenModule] = useState<string | null>(null);
   const [quizStatuses, setQuizStatuses] = useState<{ [quizId: string]: string }>({});
   const [username, setUsername] = useState<string | null>(null);
+  const [responseId, setResponseId] = useState<string>("");
 
   const router = useRouter(); // Initialize the router for navigation
 
@@ -104,6 +105,11 @@ const StudentCourses = () => {
             const response = await axiosInstance.get(
               `http://localhost:3002/quizzes/check-status/${quiz._id}/${username}`
             );
+            if(response.data.message==="Student has responded to the quiz"){
+              const userResponse = await axiosInstance.get(`http://localhost:3002/quizzes/response/${quiz._id}/${username}`)
+              console.log(userResponse.data.response)
+              setResponseId(userResponse.data.response._id)
+            }
             statuses[quiz._id] = response.data.message;
           }
         }
@@ -137,7 +143,7 @@ const StudentCourses = () => {
   // Handle click for taking the quiz
   const handleClick = (quizId: string) => {
     alert(`Taking quiz: ${quizId}`);
-    router.push(`/student/quizzes/${quizId}`);
+    router.push(`/student/quizzes/${quizId}/${openModule}`);
   };
 
   if (loading) return <div className="text-center text-xl text-red-500">Loading...</div>;
@@ -191,7 +197,7 @@ const StudentCourses = () => {
                                 {quizStatuses[quiz._id] === "Student has responded to the quiz" ? (
                                   <div className="flex space-x-4">
                                     <button
-                                      onClick={() => alert(`See response: ${quiz._id}`)}
+                                      onClick={() => router.push(`/student/quizzes/${quiz._id}/${openModule}/${responseId}`)}
                                       className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-800 transition-all"
                                     >
                                       📄 See Response
@@ -213,8 +219,10 @@ const StudentCourses = () => {
                                 )}
                               </div>
                             ))
+                            
                           )}
                         </div>
+                        
                       </div>
                     ))
                   )}

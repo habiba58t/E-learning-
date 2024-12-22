@@ -26,11 +26,17 @@ export class ResponsesController {
     return this.responsesService.findResponsesByUsername(username);
   }
 
+  @Get('findR/:id') 
+  async findResponsesById(@Param('id') id: string,): Promise<any> {  // Return type can be adjusted as needed
+    return this.responsesService.findResponsesById(id);
+  }
+
  // Endpoint to get responses by username and course code
  @Get('find/:username/:course_code')
  async findResponsesByUsernameAndCourseCode(@Param('username') username: string,@Param('course_code') course_code: Types.ObjectId,): Promise<any> { 
    return this.responsesService.findResponsesByUsernameAndCourseCode(username, course_code);
  }
+
 
    // Delete response by username (Only for Admin and Instructor)
  // Endpoint to delete a response by username

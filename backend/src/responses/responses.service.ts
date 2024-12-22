@@ -41,6 +41,14 @@ export class ResponsesService {
     return this.responsesModel.find({ username, course_code }).exec();
   }
 
+
+  async findResponsesById(
+    id: string,
+  ): Promise<ResponsesDocument> {
+    const rId=new mongoose.Types.ObjectId(id);
+    return this.responsesModel.findOne({_id: rId }).exec();
+  }
+
   // Delete response by ID
   //when u delete a reponse, do it by username
   @UseGuards(AuthorizationGuard) // Additional guard for authorization
