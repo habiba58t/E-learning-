@@ -22,9 +22,9 @@ const LoginPage = () => {
         localStorage.setItem("role", user.role.toString());
 
         if (user.role === "admin") {
-          router.push("/components/Admin-sidebar");
+          router.push("/admin/homeA");
         } else if (user.role === "instructor") {
-          router.push("/instructor/homeI");
+          router.push("/instructor/home");
         } else {
           router.push("/student/home");
         }

@@ -18,5 +18,5 @@ export class AdminService {
     async deleteAdmin(username: string):Promise<void>{
         await this.userModel.findOneAndDelete({username});
     }
-   
+  
 }
