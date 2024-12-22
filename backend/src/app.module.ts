@@ -19,10 +19,15 @@ import { PrivateChatController } from './private-chat/private-chat.controller';
 import { PrivateChatService } from './private-chat/private-chat.service';
 import { PrivateChatModule } from './private-chat/private-chat.module';
 import { GroupChatModule } from './group-chat/group-chat.module';
+import * as path from 'path';
+import { ServeStaticModule } from '@nestjs/serve-static';
 
 @Module({
   imports: [PrivateChatModule, MessageModule, ProgressModule, UsersModule, CoursesModule, ModulesModule, ResponsesModule, QuizzesModule, QuestionsModule,StudentModule,NotesModule,LogModule,
-    MongooseModule.forRoot('mongodb+srv://projectdb:12345@e-learning.6bu6g.mongodb.net/E-learning-'), NotificationModule, ForumModule, PrivateChatModule, GroupChatModule],
+    MongooseModule.forRoot('mongodb+srv://projectdb:12345@e-learning.6bu6g.mongodb.net/E-learning-'), NotificationModule, ForumModule, PrivateChatModule, ServeStaticModule.forRoot({
+      rootPath: path.join(__dirname, '..', 'uploads'), // path to your 'uploads' folder
+      serveRoot: '/uploads', // URL path where static files are served
+    }),GroupChatModule],
   controllers: [AppController],
   providers: [AppService],
 })
