@@ -258,6 +258,10 @@ const CourseDetails = () => {
     router.push(`/profiles/${username}`);
   };
 
+  const handleChat= () => {
+    router.push(`/student/chat/${courseCode}`);
+  };
+
   if (error) {
     return <div className="text-red-500">{error}</div>;
   }
@@ -347,6 +351,9 @@ const CourseDetails = () => {
         </div>
 
         <div className="flex flex-wrap gap-4">
+        <button  onClick={() => handleChat()} className="px-4 py-2 bg-teal-500 text-white rounded-lg shadow-md hover:opacity-90">
+            Chat
+          </button>
           <button onClick={() => setUpdateMode(true)} className="px-4 py-2 bg-teal-500 text-white rounded-lg shadow-md hover:opacity-90">
             Update Course
           </button>
