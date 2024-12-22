@@ -11,32 +11,32 @@ export default function Footer() {
             </Link>
           </div>
           <div className="w-full md:w-1/4 px-4 mb-8 md:mb-0">
-            <h6 className="text-lg font-semibold mb-4">Resources</h6>
+            <h6 className="text-gray-400 text-lg font-semibold mb-4">Resources</h6>
             <ul className="space-y-2">
-              <li><Link href="#" className="text-gray-600 hover:text-blue-800">Home</Link></li>
-              <li><Link href="#" className="text-gray-600 hover:text-blue-800">How it works</Link></li>
-              <li><Link href="#" className="text-gray-600 hover:text-blue-800">FAQs</Link></li>
-              <li><Link href="#" className="text-gray-600 hover:text-blue-800">Contact</Link></li>
+              <li><Link href="/" className="text-gray-600 hover:text-blue-800">Home</Link></li>
+              <li><Link href="/courses" className="text-gray-600 hover:text-blue-800">Courses</Link></li>
+              {/* <li><Link href="#" className="text-gray-600 hover:text-blue-800">FAQs</Link></li> */}
+              <li><Link href="/about" className="text-gray-600 hover:text-blue-800">About</Link></li>
             </ul>
           </div>
           <div className="w-full md:w-1/4 px-4 mb-8 md:mb-0">
-            <h6 className="text-lg font-semibold mb-4">Information</h6>
+            <h6 className="text-gray-400 text-lg font-semibold mb-4">Information</h6>
             <p className="text-gray-600 mb-2">
-              <a href="tel:305-240-9671" className="hover:text-blue-800">305-240-9671</a>
+              <a href="tel:305-240-9671" className="hover:text-blue-800">13212</a>
             </p>
             <p className="text-gray-600">
-              <a href="mailto:info@company.com" className="hover:text-blue-800">info@company.com</a>
+              <a href="mailto:academiq@company.com" className="hover:text-blue-800">academiq@company.com</a>
             </p>
           </div>
           <div className="w-full md:w-1/4 px-4">
-            <select className="w-full p-2 border rounded-md mb-4">
+            {/* <select className="w-full p-2 border rounded-md mb-4">
               <option>English</option>
               <option>Thai</option>
               <option>Myanmar</option>
               <option>Arabic</option>
-            </select>
+            </select> */}
             <p className="text-sm text-gray-600">
-              &copy; 2023 Topic Listing Center. All rights reserved.<br />
+              &copy; 2024 Topic Listing Center. All rights reserved.<br />
               Design: <a href="https://templatemo.com" target="_blank" rel="noopener noreferrer" className="text-blue-800">TemplateMo</a>
             </p>
           </div>

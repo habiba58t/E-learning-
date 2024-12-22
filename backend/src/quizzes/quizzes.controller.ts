@@ -196,28 +196,35 @@ export class QuizzesController {
 
 
 // Endpoint to submit quiz answers
-@Post(':quizId/:username/submit')  // Both quizId and username are part of the URL path
-async submitQuiz(
-  @Param('quizId') quizId: string,  // Extract quizId from params
-  @Param('username') username: string,  // Extract username from params
-  @Body() studentAnswersObject: Record<string, string>  // Extract student answers from the request body
-) { //with question id and answer
-  try {
-    // Convert quizId to ObjectId if needed, assuming you're working with mongoose Types
-    const quizObjectId = new mongoose.Types.ObjectId(quizId);
 
-    // Call the service method and pass the quizId, username, and answers object
-    const result = await this.quizzesService.submitQuiz(
-      quizObjectId,            // quizId from params
-      username,                // username from params
-      studentAnswersObject, // studentAnswersObject from body
-    );
-    
-    return result;  // Return the response from the service
-  } catch (error) {
-    throw new BadRequestException(error.message || 'Something went wrong');
+  @Post(':quizId/:username/submit')
+  // Both quizId and username are part of the URL path
+  async submitQuiz(
+    @Param('quizId') quizId: string,  // Extract quizId from params
+    @Param('username') username: string,  // Extract username from params
+    @Body() studentAnswersObject: Record<string, string>  // Extract student answers from the request body
+  ) {
+    try {
+      // Convert studentAnswersObject to an array of { questionId, answer }
+      const studentAnswers = Object.keys(studentAnswersObject).map((key) => ({
+        questionId: key,  // `key` is the questionId
+        answer: studentAnswersObject[key],  // `studentAnswersObject[key]` is the answer
+      }));
+
+      // Call the service method and pass the quizId, username, and answers object
+      const result = await this.quizzesService.submitQuiz(
+        quizId,            // quizId from params
+        username,          // username from params
+        studentAnswers,    // Pass the correctly formatted student answers
+      );
+      
+      return result;  // Return the response from the service
+    } catch (error) {
+      throw new BadRequestException(error.message || 'Something went wrong');
+    }
   }
-}
+
+
 
 @UseGuards(AuthorizationGuard) // Additional guard for authorization
 @Roles(Role.Admin, Role.Instructor) // Restrict roles to admin and instructor
