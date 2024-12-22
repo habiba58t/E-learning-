@@ -21,13 +21,19 @@ import { PrivateChatModule } from './private-chat/private-chat.module';
 import { GroupChatModule } from './group-chat/group-chat.module';
 import * as path from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { ScheduleModule } from '@nestjs/schedule';
+import { BackupModule } from './backups/backup.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [PrivateChatModule, MessageModule, ProgressModule, UsersModule, CoursesModule, ModulesModule, ResponsesModule, QuizzesModule, QuestionsModule,StudentModule,NotesModule,LogModule,
     MongooseModule.forRoot('mongodb+srv://projectdb:12345@e-learning.6bu6g.mongodb.net/E-learning-'), NotificationModule, ForumModule, PrivateChatModule, ServeStaticModule.forRoot({
       rootPath: path.join(__dirname, '..', 'uploads'), // path to your 'uploads' folder
       serveRoot: '/uploads', // URL path where static files are served
-    }),GroupChatModule],
+    }),GroupChatModule,ScheduleModule.forRoot(), BackupModule, ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env', // Makes the config accessible throughout the app
+    }),],
   controllers: [AppController],
   providers: [AppService],
 })
