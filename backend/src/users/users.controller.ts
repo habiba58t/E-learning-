@@ -94,7 +94,7 @@ async deleteProfile(@Param('username') username: string):Promise<userDocument>{
 
 
 
-@Roles(Role.Admin)
+// @Roles(Role.Admin)
 @Get('count/users')
 async getUserCount(): Promise<{ count: number }> {
   const count = await this.usersService.getTotalNumberOfUsers();
