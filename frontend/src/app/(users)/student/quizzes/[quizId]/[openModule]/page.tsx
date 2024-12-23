@@ -244,32 +244,41 @@ const TakeQuizPage = () => {
         </form>
       </div>
 
-      {/* Rating Popup */}
-      {!hasTakenQuiz && isRatingPopupVisible && (
-        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg">
-            <h2 className="text-2xl font-bold mb-4">Rate the Quiz</h2>
-            <div className="flex space-x-4">
-              {[1, 2, 3, 4, 5].map((rating) => (
-                <button
-                  key={rating}
-                  onClick={() => handleRateQuiz(rating)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                >
-                  {rating}
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={closeRatePopup}
-              className="mt-4 px-4 py-2 bg-gray-300 text-black rounded-md"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+{/* Rating Popup */}
+{!hasTakenQuiz && isRatingPopupVisible && (
+  <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center z-50">
+    <div className="bg-white p-6 rounded-lg shadow-lg">
+      <h2 className="text-gray-600 text-2xl font-bold mb-4 text-center">Please rate this Module!</h2>
+      
+      <div className="flex justify-center items-center space-x-2 mb-4">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            onClick={() => handleRateQuiz(star)}
+            onMouseEnter={() => setRating(star)} // Show hover effect
+            onMouseLeave={() => setRating(null)} // Reset hover effect
+            className={`w-10 h-10 text-2xl transition-colors ${
+              rating && star <= rating ? "text-yellow-500" : "text-gray-300"
+            }`}
+            aria-label={`Rate ${star} star${star > 1 ? "s" : ""}`}
+          >
+            ★
+          </button>
+        ))}
+      </div>
+      
+      <div className="flex justify-center">
+        <button
+          onClick={closeRatePopup}
+          className="px-4 py-2 bg-gray-300 text-black rounded-md hover:bg-gray-400"
+        >
+          Close
+        </button>
+      </div>
     </div>
+  </div>
+  )}
+</div>
   );
 };
 

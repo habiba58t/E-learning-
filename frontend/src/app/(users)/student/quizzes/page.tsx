@@ -62,6 +62,7 @@ const StudentCourses = () => {
         `http://localhost:3002/courses/studcour2/${username}/courses`,
         { withCredentials: true }
       );
+      if(coursesResponse && coursesResponse.data.length!==0){
       const courses = coursesResponse.data;
 
       const courseData: CourseData[] = await Promise.all(
@@ -86,13 +87,17 @@ const StudentCourses = () => {
           return { ...course, modules: populatedModules };
         })
       );
+
       setCourseData(courseData);
       setLoading(false);
+      }
+
     } catch (error) {
-      console.error("Error fetching course data:", error);
-      setError("Failed to fetch course data");
+     // console.error("Error fetching course data:", error);
+     // setError("Failed to fetch course data");
       setLoading(false);
     }
+  
   };
 
   // Fetch quiz statuses for the student
