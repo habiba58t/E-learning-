@@ -16,7 +16,7 @@ const StudentPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [students, setStudents] = useState<UserData[]>([]);
   const [error, setError] = useState("");
-  const router = useRouter(); // Use the hook here
+    const router = useRouter(); // Use the hook here
 
   useEffect(() => {
     fetchStudents();
@@ -49,39 +49,32 @@ const StudentPage = () => {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-white text-gray-700 rounded-full px-4 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-teal-300"
+            className="bg-white text-gray-700 rounded-lg px-4 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-teal-300"
             placeholder="Search by name..."
           />
         </div>
       </header>
 
       <main className="container mx-auto px-6 py-8">
-        <h2 className="text-gray-500 text-3xl font-bold text-center mb-10">Search Results</h2>
+        <h2 className="text-3xl font-bold text-gray-700 text-center mb-6">Search Results</h2>
 
         {error && <p className="text-center text-red-500">{error}</p>}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {students.length > 0 ? (
             students.map((student) => (
-              <div key={student._id} className="relative bg-white rounded-xl shadow-lg hover:shadow-xl overflow-hidden transition-all duration-300 transform hover:scale-105">
-                {/* Username Link */}
-                <div className="absolute top-4 right-4 bg-blue-500 text-white text-xs font-bold rounded-full px-3 py-1">
-                  Student
-                </div>
-
-                <div className="p-6">
-                  <h3 className="text-xl font-semibold text-gray-800 mb-2">{student.name}</h3>
-                  <p className="text-sm text-gray-600 mb-2">Email: {student.email}</p>
-                  <p className="text-sm text-gray-600">
-                    Username:{" "}
-                    <span
-                      className="font-bold text-blue-600 cursor-pointer hover:underline"
-                      onClick={() => handleUsernameClick(student.username)}
-                    >
-                      {student.username}
-                    </span>
-                  </p>
-                </div>
+              <div key={student._id} className="bg-white shadow-lg rounded-lg p-4 hover:shadow-xl transition duration-300">
+                <h3 className="font-bold text-lg text-blue-600">{student.name}</h3>
+                <p className="text-gray-600">Email: {student.email}</p>
+                <p className="text-gray-600">
+                  Username:{" "}
+                  <span
+                    className="font-bold text-blue-600 cursor-pointer hover:underline"
+                    onClick={() => handleUsernameClick(student.username)}
+                  >
+                    {student.username}
+                  </span>
+                </p>
               </div>
             ))
           ) : (
