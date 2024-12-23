@@ -6,6 +6,7 @@ import React from 'react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import router from 'next/router';
+import Navbar from '@/app/components/NavBar/page';
 
 
 async function fetchCookieData() {
@@ -82,6 +83,10 @@ interface Course {
       }
     
       return (
+        <div className="flex flex-col min-h-screen">
+        {/* Navbar */}
+        <Navbar />
+
         <div className="flex">
             {/* Sidebar */}
             <Sidebar />
@@ -109,6 +114,7 @@ interface Course {
               <div className="text-center text-gray-500">No courses found.</div>
             )}
           </div>
+        </div>
         </div>
         </div>
       );

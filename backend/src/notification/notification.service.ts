@@ -127,13 +127,16 @@ async sendPublicChatNotification( chatId: string): Promise<void>{
   //const cid=new mongoose.Types.ObjectId(chatId)
   const chat = await this.groupService.getGroupById(chatId) //get chat by its id
   const users =chat.members; //get members of this chat
+  console.log(users)
  
   const message = `new message sent to ${chatId} `; //message with who created the group chat
   const NotificationDto = {
     message,
   
   };
+  console.log(message)
   const notification= await this.notificationModel.create(NotificationDto) as notificationDocument ; //create the notification
+  
   for(const user of users){
     await this.userModel.updateOne({ user },{ $push: { notification: notification._id}}); //add notifcation id to array of notifcation in users 
     //receiving this notifications

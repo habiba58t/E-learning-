@@ -25,7 +25,7 @@ const LoginPage = () => {
           router.push("/admin/homeA");
         } else if (user.role === "instructor") {
           router.push("/instructor/home");
-        } else {
+        } else if(user.role==="student"){ 
           router.push("/student/home");
         }
       }

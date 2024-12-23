@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import axiosInstance from "@/app/utils/axiosInstance";
 import router, { useRouter } from "next/navigation";
 import Sidebar from "@/app/components/student-sidebar/page";
+import Navbar from '@/app/components/NavBar/page';
+
 
 interface UserorCourseData {
   _id: string;
@@ -166,6 +168,7 @@ const HomePage = () => {
   const renderResult = (item: UserorCourseData) => {
     if (selectedCategory === "course") {
       return (
+        
         <div
           key={item._id}
           className="bg-white shadow-lg rounded-lg p-4 hover:shadow-xl transition duration-300"
@@ -233,7 +236,7 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      <Sidebar/>
+      {/* <Sidebar/> */}
       {/* Header */}
       <header className="bg-blue-600 text-white py-4 shadow-md">
         <div className="container mx-auto flex justify-between items-center px-6">
