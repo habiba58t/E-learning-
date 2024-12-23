@@ -143,4 +143,17 @@ async validation(username: string): Promise<boolean> {
       }
 
       
+//SET RATING,TOTAL,AVERAGE
+   async setRating(ObjectId: mongoose.Types.ObjectId,score:number): Promise<void> {
+     const instructor = await this.userModel.findById(ObjectId);
+     instructor.totalRating = instructor.totalRating + score;
+     instructor.totalStudents += 1;
+     instructor.averageRating = instructor.totalRating/instructor.totalStudents;
+   }
+
+   async getAvgRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
+       const instructor = await this.userModel.findById(ObjectId);
+       return instructor.averageRating;
+      }
+
 }

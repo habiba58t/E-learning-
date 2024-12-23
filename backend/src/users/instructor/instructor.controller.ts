@@ -32,7 +32,7 @@ export class InstructorController {
 //SET TOTALRATING TOTALSTUDENTS AVERAGE RATING
 @UseGuards(AuthorizationGuard)
 @Roles(Role.User)
-@Put()
+@Put('setRating/:ObjectId/:score')
 async setRating(@Param('ObjectId') ObjectId: string, @Param('score')score:number): Promise<void> {
  const objectId = new mongoose.Types.ObjectId(ObjectId)
  await this.instructorService.setRating(objectId,score);
