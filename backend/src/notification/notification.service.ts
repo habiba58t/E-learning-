@@ -115,8 +115,22 @@ async createPublicChatNotification(username: string,course_code:string): Promise
       created_by: username
     };
     const notification= await this.notificationModel.create(NotificationDto) as notificationDocument ; //create the notification
-    for(const user of users){
-      await this.userModel.updateOne({ user },{ $push: { notification: notification._id}}); //add notifcation id to array of notifcation in user
+    for (const username of users) {
+      try {
+        // Fetch the user document by username
+        const user = await this.usersService.findUserByUsername(username);
+        if (!user) {
+          console.warn(`User not found: ${username}`);
+          continue; // Skip if user doesn't exist
+        }
+  
+        // Push the notification ID into the user's notification array
+        user.notification.push(notification._id);
+        await user.save(); // Save the updated user document
+        console.log(`Notification added to user: ${username}`);
+      } catch (err) {
+        console.error(`Failed to add notification for user: ${username}`, err);
+      }
     }
 
 }
@@ -127,16 +141,32 @@ async sendPublicChatNotification( chatId: string): Promise<void>{
   //const cid=new mongoose.Types.ObjectId(chatId)
   const chat = await this.groupService.getGroupById(chatId) //get chat by its id
   const users =chat.members; //get members of this chat
+  console.log(users)
  
   const message = `new message sent to ${chatId} `; //message with who created the group chat
   const NotificationDto = {
     message,
   
   };
+  console.log(message)
   const notification= await this.notificationModel.create(NotificationDto) as notificationDocument ; //create the notification
-  for(const user of users){
-    await this.userModel.updateOne({ user },{ $push: { notification: notification._id}}); //add notifcation id to array of notifcation in users 
-    //receiving this notifications
+  
+  for (const username of users) {
+    try {
+      // Fetch the user document by username
+      const user = await this.usersService.findUserByUsername(username);
+      if (!user) {
+        console.warn(`User not found: ${username}`);
+        continue; // Skip if user doesn't exist
+      }
+
+      // Push the notification ID into the user's notification array
+      user.notification.push(notification._id);
+      await user.save(); // Save the updated user document
+      console.log(`Notification added to user: ${username}`);
+    } catch (err) {
+      console.error(`Failed to add notification for user: ${username}`, err);
+    }
   }
 }
 }

@@ -43,6 +43,8 @@ const CourseDetails = () => {
     const [students, setStudents] = useState<string[]>([]); // State to store enrolled students
     const [studentsLoading, setStudentsLoading] = useState<boolean>(false);
     const [studentsError, setStudentsError] = useState<string | null>(null);
+    const [isRatingPopupVisible, setIsRatingPopupVisible] = useState(false); // State for showing rating popup
+  const [rating, setRating] = useState<number | null>(null); // State to track the rating
     const router = useRouter();
      const [isClient, setIsClient] = useState(false);
 
@@ -57,8 +59,29 @@ const CourseDetails = () => {
                 setLoading(false);
             }
         };
+        const checkCompletion = async () => {
+           const username= await fetchUsernameFromCookies();
+            try {
+              const response = await axiosInstance.get(
+                `http://localhost:3002/progress/user-course/${username}/${courseCode}`,
+                { withCredentials: true }
+              );
+        
+              // Only show rating popup if the student has not responded to the quiz
+              if (response.data === 100) {
+            //    setHasTakenQuiz(false);
+                setIsRatingPopupVisible(true);
+              } else {
+              //  setHasTakenQuiz(true);
+              }
+            } catch (err: any) {
+              console.error("Error checking course status:", err);
+           //   setHasTakenQuiz(false);
+            }
+          };
 
         fetchCourseDetails();
+        checkCompletion();
         setIsClient(true);}, [courseCode]);
 
     const fetchUsernameFromCookies = async (): Promise<string | null> => {

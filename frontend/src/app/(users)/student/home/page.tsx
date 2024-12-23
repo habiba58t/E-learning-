@@ -170,6 +170,7 @@ const HomePage = () => {
   const renderResult = (item: UserorCourseData) => {
     if (selectedCategory === "course") {
       return (
+        
         <div
           key={item._id}
           className="bg-white shadow-lg rounded-lg p-4 hover:shadow-xl transition duration-300"
