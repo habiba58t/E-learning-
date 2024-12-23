@@ -34,7 +34,14 @@ async createModuleNotification(@Param('course_code') course_code: string, @Body(
 @Roles(Role.Admin, Role.User, Role.Instructor)
 @Post('forum/:coursecode')
 async createForumNotification( @Param('username') username,@Param('course_code')course_code:string, @Body('dto')dto:CreateNotificationDto): Promise<notificationDocument>{
-    return this.notificationService.createForumNotification(username ,course_code,dto);
+    return this.notificationService.createForumNotification(username ,course_code);
+}
+
+@UseGuards(AuthGuard, AuthorizationGuard)
+@Roles(Role.Admin, Role.User, Role.Instructor)
+@Post('forum/:coursecode')
+async replytoForumNotification(@Param('threadtitle') threadtitle:string, @Param('username') username,@Param('course_code')course_code:string, @Body('dto')dto:CreateNotificationDto): Promise<notificationDocument>{
+    return this.notificationService.replytoForumNotification(threadtitle,username ,course_code);
 }
 
 //create notification for chat inform receiver

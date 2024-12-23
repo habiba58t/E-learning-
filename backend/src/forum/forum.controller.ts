@@ -35,6 +35,19 @@ export class ForumController {
 
 
 
+
+
+
+  @Get('/course/:threadId/:username')
+async fetchThreadAndCourseById(
+  @Param('threadId') threadId: string,
+  @Param('username') username: string
+) {
+  return await this.forumService.getCourseOfthread(threadId, username);
+}
+
+
+
   //get by course code bec by mongo course id was not working and i think can't be passw]ed as a parameter in the frontend
   //so from the course code i got the mongo id and got thee thread that is in it
   // @Get('threads/by-course-code/:courseCode/:title') //done and tested

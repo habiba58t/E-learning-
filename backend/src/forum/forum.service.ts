@@ -95,9 +95,11 @@ async createForum(user: any, createThreadDto: CreateThreadDto): Promise<threadDo
   //   { $push: { threads: savedThread._id } },
   //   { new: true }
   // );
-  const message = `A Forum has been created by ${user.username} in course: ${courseUpdate.title}`
-  await this.notificationService.createForumNotification(user.username, courseUpdate.course_code, {message})
+  // const message = `A Forum has been created by ${user.username} in course: ${courseUpdate.title}`
+  // await this.notificationService.createForumNotification(user.username, courseUpdate.course_code, {mess)
 
+
+  await this.notificationService.createForumNotification(user.username,courseUpdate.course_code);
   return savedThread;
 }
 
@@ -248,10 +250,46 @@ async findThreadByTitle(courseCode: string, title: string): Promise<threadDocume
   
     return deletedThread;
   }
+
+
+
+  async getCourseOfthread(threadId: string, username: string): Promise<courseDocument> {
+    try {
+      // Step 1: Retrieve the user by username
+      const user = await this.userModel.findOne({ username }).populate('courses');
+      if (!user) {
+        throw new Error('User not found');
+      }
+  
+      const courses = user.courses; // Array of courses associated with the user
+      if (!courses || courses.length === 0) {
+        throw new Error('User is not associated with any courses');
+      }
+  
+      // Step 2: Iterate through courses to find the thread
+      for (const course of courses) {
+        const courseDetails = await this.courseModel.findById(course._id).populate('threads');
+        if (!courseDetails) continue;
+  
+        const thread = courseDetails.threads.find(
+          (thread) => thread._id.toString() === threadId
+        );
+  
+        if (thread) {
+          return courseDetails; // Return the thread and the course it belongs to
+        }
+      }
+  
+      throw new Error('Thread not found in any of the user\'s courses');
+    } catch (error) {
+      throw new Error(`Error fetching thread: ${error.message}`);
+    }
+  }
+  
   
 
   //create replay:
-  async createReply(createReplyDto: CreateReplyDto, user: any): Promise<Reply> {
+  async createReply(createReplyDto: CreateReplyDto, user:any): Promise<Reply> {
     // Create a new reply with the provided details
     const newReply = new this.replyModel(createReplyDto);
     newReply.username = user.username; // Optionally, assign the username to the reply
@@ -260,13 +298,21 @@ async findThreadByTitle(courseCode: string, title: string): Promise<threadDocume
     await newReply.save();
   
     // Update the specific thread by pushing the reply into the replies array
-    await this.ThreadsModel.findOneAndUpdate(
+   const thread = await this.ThreadsModel.findOneAndUpdate(
       { _id: createReplyDto.threadId },  // Match the thread by its ID
       { $push: { replies: newReply._id } },  // Add the new reply to the replies array
       { new: true } // Return the updated thread document
     );
+    const threadIdObjectId = thread._id; // Assuming `_id` is an ObjectId
+const threadIdString = threadIdObjectId.toString();
+
+const threadtitle= thread.title
+
+    const course = await this.getCourseOfthread(threadIdString,user.username)
   
     // Return the newly created reply
+   await this.notificationService.replytoForumNotification(threadtitle,user.username,course.course_code);
+
     return newReply;
 
 

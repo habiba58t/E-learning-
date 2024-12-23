@@ -72,25 +72,105 @@ async createModuleNotification(course_code: string,dto:CreateNotificationDto): P
 }
 
 //create notification for forum and reply
-async createForumNotification(user:any,course_code:string,dto:CreateNotificationDto): Promise<notificationDocument>{
-    const notification= await this.notificationModel.create(dto) as notificationDocument ;
+async createForumNotification(username:string ,course_code:string): Promise<notificationDocument>{
+  const title = `${username} created new forum in ${course_code} `;
+  const NotificationDto = {
+    message: title
+  };
+    const notification= await this.notificationModel.create(NotificationDto) as notificationDocument ;
 
-    const course= await this.coursesService.findOne(course_code);
-    const enrolledUsernames = await this.usersService.getEnrolledStudents(course._id); //i have usernames 
+    const course = await this.coursesService.findOne(course_code) //get course by course code
+   // const enrolledUsernames =await this.progressService.findAllStudents(course_code); //i have usernames 
+   const enrolledUsernames = await this.usersService.getEnrolledStudents(course._id);
     for (const username of enrolledUsernames) {
-        await this.userModel.updateOne({ username },{ $push: { notification: notification._id}}); //add notifcation id to array of notifcation in user
+      try {
+        // Fetch the user document by username
+        const user = await this.usersService.findUserByUsername(username);
+        if (!user) {
+          console.warn(`User not found: ${username}`);
+          continue; // Skip if user doesn't exist
+        }
+  
+        // Push the notification ID into the user's notification array
+        console.log(user.username)
+        user.notification.push(notification._id);
+        await user.save(); // Save the updated user document
+        console.log(`Notification added to user: ${username}`);
+      } catch (err) {
+        console.error(`Failed to add notification for user: ${username}`, err);
       }
-
+    }
       //need to check if sender is student send notification to the instructor
-     const sender= this.usersService.findUserByUsername(user);
+     const sender= this.usersService.findUserByUsername(username);
      if((await sender).role ==="student"){
        const instructor = await this.usersService.findUserByUsername(course.created_by);
+       console.log(instructor.username)
        if(instructor){
-         await this.userModel.updateOne({ username: instructor.username },{ $push: { notification: notification._id}}); //add notifcation id to array of notifcation in user
-       }
+         //await this.userModel.updateOne({ username: instructor.username },{ $push: { notification: notification._id}}); //add notifcation id to array of notifcation in user
+         instructor.notification.push(notification._id);
+         await instructor.save();
+         console.log(instructor.username)
+        }
      }
       return notification;
 }
+
+
+
+
+
+
+async replytoForumNotification(threadtitle:string,username:string ,course_code:string): Promise<notificationDocument>{
+  const title = `${username} replyed to ${threadtitle} to forum in ${course_code} `;
+  const NotificationDto = {
+    message: title
+  };
+    const notification= await this.notificationModel.create(NotificationDto) as notificationDocument ;
+
+    const course = await this.coursesService.findOne(course_code) //get course by course code
+    const enrolledUsernames =await this.progressService.findAllStudents(course_code); //i have usernames 
+    for (const username of enrolledUsernames) {
+      try {
+        // Fetch the user document by username
+        const user = await this.usersService.findUserByUsername(username);
+        if (!user) {
+          console.warn(`User not found: ${username}`);
+          continue; // Skip if user doesn't exist
+        }
+  
+        // Push the notification ID into the user's notification array
+        user.notification.push(notification._id);
+        await user.save(); // Save the updated user document
+        console.log(`Notification added to user: ${username}`);
+      } catch (err) {
+        console.error(`Failed to add notification for user: ${username}`, err);
+      }
+    }
+      //need to check if sender is student send notification to the instructor
+     const sender= this.usersService.findUserByUsername(username);
+     if((await sender).role ==="student"){
+       const instructor = await this.usersService.findUserByUsername(course.created_by);
+       if(instructor){
+         //await this.userModel.updateOne({ username: instructor.username },{ $push: { notification: notification._id}}); //add notifcation id to array of notifcation in user
+         instructor.notification.push(notification._id);
+        }
+     }
+      return notification;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //create notification for chat one to one
 async createPrivateChatNotification(username ,recieverUsername:string): Promise<notificationDocument>{
