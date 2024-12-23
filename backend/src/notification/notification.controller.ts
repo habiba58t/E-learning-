@@ -21,6 +21,20 @@ export class NotificationController {
     return this.notificationService.getNotification(username);
   }
 
+//mark notification as read 
+  @Get('mark-as-read/:username')
+  async markNotificationsAsRead(@Param('username') username: string): Promise<string> {
+    try {
+      await this.notificationService.markNotificationsAsRead(username);
+      return `All notifications for ${username} have been marked as read.`;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      }
+      throw error;
+    }
+  }
+
 //create notification for module
 @UseGuards(AuthGuard, AuthorizationGuard)
 @Roles(Role.Admin, Role.Instructor)

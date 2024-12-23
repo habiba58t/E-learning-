@@ -2,14 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import axiosInstance from "@/app/utils/axiosInstance";
-import { FaUserCircle, FaBell, FaSignOutAlt } from "react-icons/fa"; // Icons for profile, notifications, and logout
+import { FaUserCircle, FaBell, FaSignOutAlt } from "react-icons/fa";
 import { motion } from "framer-motion";
 import Sidebar from "../student-sidebar/page";
 
 const Navbar = () => {
-  const [notifications, setNotifications] = useState<any[]>([]); // State for storing notifications
-  const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false); // State to control the sliding panel visibility
-  const [notificationCount, setNotificationCount] = useState(0); // State to store the notification count
+  const [notifications, setNotifications] = useState<any[]>([]); 
+  const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false); 
+  const [notificationCount, setNotificationCount] = useState(0); 
   const [username, setUsername] = useState<string | null>(null);
   const [error, setError] = useState("");
 
@@ -45,46 +45,53 @@ const Navbar = () => {
           `http://localhost:3002/notification/usernotifications/${username}`
         );
         setNotifications(response.data || []);
-        setNotificationCount(response.data.length); // Set notification count after fetching
+        setNotificationCount(response.data.length); 
       } catch (error) {
         console.error("Error fetching notifications", error);
       }
     };
 
     if (username) {
-      fetchInitialNotifications(); // Only fetch notifications if the username is available
+      fetchInitialNotifications();
     }
   }, [username]);
 
-  const handleNotificationClick = () => {
-    setIsNotificationPanelOpen(true); // Open the notification panel
-    setNotificationCount(0); // Hide the notification count when the panel is opened
+  const handleNotificationClick = async () => {
+    setIsNotificationPanelOpen(true); 
+    setNotificationCount(0); 
+
+    // Call the backend API to mark notifications as read
+    try {
+      await axiosInstance.get(
+        `http://localhost:3002/notification/mark-as-read/${username}`
+      );
+      console.log("Notifications marked as read");
+    } catch (error) {
+      console.error("Error marking notifications as read", error);
+    }
   };
 
   return (
     <div className="sticky top-0 bg-blue-800 text-white p-4 shadow-md z-50">
       <Sidebar />
       <div className="container mx-auto flex justify-end items-center space-x-6">
-        {/* Profile Icon with framer-motion */}
         <motion.div
           className="cursor-pointer"
-          whileHover={{ scale: 1.1 }} // Slightly enlarge on hover
-          whileTap={{ scale: 0.9 }} // Shrink slightly on click
-          transition={{ duration: 0.2 }} // Quick, smooth transition
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          transition={{ duration: 0.2 }}
         >
           <FaUserCircle size={24} className="text-white" />
         </motion.div>
 
-        {/* Notification Icon with framer-motion */}
         <motion.div
           className="relative cursor-pointer"
-          whileHover={{ scale: 1.1 }} // Slightly enlarge on hover
-          whileTap={{ scale: 0.9 }} // Shrink slightly on click
-          transition={{ duration: 0.2 }} // Quick, smooth transition
-          onClick={handleNotificationClick} // Fetch notifications on click
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          transition={{ duration: 0.2 }}
+          onClick={handleNotificationClick}
         >
           <FaBell size={24} className="text-white" />
-          {/* Notification Count Badge */}
           {notificationCount > 0 && (
             <span className="absolute top-0 right-0 bg-blue-600 text-white text-xs rounded-full px-2">
               {notificationCount}
@@ -92,18 +99,16 @@ const Navbar = () => {
           )}
         </motion.div>
 
-        {/* Logout Icon with framer-motion */}
         <motion.div
           className="cursor-pointer"
-          whileHover={{ scale: 1.1 }} // Slightly enlarge on hover
-          whileTap={{ scale: 0.9 }} // Shrink slightly on click
-          transition={{ duration: 0.2 }} // Quick, smooth transition
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          transition={{ duration: 0.2 }}
         >
           <FaSignOutAlt size={24} className="text-white" />
         </motion.div>
       </div>
 
-      {/* Notification Sliding Panel */}
       {isNotificationPanelOpen && (
         <div className="fixed top-0 right-0 w-80 bg-white shadow-lg h-full z-50 p-4">
           <button

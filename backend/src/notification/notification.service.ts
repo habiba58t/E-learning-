@@ -22,42 +22,118 @@ export class NotificationService {
     ){}
 
  //GET: 
- async getNotification(username:string): Promise<notificationDocument[]> {
+//  async getNotification(username:string): Promise<notificationDocument[]> {
 
     
-    const User= await this.userModel.findOne({username});
-    if (!User) {
-        throw new NotFoundException(`User with username ${username} not found`);
-      }
+//     const User= await this.userModel.findOne({username});
+//     if (!User) {
+//         throw new NotFoundException(`User with username ${username} not found`);
+//       }
     
-      const notificationIds = User.notification;
-      console.log("Notification IDs:", notificationIds);
-      console.log("number of notification");
-      console.log(notificationIds.length);
-      if (!notificationIds || notificationIds.length === 0) {
-        console.log('No notifications');
-        return;
-      }
+//       const notificationIds = User.notification;
+//       console.log("Notification IDs:", notificationIds);
+//       console.log("number of notification");
+//       console.log(notificationIds.length);
+//       if (!notificationIds || notificationIds.length === 0) {
+//         console.log('No notifications');
+//         return;
+//       }
     
       
-      //const notifications = await this.notificationModel.find({ _id: { $in: notificationIds }, isRead: false }).exec();
+//       //const notifications = await this.notificationModel.find({ _id: { $in: notificationIds }, isRead: false }).exec();
       
-      const notificationObjectIds = notificationIds.map(id => new mongoose.Types.ObjectId(id));
-      console.log("Notification Query:", {
-        _id: { $in: notificationObjectIds },
-        isRead: false,
-      });
-const notifications = await this.notificationModel.find({ _id: { $in: notificationObjectIds }, isRead: false }).exec();
-      if (!notifications || notifications.length === 0) {
-        console.log('No notifications found for the user.');
-        return;
-      }
+//       const notificationObjectIds = notificationIds.map(id => new mongoose.Types.ObjectId(id));
+//       console.log("Notification Query:", {
+//         _id: { $in: notificationObjectIds },
+//         isRead: false,
+//       });
+// const notifications = await this.notificationModel.find({ _id: { $in: notificationObjectIds }, isRead: false }).exec();
+//       if (!notifications || notifications.length === 0) {
+//         console.log('No notifications found for the user.');
+//         return;
+//       }
     
-      // Update each notification's `isRead` attribute to `true`
-      await this.notificationModel.updateMany({ _id: { $in: notificationIds } },{ $set: { isRead: true } },);
+//       // Update each notification's `isRead` attribute to `true`
+//       await this.notificationModel.updateMany({ _id: { $in: notificationIds } },{ $set: { isRead: true } },);
     
-    return notifications;
- }   
+//     return notifications;
+//  }   
+
+
+async getNotification(username: string): Promise<notificationDocument[]> {
+  const user = await this.userModel.findOne({ username });
+  if (!user) {
+      throw new NotFoundException(`User with username ${username} not found`);
+  }
+
+  const notificationIds = user.notification;
+  if (!notificationIds || notificationIds.length === 0) {
+      console.log('No notifications');
+      return [];
+  }
+
+  const notificationObjectIds = notificationIds.map(id => new mongoose.Types.ObjectId(id));
+  const notifications = await this.notificationModel.find({ 
+      _id: { $in: notificationObjectIds }, 
+      isRead: false 
+  }).exec();
+
+  if (!notifications || notifications.length === 0) {
+      console.log('No unread notifications found for the user.');
+      return [];
+  }
+
+  return notifications;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+ async markNotificationsAsRead(username: string): Promise<void> {
+  const user = await this.userModel.findOne({ username });
+  if (!user) {
+      throw new NotFoundException(`User with username ${username} not found`);
+  }
+
+  const notificationIds = user.notification;
+  if (!notificationIds || notificationIds.length === 0) {
+      console.log('No notifications to mark as read.');
+      return;
+  }
+
+  await this.notificationModel.updateMany(
+      { _id: { $in: notificationIds } },
+      { $set: { isRead: true } }
+  );
+
+  console.log('All notifications marked as read for', username);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
  //create notification for module
 async createModuleNotification(course_code: string,dto:CreateNotificationDto): Promise<notificationDocument>{
