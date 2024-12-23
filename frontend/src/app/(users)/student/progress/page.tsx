@@ -3,6 +3,7 @@ import Sidebar from "@/app/components/student-sidebar/page";
 import { useRouter } from 'next/navigation';
 import axiosInstance from "@/app/utils/axiosInstance";
 import { useState, useEffect } from 'react';
+import Navbar from "@/app/components/Navbar_s/page";
 
 export interface Progress {
     _id: string;
@@ -109,9 +110,11 @@ export default function ProgressPage() {
     }
 
     return (
-        <div className="flex">
-            {/* Sidebar */}
-            <Sidebar />
+        <div>
+            {/* Navbar at the top of the page */}
+            <div className="sticky top-0 w-full z-50">
+                <Navbar />
+            </div>
 
             {/* Main Content */}
             <div className="text-black flex-1 p-6">

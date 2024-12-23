@@ -21,6 +21,20 @@ export class NotificationController {
     return this.notificationService.getNotification(username);
   }
 
+//mark notification as read 
+  @Get('mark-as-read/:username')
+  async markNotificationsAsRead(@Param('username') username: string): Promise<string> {
+    try {
+      await this.notificationService.markNotificationsAsRead(username);
+      return `All notifications for ${username} have been marked as read.`;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      }
+      throw error;
+    }
+  }
+
 //create notification for module
 @UseGuards(AuthGuard, AuthorizationGuard)
 @Roles(Role.Admin, Role.Instructor)
@@ -34,7 +48,14 @@ async createModuleNotification(@Param('course_code') course_code: string, @Body(
 @Roles(Role.Admin, Role.User, Role.Instructor)
 @Post('forum/:coursecode')
 async createForumNotification( @Param('username') username,@Param('course_code')course_code:string, @Body('dto')dto:CreateNotificationDto): Promise<notificationDocument>{
-    return this.notificationService.createForumNotification(username ,course_code,dto);
+    return this.notificationService.createForumNotification(username ,course_code);
+}
+
+@UseGuards(AuthGuard, AuthorizationGuard)
+@Roles(Role.Admin, Role.User, Role.Instructor)
+@Post('forum/:coursecode')
+async replytoForumNotification(@Param('threadtitle') threadtitle:string, @Param('username') username,@Param('course_code')course_code:string, @Body('dto')dto:CreateNotificationDto): Promise<notificationDocument>{
+    return this.notificationService.replytoForumNotification(threadtitle,username ,course_code);
 }
 
 //create notification for chat inform receiver

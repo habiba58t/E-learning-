@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from 'next/navigation'; // Import useRouter for navigation
 import axiosInstance from "@/app/utils/axiosInstance";
+import Navbar from "@/app/components/Navbar_s/page";
 
 // Arrow Icon Component with Animation
 const ArrowIcon = ({ isOpen }: { isOpen: boolean }) => (
@@ -156,12 +157,16 @@ const StudentCourses = () => {
   if (error) return <div className="text-center text-xl text-red-500">Error: {error}</div>;
 
   return (
-    <div className="bg-gradient-to-r from-teal-500 to-indigo-600 min-h-screen py-10">
-      <div className="container mx-auto p-6 bg-white rounded-xl shadow-2xl max-w-4xl">
+    <div className="bg-white min-h-screen">
+      {/* Adjusting Navbar to be at the top */}
+      <div className="fixed w-full top-0 z-50">
+        <Navbar />
+      </div>
+      <div className="container mx-auto p-6 mt-20 bg-white rounded-xl shadow-2xl max-w-4xl">
         <h1 className="text-4xl font-extrabold text-black mb-8 text-center">
           📚 My Quizzes
         </h1>
-
+  
         {courseData.length === 0 ? (
           <p className="text-xl text-center text-gray-400">No courses found.</p>
         ) : (
@@ -178,7 +183,7 @@ const StudentCourses = () => {
                   {course.title}
                   <ArrowIcon isOpen={openCourses[course._id]} />
                 </h2>
-
+  
                 <div className={`mt-4 ${openCourses[course._id] ? "block" : "hidden"}`}>
                   {course.modules.length === 0 ? (
                     <p className="text-lg text-gray-600">No modules found for this course.</p>
@@ -192,7 +197,7 @@ const StudentCourses = () => {
                           {module.title}
                           <ArrowIcon isOpen={openModule === module._id} />
                         </h3>
-
+  
                         <div className={`mt-2 ${openModule === module._id ? "block" : "hidden"}`}>
                           {module.quizzes.length === 0 ? (
                             <p className="text-lg text-gray-600">No quizzes found for this module.</p>
@@ -224,10 +229,8 @@ const StudentCourses = () => {
                                 )}
                               </div>
                             ))
-                            
                           )}
                         </div>
-                        
                       </div>
                     ))
                   )}
@@ -239,6 +242,7 @@ const StudentCourses = () => {
       </div>
     </div>
   );
+  
 };
 
 export default StudentCourses;

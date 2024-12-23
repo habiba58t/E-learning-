@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Put, Delete,NotFoundException  } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete,NotFoundException, Patch  } from '@nestjs/common';
 import { UsersService } from './users.service';
 import * as mongoose from 'mongoose';
 import { Courses } from 'src/courses/courses.schema';
@@ -14,7 +14,7 @@ import { Role, Roles } from 'src/auth/decorators/role.decorator';
 import { AuthGuard } from 'src/auth/guards/authentication.guard';
 import { AuthorizationGuard } from 'src/auth/guards/authorization.guard';
 import { Public } from 'src/auth/decorators/public.decorator';
-
+@UseGuards(AuthGuard)
 @Controller('users')
 export class UsersController {
     constructor(private readonly usersService: UsersService) {}
@@ -92,6 +92,20 @@ async deleteProfile(@Param('username') username: string):Promise<userDocument>{
   return await this.usersService.deleteUser(username);
 }
 
+@UseGuards(AuthorizationGuard)
+@Roles(Role.User)
+@Put('setRating/:ObjectId/:score')
+async setRating(@Param('ObjectId') ObjectId: string, @Param('score')score:number): Promise<void> {
+ const objectId = new mongoose.Types.ObjectId(ObjectId)
+ await this.usersService.setRating(objectId,score);
+} //instructor rating
+
+
+  @Get('InstructorRating/:instructorId')
+  async getAvgRating(@Param('ObjectId') ObjectId: string): Promise<number> {
+    const objectId = new mongoose.Types.ObjectId(ObjectId)
+   return await this.usersService.getAvgRating(objectId);
+  }
 
 
 // @Roles(Role.Admin)
