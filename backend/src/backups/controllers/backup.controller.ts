@@ -1,5 +1,5 @@
-import { Controller, HttpException, HttpStatus, Post } from '@nestjs/common';
-import { BackupService } from '../services/backup.service';
+import { Controller, Post, HttpException, HttpStatus } from '@nestjs/common';
+import { BackupService } from '../services/backup.service'; // Adjust the import based on your project structure
 
 @Controller('backup')
 export class BackupController {
@@ -17,7 +17,10 @@ export class BackupController {
     } catch (error) {
       console.error('Backup failed:', error);
       throw new HttpException(
-        { message: 'Backup failed', error: error.message },
+        {
+          message: 'Backup failed',
+          error: error.message,
+        },
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
