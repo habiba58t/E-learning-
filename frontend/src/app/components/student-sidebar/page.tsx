@@ -62,7 +62,7 @@ const Sidebar = () => {
         variants={sidebarVariants}
         transition={{ duration: 0.3 }}
       >
-        <h2 className="text-2xl text-center text-white mb-10">Student Dashboard</h2>
+        <h2 className="text-2xl text-center text-white mb-10"></h2>
         <ul className="space-y-6">
           <li>
             <Link href="/student/home" className="block text-lg hover:bg-blue-700 py-2 px-4 rounded">

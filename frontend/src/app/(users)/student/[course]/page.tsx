@@ -1,4 +1,4 @@
-'use client';
+'use client'
 import Sidebar from "@/app/components/student-sidebar/page";
 import axiosInstance from '@/app/utils/axiosInstance';
 import { useParams } from 'next/navigation';
@@ -111,9 +111,7 @@ const CourseDetails = () => {
                 return;
             }
 
-            const response = await axiosInstance.get<Module[]>(
-                `http://localhost:3002/courses/${username}/${courseCode}/modules`
-            );
+            const response = await axiosInstance.get<Module[]>(`http://localhost:3002/courses/${username}/${courseCode}/modules`);
             setModules(response.data);
         } catch (err) {
             setError('Failed to load modules for this course.');
@@ -124,9 +122,7 @@ const CourseDetails = () => {
         setStudentsLoading(true);
         setStudentsError(null);
         try {
-            const response = await axiosInstance.get<string[]>(
-                `http://localhost:3002/progress/enrolledStudents/${courseCode}`
-            );
+            const response = await axiosInstance.get<string[]>(`http://localhost:3002/progress/enrolledStudents/${courseCode}`);
             console.log(response.data);
             setStudents(response.data); // Set the students in the state
         } catch (err) {
@@ -162,7 +158,7 @@ const CourseDetails = () => {
                 <Navbar />
             </div>
 
-            <div className="container mx-auto px-4 py-8 pt-20"> {/* Added pt-20 for spacing below navbar */}
+            <div className="container mx-auto px-4 py-8 pt-20"> 
                 {/* Course Header */}
                 <div className="bg-gradient-to-br from-blue-600 to-purple-700 shadow-lg rounded-lg p-8 text-white">
                     <h1 className="text-5xl font-extrabold mb-4 text-center">{course?.title}</h1>
