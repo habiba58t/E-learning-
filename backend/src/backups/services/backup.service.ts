@@ -17,7 +17,7 @@ export class BackupService {
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const backupDir = path.join(this.backupPath, `backup-${timestamp}`);
-    const command = `"C:\\Program Files\\MongoDB\\Tools\\100\\bin\\mongodump" --uri="mongodb+srv://projectdb:12345@e-learning.6bu6g.mongodb.net/E-learning-" --out="${backupDir}"`;
+    const command = `"C:\\Program Files\\MongoDB\\Tools\\100\\bin\\mongodump" --uri="${this.mongoUri}" --out="${backupDir}"`;
 
     try {
       console.log(`Running command: ${command}`);
@@ -25,7 +25,7 @@ export class BackupService {
       console.log('Backup successful:', stdout);
       if (stderr) console.warn('Backup warnings:', stderr);
 
-      return backupDir;
+      return backupDir; // Return the backup path
     } catch (error) {
       console.error('Backup failed:', error);
       throw new Error(`Failed to create backup. Error: ${error.message}`);

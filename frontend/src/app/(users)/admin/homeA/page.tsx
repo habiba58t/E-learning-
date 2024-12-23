@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import axiosInstance from '@/app/utils/axiosInstance';
 import { Moon, Sun, ChevronDown, Home, LayoutDashboard, Users } from 'lucide-react';
+import { AxiosResponse } from 'axios';
 
 const backend_url = 'http://localhost:3002';
 
@@ -24,6 +25,11 @@ type UserData = {
     role: 'student' | 'instructor' | 'admin';
   };
 };
+interface BackupResponse {
+  message: string;
+  path: string;
+  timestamp: string;
+}
 
 export default function AdminDashboard() {
   const [totalUsers, setTotalUsers] = useState(0);
@@ -74,22 +80,33 @@ export default function AdminDashboard() {
   }
 
   const triggerBackup = async () => {
-    setBackupLoading(true);
-    setBackupMessage('');
+    setBackupLoading(true);  // Start loading state
+    setBackupMessage('');    // Reset previous messages
+  
     try {
-      const res = await axiosInstance.post(`${backend_url}/backup/trigger`);
-      if (res.status === 200) {
+      // Specify the response type as AxiosResponse<BackupResponse>
+      const res: AxiosResponse<BackupResponse> = await axiosInstance.post(`${backend_url}/backup/trigger`);
+    if(res.data.message)
+      // // Check if the response status is 200 (OK)
+      // if (res.status === 200 && res.data?.message === 'Backup triggered successfully') {
+      //   // Handle success
+      //   setBackupMessage(`Backup created successfully! Backup stored at: ${res.data.path}`);
+      // } else {
+      //   // Handle the case where message is not success or status code is not 200
         setBackupMessage(`Backup created successfully! Backup stored at: ${res.data.path}`);
-      } else {
-        setBackupMessage(`Backup failed: ${res.data.error}`);
-      }
+    //  }
     } catch (error) {
+      // Handle any errors (network issues, etc.)
       console.error('Error triggering backup:', error);
-      setBackupMessage('An error occurred while triggering the backup.');
+      setBackupMessage(`An error occurred while triggering the backup: ${error || 'Unknown error'}`);
     } finally {
-      setBackupLoading(false);
+      setBackupLoading(false);  // Reset loading state
     }
   };
+  
+
+  
+  
 
   useEffect(() => {
     fetchDashboardData();
