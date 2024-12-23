@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import router from 'next/router';
 import Link from 'next/link';
+import Navbar from "@/app/components/Navbar_s/page";
 
 
 interface CourseParams {
@@ -168,7 +169,7 @@ const CourseDetails = () => {
     return (
         <div className="flex">
             {/* Sidebar */}
-            <Sidebar />
+            <Navbar />
         <div className="container mx-auto px-4 py-8">
             {/* Course Header */}
             <div className="bg-gradient-to-br from-blue-600 to-purple-700 shadow-lg rounded-lg p-8 text-white">

@@ -4,6 +4,7 @@ import axiosInstance from '@/app/utils/axiosInstance';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import axios, { AxiosError } from 'axios';
+import Navbar from "@/app/components/Navbar_s/page";
 
 interface Module {
   title: string;
@@ -347,6 +348,7 @@ const ModuleDetails = () => {
   return (
     
     <div className="min-h-screen bg-gray-100 p-8">
+      <Navbar/>
       <div className="max-w-4xl mx-auto bg-white shadow-md rounded-lg overflow-hidden">
         <div className="px-6 py-8">
           <h1 className="text-3xl font-bold text-gray-800 mb-4">{module?.title}</h1>

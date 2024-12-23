@@ -1,12 +1,12 @@
 // pages/courses.tsx
 
 'use client';
-import Sidebar from "@/app/components/student-sidebar/page";
+
 import React from 'react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import router from 'next/router';
-import Navbar from '@/app/components/NavBar/page';
+import Navbar from '../../../components/Navbar_s/page';
 
 
 async function fetchCookieData() {
@@ -85,11 +85,10 @@ interface Course {
       return (
         <div className="flex flex-col min-h-screen">
         {/* Navbar */}
-        <Navbar />
+        <Navbar/>
 
         <div className="flex">
-            {/* Sidebar */}
-            <Sidebar />
+          
         <div className="container mx-auto px-4 py-8">
           <h1 className="text-3xl font-semibold text-center mb-8 text-blue-600">My Courses</h1>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">

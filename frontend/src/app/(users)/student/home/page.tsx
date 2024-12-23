@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import axiosInstance from "@/app/utils/axiosInstance";
 import router, { useRouter } from "next/navigation";
 import { setDefaultResultOrder } from "dns";
+import Sidebar from "@/app/components/student-sidebar/page";
 
 interface UserorCourseData {
   _id: string;
@@ -255,6 +256,7 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+      <Sidebar/>
       {/* Header */}
       <header className="bg-blue-600 text-white py-4 shadow-md">
         <div className="container mx-auto flex justify-between items-center px-6">
