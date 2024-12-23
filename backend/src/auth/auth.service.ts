@@ -1,14 +1,14 @@
-import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { UsersService } from 'src/users/users.service';
-import { RegisterDto } from './dto/registerDto';
-import { CreateUserDto } from 'src/users/dto/createuser.dto';
 import * as bcrypt from 'bcrypt';
 import { SignInDto } from './dto/signInDto';
 import * as dotenv from 'dotenv';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { Log } from 'src/log/log.schema';
+import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { UsersService } from 'src/users/users.service';
+import { JwtService } from '@nestjs/jwt';
+import { RegisterDto } from './dto/registerDto';
+import { CreateUserDto } from 'src/users/dto/createuser.dto';
 
 dotenv.config();
 
@@ -71,7 +71,7 @@ export class AuthService {
         // JWT payload
         const payload = { username: user.username, role: user.role };
         console.log('Payload met');
-        
+
         const secret = process.env.JWT_SECRET || 'yourSuperSecretKey';
         const expiresIn = process.env.JWT_EXPIRES_IN || '1h';
         console.log('JWT Configuration:', { secret, expiresIn });

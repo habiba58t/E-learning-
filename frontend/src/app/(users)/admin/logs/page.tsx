@@ -38,7 +38,7 @@ const LogPage = () => {
       const cookieResponse = await fetch(`${backend_url}/auth/get-cookie-data`, {
         credentials: 'include',
       });
-      
+
       if (!cookieResponse.ok) {
         throw new Error('Failed to fetch user data');
       }
@@ -123,4 +123,3 @@ const LogPage = () => {
 };
 
 export default LogPage;
-
