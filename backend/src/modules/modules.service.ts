@@ -192,19 +192,19 @@ async getQuizzesForModule(ObjectId: mongoose.Types.ObjectId): Promise<QuizzesDoc
 //get all questions of module by module objectid
 //@UseGuards(AuthorizationGuard)
 // @Roles(Role.Admin,Role.Instructor)
-async getQuestionsForModule(ObjectId: mongoose.Types.ObjectId,user:any): Promise<QuestionsDocument[]> {
+async getQuestionsForModule(ObjectId: mongoose.Types.ObjectId): Promise<QuestionsDocument[]> {
   const course = await this.coursesService.findCourseByModuleId(ObjectId)
 
   if (!course) {
     throw new NotFoundException(`course with code ${ObjectId} not found`);
   }
 
-  const isInstructor = course.created_by === user.username;
-  const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
+  // const isInstructor = course.created_by === user.username;
+  // const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
 
-  if (!isInstructor && !isAdmin) {
-    throw new UnauthorizedException('You are not authorized to view questions of this module');
-  }
+  // if (!isInstructor && !isAdmin) {
+  //   throw new UnauthorizedException('You are not authorized to view questions of this module');
+  // }
 
   const module = await this.findById(ObjectId);
   if (!module) {
@@ -223,7 +223,7 @@ async getQuestionsForModule(ObjectId: mongoose.Types.ObjectId,user:any): Promise
 // Add quiz to modules array
 // @UseGuards(AuthorizationGuard)
 // @Roles(Role.Admin,Role.Instructor)
-async addQuizToModule(moduleId: mongoose.Types.ObjectId, quizId: mongoose.Types.ObjectId,user:any): Promise<moduleDocument> {
+async addQuizToModule(moduleId: mongoose.Types.ObjectId, quizId: mongoose.Types.ObjectId): Promise<moduleDocument> {
   // Find the module by ID
   const module = await this.moduleModel.findById(moduleId).exec();
   if (!module) {
@@ -234,12 +234,12 @@ const course = await this.coursesService.findCourseByModuleId(moduleId)
     throw new NotFoundException(`course with code ${moduleId} not found`);
   }
 
-  const isInstructor = course.created_by === user.username;
-  const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
+  // const isInstructor = course.created_by === user.username;
+  // const isAdmin = user.role === 'admin'; // Assuming 'role' is available on the user object
 
-  if (!isInstructor && !isAdmin) {
-    throw new UnauthorizedException('You are not authorized to view questions of this module');
-  }
+  // if (!isInstructor && !isAdmin) {
+  //   throw new UnauthorizedException('You are not authorized to view questions of this module');
+  // }
 
   // Check if the quiz is already in the array
   if (module.quizzes.some((existingQuizId) => existingQuizId.equals(quizId))) {

@@ -97,7 +97,7 @@ const HomePage = () => {
     setError("");
     try {
       const response = await axiosInstance.get<UserorCourseData[]>(
-        "http://localhost:3002/courses/student"
+        "http://localhost:3002/courses/"
       );
       setAllCourses(response.data || []);
       setResults(response.data || []); // Initially display all courses

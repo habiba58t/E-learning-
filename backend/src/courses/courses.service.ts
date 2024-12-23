@@ -40,7 +40,7 @@ export class CoursesService {
   async findAll(): Promise<{ title: string; description: string }[]> {
     return this.courseModel
       .find({ Unavailable: false }) // Filter to get only available courses
-      .select('title description')  // Select only title and description fields
+      .select('title description averageRating created_by category')  // Select only title and description fields
       .exec();
   }
 

@@ -114,8 +114,8 @@ export default function ProgressPage() {
             <Sidebar />
 
             {/* Main Content */}
-            <div className="flex-1 p-6">
-                <h1 className="text-2xl font-bold mb-6">Courses Progress</h1>
+            <div className="text-black flex-1 p-6">
+                <h1 className=" text-2xl font-bold mb-6">Courses Progress</h1>
 
                 {progress.length === 0 ? (
                     <p>No progress data available.</p>

@@ -51,9 +51,9 @@ async enrollStudentInCourse(user: any, courseId: string): Promise<userDocument> 
         if (!student) {
           throw new NotFoundException(`Student with username ${user.username} not found`);
         }
-    
+        const cId = new mongoose.Types.ObjectId(courseId)
         // Find the course by its ID
-        const course = await this.coursesService.findOne(courseId);
+        const course = await this.courseModel.findById(cId);
         if (!course) {
           throw new NotFoundException(`Course with ID ${courseId} not found`);
         }

@@ -25,7 +25,7 @@ export interface Course {
 
 export interface Module {
   _id: string;
-  name: string;
+  title: string;
   level: "easy" | "medium" | "hard";
   status: number;
   content: mongoose.Types.ObjectId[];
@@ -41,11 +41,9 @@ export interface Module {
 
 export interface Quiz {
   _id: string;
-  title: string;
   created_at: Date;
-  numQuestions: number;
-  questionType: string;
-  module: mongoose.Types.ObjectId;
+  no_of_questions: number;
+  types_of_questions: string;
 }
 
 export default function Quiz() {
@@ -54,8 +52,8 @@ export default function Quiz() {
   const [moduleList, setModuleList] = useState<Module[]>([]);
   const [selectedModule, setSelectedModule] = useState<string | null>(null);
   const [quizDetails, setQuizDetails] = useState({
-    numQuestions: 0,
-    questionType: "" as "mcq" | "t/f" | "both",
+    no_of_questions: 0,
+    types_of_questions: "" as "mcq" | "t/f" | "both",
   });
   const [username, setUsername] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -79,13 +77,10 @@ export default function Quiz() {
       setUsername(username);
       console.log("Fetched username:", username);
 
-      const response = await axiosInstance.get<Course[]>(
-        `${backend_url}/courses/coursesInstructor/${username}`
-      );
+      const response = await axiosInstance.get<Course[]>(`${backend_url}/courses/coursesInstructor/${username}`);
       setCourseList(response.data);
     } catch (err) {
-      console.error("Error fetching courses:", err);
-      setError("Failed to load courses. Please try again.");
+      setCourseList([]);
     } finally {
       setLoading(false);
     }
@@ -95,31 +90,22 @@ export default function Quiz() {
     fetchCookieData();
   }, []);
 
-  const handleCourseChange = async (courseId: string) => {
-    setSelectedCourse(courseId);
-    setModuleList([]);
-    setSelectedModule(null);
-
+  const handleCourseChange = async (course_code: string) => {
+    setSelectedCourse(course_code);
     try {
-      const response = await axiosInstance.get<Module[]>(
-        `${backend_url}/courses/${courseId}/modulesInstructor`
-      );
+      const response = await axiosInstance.get<Module[]>(`${backend_url}/courses/${course_code}/modulesInstructor`);
       setModuleList(response.data);
-    } catch (err) {
-      console.error("Error fetching modules:", err);
-      setError("Failed to load modules. Please try again.");
-    }
+      console.log(moduleList);
+    } catch (err) {}
   };
 
   const fetchQuizzes = async (moduleId: string) => {
     try {
-      const response = await axiosInstance.get<Quiz[]>(
-        `${backend_url}/modules/getquizId/${moduleId}`
-      );
+      const response = await axiosInstance.get<Quiz[]>(`${backend_url}/modules/quiz/id/${moduleId}`);
       setQuizzes(response.data);
+      console.log(response.data);
     } catch (err) {
-      console.error("Error fetching quizzes:", err);
-      setError("Failed to load quizzes. Please try again.");
+      setQuizzes([]);
     }
   };
 
@@ -134,7 +120,7 @@ export default function Quiz() {
     const { name, value } = e.target;
     setQuizDetails((prev) => ({
       ...prev,
-      [name]: name === "numQuestions" ? parseInt(value) : value,
+      [name]: name === "no_of_questions" ? parseInt(value) : value,
     }));
   };
 
@@ -145,25 +131,15 @@ export default function Quiz() {
     }
 
     const payload = {
-      no_of_questions: quizDetails.numQuestions,
-      types_of_questions: quizDetails.questionType,
+      no_of_questions: quizDetails.no_of_questions,
+      types_of_questions: quizDetails.types_of_questions,
     };
 
-    console.log("Sending payload to backend:", payload);
-
     try {
-      const response = await axiosInstance.post(
-        `${backend_url}/quizzes/generate/${selectedModule}`,
-        payload
-      );
-
-      console.log("Quiz creation response:", response.data);
+      const response = await axiosInstance.post(`${backend_url}/quizzes/generate/${selectedModule}`, payload);
       alert("Quiz generated successfully");
-
-      // Refresh quizzes to include the new one
       await fetchQuizzes(selectedModule);
     } catch (err) {
-      console.error("Error generating quiz:");
       alert("Failed to generate quiz. Please try again.");
     }
   };
@@ -172,48 +148,40 @@ export default function Quiz() {
     try {
       const response = await axiosInstance.delete(`${backend_url}/quizzes/${quizId}`);
       alert(response.data.message || "Quiz deleted successfully");
-  
-      // Refresh quizzes after deletion
       if (selectedModule) await fetchQuizzes(selectedModule);
     } catch (err) {
-      console.error("Error deleting quiz:", err);
       alert("Failed to delete quiz. Please try again.");
     }
   };
-  
+
   const handleUpdateQuiz = async (quizId: string) => {
-    const numQuestions = prompt("Enter the new number of questions:");
-    const questionType = prompt("Enter the new question type (mcq/t/f/both):");
-  
-    if (!numQuestions || !questionType) {
+    const no_of_questions = prompt("Enter the new number of questions:");
+    const types_of_questions = prompt("Enter the new question type (mcq/t/f/both):");
+
+    if (!no_of_questions || !types_of_questions) {
       alert("Both fields are required for updating the quiz.");
       return;
     }
-  
+
     const payload = {
-      no_of_questions: parseInt(numQuestions),
-      types_of_questions: questionType,
+      no_of_questions: parseInt(no_of_questions),
+      types_of_questions: types_of_questions,
     };
-  
+
     try {
       const response = await axiosInstance.put(`${backend_url}/quizzes/update`, payload);
       alert("Quiz updated successfully");
-      console.log(response.data);
-  
-      // Refresh quizzes after update
       if (selectedModule) await fetchQuizzes(selectedModule);
     } catch (err) {
-      console.error("Error updating quiz:", err);
       alert("Failed to update quiz. Please try again.");
     }
   };
-  
 
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4">
       <div className="max-w-4xl mx-auto bg-white shadow-md rounded-lg p-6">
         <h1 className="text-2xl font-bold text-black mb-4">Create a Quiz</h1>
-  
+
         <div className="mb-6">
           <label htmlFor="course" className="block text-black font-medium mb-2">
             Choose Course
@@ -222,19 +190,19 @@ export default function Quiz() {
             id="course"
             value={selectedCourse || ""}
             onChange={(e) => handleCourseChange(e.target.value)}
-            className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            className="text-[#1e40af] w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
           >
-            <option value="" disabled>
+            <option className="text-gray-600" value="" disabled>
               Select a course
             </option>
             {courseList.map((course) => (
-              <option key={course.course_code} value={course.course_code}>
+              <option className="text-gray-700" key={course.course_code} value={course.course_code}>
                 {course.title}
               </option>
             ))}
           </select>
         </div>
-  
+
         <div className="mb-6">
           <label htmlFor="module" className="block text-black font-medium mb-2">
             Choose Module
@@ -243,128 +211,101 @@ export default function Quiz() {
             id="module"
             value={selectedModule || ""}
             onChange={(e) => handleModuleChange(e.target.value)}
-            className={`w-full border-2 ${
-              selectedModule ? "border-indigo-600" : "border-gray-300"
-            } rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500`}
+            className={`w-full border-2 text-[#1e40af] ${selectedModule ? "border-indigo-600" : "border-gray-300"} rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500`}
           >
-            <option value="" disabled>
+            <option className="text-gray-600" value="" disabled>
               Select a module
             </option>
             {moduleList.map((module) => (
-              <option
-                key={module._id}
-                value={module._id}
-                className={
-                  selectedModule === module._id
-                    ? "bg-indigo-100 text-black"
-                    : "text-black"
-                }
-              >
-                {module.name}
+              <option className="text-gray-700" key={module._id} value={module._id}>
+                {module.title}
               </option>
             ))}
           </select>
         </div>
-  
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-3">
-            Quiz Details
-          </h2>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleGenerateQuiz();
-            }}
-          >
-            <div className="mb-4">
-              <label
-                htmlFor="numQuestions"
-                className="block text-gray-700 font-medium mb-2"
-              >
-                Number of Questions
-              </label>
-              <input
-                type="number"
-                id="numQuestions"
-                name="numQuestions"
-                value={quizDetails.numQuestions}
-                onChange={handleQuizDetailsChange}
-                placeholder="Enter number of questions"
-                className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-                required
-              />
-            </div>
-  
-            <div className="mb-4">
-              <label
-                htmlFor="questionType"
-                className="block text-gray-700 font-medium mb-2"
-              >
-                Question Type
-              </label>
-              <select
-                id="questionType"
-                name="questionType"
-                value={quizDetails.questionType}
-                onChange={handleQuizDetailsChange}
-                className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-                required
-              >
-                <option value="">Select question type</option>
-                <option value="mcq">Multiple Choice (MCQ)</option>
-                <option value="t/f">True/False</option>
-                <option value="both">Both</option>
-              </select>
-            </div>
-  
-            <button
-              type="submit"
-              className="w-full bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-indigo-500"
+
+        {quizzes.length === 0 ? (
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-3">Quiz Details</h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleGenerateQuiz();
+              }}
             >
-              Generate Quiz
-            </button>
-          </form>
-        </div>
-  
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-3">
-            Manage Quizzes
-          </h2>
-          <div className="bg-gray-50 p-4 rounded-lg shadow">
-            {quizzes.length > 0 ? (
-              quizzes.map((quiz) => (
-                <div
-                  key={quiz._id}
-                  className="flex items-center justify-between mb-3"
+              <div className="mb-4">
+                <label htmlFor="no_of_questions" className="block text-gray-700 font-medium mb-2">
+                  Number of Questions
+                </label>
+                <input
+                  type="number"
+                  id="no_of_questions"
+                  name="no_of_questions"
+                  value={quizDetails.no_of_questions}
+                  onChange={handleQuizDetailsChange}
+                  placeholder="Enter number of questions"
+                  className="text-gray-500 w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                  required
+                />
+              </div>
+
+              <div className="mb-4">
+                <label htmlFor="types_of_questions" className="block text-gray-700 font-medium mb-2">
+                  Question Type
+                </label>
+                <select
+                  id="types_of_questions"
+                  name="types_of_questions"
+                  value={quizDetails.types_of_questions}
+                  onChange={handleQuizDetailsChange}
+                  className="text-gray-500 w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                  required
                 >
-                  <div>
-                    <h3 className="font-medium text-gray-800">{quiz.title}</h3>
-                    <p className="text-sm text-gray-600">
-                      Questions: {quiz.numQuestions} | Type: {quiz.questionType}
-                    </p>
-                  </div>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleUpdateQuiz(quiz._id)}
-                      className="text-blue-600 hover:underline"
-                    >
-                      Update
-                    </button>
-                    <button
-                      onClick={() => handleDeleteQuiz(quiz._id)}
-                      className="text-red-600 hover:underline"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p>No quizzes found for this module.</p>
-            )}
+                  <option value="">Select question type</option>
+                  <option value="mcq">Multiple Choice (MCQ)</option>
+                  <option value="t/f">True/False</option>
+                  <option value="both">Both</option>
+                </select>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-indigo-500"
+              >
+                Generate Quiz
+              </button>
+            </form>
           </div>
-        </div>
+        ) : (
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold text-gray-800 mb-3">Manage Quizzes</h2>
+            <div className="text-[#0369a1] bg-gray-50 p-4 rounded-lg shadow">
+              {quizzes.length > 0 ? (
+                quizzes.map((quiz) => (
+                  <div key={quiz._id} className="flex items-center justify-between mb-3">
+                    <div>
+                      <h3 className="font-medium text-gray-800">Creation Date: {new Date(quiz.created_at).toLocaleDateString()}</h3>
+                      <p className="text-sm text-gray-600">
+                        Number of Questions: {quiz.no_of_questions} | Type of Questions: {quiz.types_of_questions}
+                      </p>
+                    </div>
+                    <div className="flex space-x-2">
+                      <button onClick={() => handleUpdateQuiz(quiz._id)} className="text-blue-600 hover:underline">
+                        Update
+                      </button>
+                      <button onClick={() => handleDeleteQuiz(quiz._id)} className="text-red-600 hover:underline">
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p>No quiz found for this module.</p>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
-}  
+}

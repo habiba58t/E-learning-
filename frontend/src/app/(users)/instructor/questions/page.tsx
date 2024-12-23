@@ -91,7 +91,7 @@ const QuestionPage = () => {
       setUsername(user);
       console.log("User logged in:", user);
 
-      await fetchCoursesAndModules(user);
+      await fetchCoursesAndModules();
       await fetchQuestionsByCreator(user);
       setLoading(false);
     } catch (error) {
@@ -101,12 +101,12 @@ const QuestionPage = () => {
     }
   };
 
-  const fetchCoursesAndModules = async (instructor: string) => {
+  const fetchCoursesAndModules = async () => {
     try {
-      const coursesResponse = await axiosInstance.get<coursedata[]>(`http://localhost:3002/courses/coursesInstructor/${instructor}`);
+      const coursesResponse = await axiosInstance.get<coursedata[]>(`http://localhost:3002/courses/coursesInstructor/${username}`);
       if (!coursesResponse.data || coursesResponse.data.length === 0) {
-        setError('No courses found');
-        return;
+       // setError('No courses found');
+        setCourses([]);
       }
       setCourses(coursesResponse.data);
       setError(null); // Clear error if courses are fetched successfully
@@ -142,8 +142,7 @@ const QuestionPage = () => {
 
   // Assuming instructor is passed as a prop or derived from context
   useEffect(() => {
-    const instructor = 'exampleInstructor'; // Replace with actual instructor value
-    fetchCoursesAndModules(instructor);
+    fetchCoursesAndModules();
   }, []);
 
   const handleCourseSelect = (courseCode: string) => {
@@ -161,8 +160,7 @@ const QuestionPage = () => {
       if (questionsData && questionsData.length > 0) {
         setQuestions(questionsData);
       } else {
-        console.error("No questions found for the creator");
-        setError("No questions found for this creator");
+        setQuestions([])
       }
     } catch (error) {
       console.error("Error fetching questions:", error);
@@ -303,6 +301,23 @@ const QuestionPage = () => {
   if (error) {
     return <div>Error: {error}</div>;
   }
+
+
+  if (courses.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl text-teal-500 font-bold text-gray-800 mb-4">
+            No Courses Available
+          </h1>
+          <p className="text-gray-600 text-xl">
+            It seems like you haven’t created or been assigned any courses yet. Please check back later or contact support for assistance.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
      <div className="min-h-screen bg-gray-100">
       <Navbar />
@@ -449,7 +464,7 @@ const QuestionPage = () => {
                   <div key={index} className="flex items-center mb-2">
                     <input
                       type="text"
-                      className="w-full p-3 border border-teal-300 rounded-md mr-4 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      className="text-gray-600 w-full p-3 border border-teal-300 rounded-md mr-4 focus:outline-none focus:ring-2 focus:ring-teal-500"
                       placeholder={`Option ${index + 1}`}
                       value={option}
                       onChange={(e) => {
@@ -503,7 +518,7 @@ const QuestionPage = () => {
               <input
                 type="text"
                 id="correct_answer"
-                className="w-full p-3 border border-teal-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="text-gray-500 w-full p-3 border border-teal-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                 placeholder="Correct Answer"
                 value={editIndex === null ? newQuestion.correct_answer : editData.correct_answer}
                 onChange={(e) =>

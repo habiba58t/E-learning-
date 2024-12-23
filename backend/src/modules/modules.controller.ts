@@ -88,13 +88,13 @@ async findModuleByQuizId(@Param('quizId') quizId: string): Promise<moduleDocumen
 @UseGuards(AuthorizationGuard)
 @Roles(Role.Admin,Role.Instructor)
 @Get('id/:ObjectId')             
-async getQuestionsForModule(@Req() {user},@Param('ObjectId') ObjectId: string): Promise<Question[]> {
+async getQuestionsForModule(@Param('ObjectId') ObjectId: string): Promise<Question[]> {
   const objectId = new mongoose.Types.ObjectId(ObjectId);
-  return this.modulesService.getQuestionsForModule(objectId,user);
+  return this.modulesService.getQuestionsForModule(objectId);
 } 
 
 
-//GET: find array of queizzes  by moduleId
+//GET: find array of quizzes  by moduleId
 // @UseGuards(AuthorizationGuard)
 //  @Roles(Role.Admin,Role.Instructor, Role.User)
 @Get('/quiz/id/:ObjectId')             
@@ -107,9 +107,9 @@ async getQuizzesForModule( @Param('ObjectId') ObjectId: string): Promise<Quizzes
 @UseGuards(AuthorizationGuard)
 @Roles(Role.Admin,Role.Instructor)
 @Put(':moduleId/add-quiz/:quizId')
-  async addQuizToModule(@Req() {user}, @Param('moduleId') moduleId: string,@Param('quizId') quizId: string, // Quiz ID as string
+  async addQuizToModule(@Param('moduleId') moduleId: string,@Param('quizId') quizId: string, // Quiz ID as string
   ) {
-    const updatedModule = await this.modulesService.addQuizToModule(new mongoose.Types.ObjectId(moduleId),new mongoose.Types.ObjectId(quizId),user);
+    const updatedModule = await this.modulesService.addQuizToModule(new mongoose.Types.ObjectId(moduleId),new mongoose.Types.ObjectId(quizId));
 
     return {
       message: 'Quiz successfully added to the module.',

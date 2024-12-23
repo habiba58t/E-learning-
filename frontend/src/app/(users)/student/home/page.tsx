@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import axiosInstance from "@/app/utils/axiosInstance";
 import router, { useRouter } from "next/navigation";
-import Sidebar from "@/app/components/student-sidebar/page";
+import { setDefaultResultOrder } from "dns";
 
 interface UserorCourseData {
   _id: string;
@@ -70,6 +70,7 @@ const HomePage = () => {
     }
   };
 
+  
   const fetchResults = async () => {
     setError("");
     try {
@@ -93,10 +94,9 @@ const HomePage = () => {
   };
 
   const fetchAllCourses = async () => {
-    setError("");
     try {
       const response = await axiosInstance.get<UserorCourseData[]>(
-        "http://localhost:3002/courses/student"
+        "http://localhost:3002/courses"
       );
       setAllCourses(response.data || []);
       setResults(response.data || []); // Initially display all courses
@@ -113,13 +113,17 @@ const HomePage = () => {
     }
 
     try {
+      console.log(`${key}`)
       const response = await axiosInstance.put(
         `http://localhost:3002/student/enroll/${key}`
       );
       alert("You enrolled successfully!")
+
+
+
       router.push("/student/courses");
     } catch (err) {
-      console.error("Error enrolling in course:", err);
+      alert(`Error enrolling in course: ${err}`);
     }
   };
 
@@ -181,7 +185,7 @@ const HomePage = () => {
                 <p className="text-blue-600">You are enrolled in the course!</p>
               ) : (
                 <button
-                  onClick={() => handleEnroll(item.course_code)}
+                  onClick={() => handleEnroll(item._id)}
                   className="bg-blue-600 text-white px-4 py-2 rounded-lg"
                 >
                   Enroll
@@ -233,7 +237,6 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      <Sidebar/>
       {/* Header */}
       <header className="bg-blue-600 text-white py-4 shadow-md">
         <div className="container mx-auto flex justify-between items-center px-6">

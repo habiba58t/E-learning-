@@ -21,37 +21,37 @@ export class QuizzesController {
   constructor(private readonly quizzesService: QuizzesService) {}
 
 
-  // @UseGuards(AuthorizationGuard) // Additional guard for authorization
-  // @Roles(Role.Admin, Role.Instructor) // Restrict roles to admin and instructor
-  // @Post('generate/:moduleId')
-  // async generateQuiz( //instructor creates quiz
-  //   @Param('moduleId') moduleId: string,
-  //   @Body('no_of_questions') noOfQuestions: number,
-  //   @Body('types_of_questions') typesOfQuestions: 'mcq' | 't/f' | 'both',
-  // ) {
-  //   try {
-  //     // Validate and convert the moduleId to an ObjectId
-  //     const moduleObjectId = new Types.ObjectId(moduleId);
+  @UseGuards(AuthorizationGuard) // Additional guard for authorization
+  @Roles(Role.Admin, Role.Instructor) // Restrict roles to admin and instructor
+  @Post('generate/:moduleId')
+  async generateQuiz( //instructor creates quiz
+    @Param('moduleId') moduleId: string,
+    @Body('no_of_questions') noOfQuestions: number,
+    @Body('types_of_questions') typesOfQuestions: 'mcq' | 't/f' | 'both',
+  ) {
+    try {
+      // Validate and convert the moduleId to an ObjectId
+      const moduleObjectId = new Types.ObjectId(moduleId);
 
-  //     // Call the service method to generate the quiz
-  //     const quiz = await this.quizzesService.generateQuiz(
-  //       noOfQuestions,
-  //       typesOfQuestions,
-  //       moduleObjectId,
-  //     );
+      // Call the service method to generate the quiz
+      const quiz = await this.quizzesService.generateQuiz(
+        noOfQuestions,
+        typesOfQuestions,
+        moduleObjectId,
+      );
 
-  //     // Return the generated quiz
-  //     return {
-  //       message: 'Quiz generated successfully',
-  //       quiz,
-  //     };
-  //   } catch (error) {
-  //     return {
-  //       message: 'Error generating quiz',
-  //       error: error.message,
-  //     };
-  //   }
-  // }
+      // Return the generated quiz
+      return {
+        message: 'Quiz generated successfully',
+        quiz,
+      };
+    } catch (error) {
+      return {
+        message: 'Error generating quiz',
+        error: error.message,
+      };
+    }
+  }
 
  
     @Get(':quizId')
