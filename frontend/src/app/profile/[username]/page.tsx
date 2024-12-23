@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import mongoose from "mongoose"; // For ObjectId typing
 import axiosInstance from "@/app/utils/axiosInstance";
+import InstructorSidebar from "@/app/components/instructor/instructor-sidebar/page";
 
 interface ProfileData {
   name: string;
@@ -14,6 +15,7 @@ interface ProfileData {
   email: string;
   role: "student" | "instructor" | "admin";
   pictureUrl?: string; // Optional picture URL field
+  rated?: boolean; 
 }
 
 const ProfilePage = () => {
@@ -27,9 +29,11 @@ const ProfilePage = () => {
   const [updatedProfile, setUpdatedProfile] = useState<ProfileData | null>(null);
   const [isOwnProfile, setIsOwnProfile] = useState<boolean>(false);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [isStudent, setStudent] = useState<boolean>(false);
+  const [isRating, setIsRating] = useState(false);
+  const [selectedRating, setSelectedRating] = useState(0);
+  const [hasRated, setHasRated] = useState<boolean>(false);
 
-  const[role, setRole] = useState<string>("")
-  const[currentUsername, setcUsername] = useState<string>('');
 
   const backendUrl = "http://localhost:3002"; // Replace with your backend URL
 
@@ -52,46 +56,21 @@ const ProfilePage = () => {
   };
 
   useEffect(() => {
-    // Fetch user data on component mount
-    fetchCookieData();
-  }, []);
-
-  const fetchCookieData = async () => {
-    try {
-      const response = await fetch("http://localhost:3002/auth/get-cookie-data", {
-        credentials: "include",
-      });
-      const { userData } = await response.json();
-
-      if (!userData?.payload?.username) {
-        console.error("No cookie data found");
-        setError("No cookie data found");
-        return;
-      }
-
-      const user = userData.payload.username;
-      const role = userData.payload.role;
-      setRole(role)
-      setcUsername(user);
-      console.log("User logged in:", user);
-    } catch (err) {
-      console.error("Error fetching cookie data:", err);
-      setError("Error fetching cookie data");
-    }
-  };
-
-  useEffect(() => {
     const fetchProfile = async () => {
       try {
         if (!username) {
           throw new Error("Username is required.");
         }
 
-        const response = await axios.get(`${backendUrl}/users/${username}`);
+        const response = await axiosInstance.get(`${backendUrl}/users/${username}`);
         const userProfile = response.data;
 
         const loggedInRole = localStorage.getItem("role");
         setIsAdmin(loggedInRole === "admin");
+        setStudent(loggedInRole==="student");
+
+        const storedRatingStatus = localStorage.getItem("hasRated");
+        setHasRated(storedRatingStatus === "true");
 
         if (userProfile.courses && userProfile.courses.length > 0) {
           const courseTitles = await fetchCourseTitles(userProfile.courses);
@@ -99,6 +78,10 @@ const ProfilePage = () => {
         }
         setProfile(userProfile);
         setUpdatedProfile(userProfile);
+
+        if (userProfile.rating && userProfile.rating > 0) {
+          setHasRated(true);
+        }
         const loggedInUsername = localStorage.getItem("username");
         setIsOwnProfile(username === loggedInUsername);
       } catch (err: any) {
@@ -136,6 +119,7 @@ const ProfilePage = () => {
       setProfile(response.data);
 
       window.location.reload();
+     
       alert("Profile updated successfully!");
     } catch (err) {
       console.error("Error updating profile:", err);
@@ -149,8 +133,8 @@ const ProfilePage = () => {
   };
 
   const handleMessage = () => {
-    const receiverUsername = username;
-    router.push(`/student/private-chats/${currentUsername}/${receiverUsername}`);
+    router.push(`/student/chat/private-chat`);
+   
   };
 
   const handleDeleteStudentAndAdmin = async () => {
@@ -178,7 +162,38 @@ const ProfilePage = () => {
       alert("Unauthorized action: Only instructors can perform this.");
     }
   };
-
+  const handleSaveRating = async () => {
+    const userResponse = await axiosInstance.get(`${backendUrl}/users/${username}`);
+        const user = userResponse.data;
+        console.log(user.username);
+    if (selectedRating === 0) {
+      alert("Please select a rating before saving.");
+      return;
+    }
+  
+    try {
+      const response = await axiosInstance.put(`${backendUrl}/users/setRating/${user._id}/${selectedRating}`);
+      setIsRating(false); // Exit rating mode after saving
+      alert("instructor rating saved!");
+      setHasRated(true);
+      localStorage.setItem("hasRated", "true");
+    } catch (error) {
+      if (error instanceof Error) {
+        alert(`Error saving rating`);
+      } else {
+        alert('An unknown error occurred while saving the rating.');
+      }
+    }
+  };
+  
+  const handleCancelRating = () => {
+    const confirmation = confirm("Are you sure you want to cancel your rating?");
+    if (confirmation) {
+      setSelectedRating(0); // Reset the rating
+      setIsRating(false); // Exit rating mode
+    }
+  };
+  
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -204,7 +219,8 @@ const ProfilePage = () => {
   }
 
   return (
-    <section className="text-black relative pt-40 pb-24">
+    <section className="relative pt-40 pb-24">
+      
       <img
         src="https://pagedone.io/asset/uploads/1705473908.png"
         alt="cover-image"
@@ -220,16 +236,16 @@ const ProfilePage = () => {
         </div>
         <div className="flex flex-col sm:flex-row sm:justify-between mb-5">
           <div>
-            <h1 className="text-2xl font-bold">{profile.name}</h1>
-            <p className="text-lg">{profile.email}</p>
+            <h1 className="text-2xl font-bold text-black">{profile.name}</h1>
+            <p className="text-2xl font-bold text-black">{profile.email}</p>
             {profile.role === "instructor" && (
-              <p className="text-md">
+              <p className="text-2xl font-bold text-black">
                 <strong>Courses Given:</strong>{" "}
                 {profile.courses.length ? profile.courses.join(", ") : "No courses"}
               </p>
             )}
             {profile.role === "student" && (
-              <p className="text-md">
+              <p className="text-2xl font-bold text-black">
                 <strong>Enrolled Courses:</strong>{" "}
                 {profile.courses.length ? profile.courses.join(", ") : "No courses"}
               </p>
@@ -245,7 +261,7 @@ const ProfilePage = () => {
                 Edit Profile
               </button>
             )}
-            {!isOwnProfile && profile.role==="student" && role==="student" &&(
+            {!isOwnProfile && (
               <button
                 onClick={handleMessage}
                 className="bg-blue-500 text-white py-2 px-4 rounded mb-2"
@@ -253,6 +269,14 @@ const ProfilePage = () => {
                 Message
               </button>
             )}
+          {!isOwnProfile && isStudent && profile.role === "instructor" && !hasRated && (
+  <button
+    onClick={() => setIsRating(true)} // Open the rating interface
+    className="bg-blue-500 text-white py-2 px-4 rounded mb-2"
+  >
+    Rate Instructor
+  </button>
+)}
 
             {(profile.role === "instructor" && isOwnProfile) ||
             (isAdmin && !isOwnProfile && profile.role === "instructor") ? (
@@ -325,9 +349,44 @@ const ProfilePage = () => {
             </button>
           </div>
         )}
+  {isRating && !hasRated && (
+  <div className="space-y-4">
+    <label className="block">
+      Rate Instructor:
+      <div className="flex justify-center space-x-2 my-4">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            onClick={() => setSelectedRating(star)}
+            className={`text-3xl ${
+              star <= selectedRating ? "text-yellow-500" : "text-gray-300"
+            }`}
+          >
+            ★
+          </button>
+        ))}
+      </div>
+    </label>
+
+    <button
+      onClick={handleSaveRating}
+      className="bg-green-500 text-white py-2 px-4 rounded"
+    >
+      Save Rating
+    </button>
+    <button
+      onClick={handleCancelRating}
+      className="bg-gray-500 text-white py-2 px-4 rounded"
+    >
+      Cancel
+    </button>
+  </div>
+)}
+
       </div>
     </section>
   );
 };
 
 export default ProfilePage;
+
