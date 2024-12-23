@@ -15,6 +15,7 @@ interface CourseParams {
 
 
 interface Course {
+    _id: string;
     course_code: string;
     title: string;
     description: string;
@@ -44,45 +45,54 @@ const CourseDetails = () => {
     const [studentsLoading, setStudentsLoading] = useState<boolean>(false);
     const [studentsError, setStudentsError] = useState<string | null>(null);
     const [isRatingPopupVisible, setIsRatingPopupVisible] = useState(false); // State for showing rating popup
+    const [totalRating, setTotalRating] =  useState<number | 0>();
+    const [totalStudents, setTotalStudents] =  useState<number | 0>();
   const [rating, setRating] = useState<number | null>(null); // State to track the rating
     const router = useRouter();
      const [isClient, setIsClient] = useState(false);
 
-    useEffect(() => {
+     useEffect(() => {
         const fetchCourseDetails = async () => {
             try {
+                // Fetch course details
                 const response = await axiosInstance.get<Course>(`http://localhost:3002/courses/${courseCode}`);
-                setCourse(response.data);
+                const courseData = response.data;
+                setCourse(courseData);
+    
+                // Fetch course rating
+                if (courseData && courseData._id) {
+                    try {
+                        const ratingResponse = await axiosInstance.get<number>(`http://localhost:3002/courses/getavg/${courseData._id}`);
+                        const averageRating = ratingResponse.data;
+                        setTotalRating(averageRating);
+                        console.log('Average Rating:', averageRating);
+                        try {
+                            const response = await axiosInstance.get<number>(`http://localhost:3002/progress/enrolled/${courseCode}`);
+                           const answer = response.data;
+                            setTotalStudents(answer | 0);
+                          } catch (error) {
+                            console.error('Failed to fetch total students:', error);
+                             setError('Error fetching data');
+                          }
+                    } catch (ratingError) {
+                        console.error('Failed to fetch course rating:', ratingError);
+                        setError('Error fetching course rating.');
+                    }
+                }
+         //enrolled students
+                
             } catch (err) {
+                console.error('Failed to fetch course details:', err);
                 setError('Failed to load course details.');
             } finally {
                 setLoading(false);
             }
         };
-        const checkCompletion = async () => {
-           const username= await fetchUsernameFromCookies();
-            try {
-              const response = await axiosInstance.get(
-                `http://localhost:3002/progress/user-course/${username}/${courseCode}`,
-                { withCredentials: true }
-              );
-        
-              // Only show rating popup if the student has not responded to the quiz
-              if (response.data === 100) {
-            //    setHasTakenQuiz(false);
-                setIsRatingPopupVisible(true);
-              } else {
-              //  setHasTakenQuiz(true);
-              }
-            } catch (err: any) {
-              console.error("Error checking course status:", err);
-           //   setHasTakenQuiz(false);
-            }
-          };
-
+    
         fetchCourseDetails();
-        checkCompletion();
-        setIsClient(true);}, [courseCode]);
+        setIsClient(true);
+    }, [courseCode]);
+    
 
     const fetchUsernameFromCookies = async (): Promise<string | null> => {
         try {
@@ -114,10 +124,6 @@ const CourseDetails = () => {
             setError('Failed to load modules for this course.');
         }
     };
-
-
-
-
 
     const handleViewstudents = async () => {
         setStudentsLoading(true);
@@ -175,10 +181,11 @@ const CourseDetails = () => {
                         <span className="font-semibold">Category:</span> {course?.category}
                     </p>
                     <p className="bg-blue-800 py-2 px-4 rounded-full shadow-md">
-                        <span className="font-semibold">Average Rating:</span> {course?.averageRating}
+                        <span className="font-semibold">Course Rating:</span>{' '}
+                        {totalRating !== null ? totalRating : 'Loading...'}
                     </p>
                     <p className="bg-blue-800 py-2 px-4 rounded-full shadow-md">
-                        <span className="font-semibold">Total Students:</span> {course?.totalStudents}
+                        <span className="font-semibold">Total Students:</span> {totalStudents}
                     </p>
                 </div>
                 <div className="flex justify-center mt-6">

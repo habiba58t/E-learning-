@@ -359,14 +359,40 @@ async getAverageScoreForCourse(course_code: string): Promise<number> {
 }
 
 //GET AVERAGE RATING
-async getAverageRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
+async getAverageRating(ObjectId: mongoose.Types.ObjectId): Promise<number> {
+  // Fetch the course by its ID
   const course = await this.getcoursebyid(ObjectId);
-  if(await(course.Unavailable) ===false){
-  return course.averageRating;
-  }else 
-  throw new NotFoundException(`course unavailable`);
- }
- 
+
+  // If the course is not found, return 0 (or handle appropriately)
+  if (!course) {
+    return 0;
+  }
+
+  // Extract module ObjectIds
+  const moduleIds = course.modules;
+
+  // Fetch each module by ID
+  const modules = await Promise.all(
+    moduleIds.map((id: mongoose.Types.ObjectId) => this.modulesService.findById(id))
+  );
+
+  // Filter modules where isOutdated is false
+  const validModules = modules.filter((module: any) => module && !module.isOutdated);
+
+  // If no valid modules, return 0
+  if (validModules.length === 0) {
+    return 0;
+  }
+
+  // Calculate the total rating for valid modules
+  const totalRating = validModules.reduce((sum: number, module: any) => {
+    return sum + module.averageRating; // Assuming each module has a 'rating' attribute
+  }, 0);
+
+  // Return the average rating
+  return Math.round(totalRating / validModules.length);
+}
+
  
  //SET RATING,TOTAL,AVERAGE
  async setRating(objectId: mongoose.Types.ObjectId,score:number,user:any): Promise<void> {
