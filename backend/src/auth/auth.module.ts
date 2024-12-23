@@ -18,7 +18,7 @@ dotenv.config();
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET || 'yourSuperSecretKey',
-      signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || '1h' },
+      signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || '1d' },
     }),
     MongooseModule.forFeature([{ name: Log.name, schema: LogSchema }]), // Add Log schema
   ],

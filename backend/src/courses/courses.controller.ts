@@ -275,8 +275,8 @@ async getNonOutdatedCoursesForStudent2(@Param('username') username: string):Prom
    // }
  }
 
- @Roles(Role.Admin)
- @Get('count/courses')
+//  @Roles(Role.Admin)
+ @Get('count/getcourses')
   async getCourseCount(): Promise<{ count: number }> {
     const count = await this.coursesService.getTotalCourses();
     return { count };

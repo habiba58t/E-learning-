@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import axiosInstance from "@/app/utils/axiosInstance";
 import { Types } from 'mongoose';
 import axios, { AxiosError } from 'axios';
+import Link from 'next/link';
 
 export interface Course {
   _id: string;
@@ -73,11 +74,13 @@ const CourseDetailsAdmin = () => {
   const [totalStudents, setTotalStudents] =  useState<number | undefined>();
   const [modalOpen, setModalOpen] = useState(false);
   const [students, setStudents] = useState<string[] | null>(null);
+  const [totalRating, setTotalRating] =  useState<number | 0>();
 
   const router = useRouter();
 
   async function fetchCourseAndModules() {
     try {
+      // Fetch user data from cookies
       const cookieResponse = await fetch(`${backend_url}/auth/get-cookie-data`, {
         credentials: "include",
       });
@@ -88,11 +91,13 @@ const CourseDetailsAdmin = () => {
       }
   
       const username = userData.payload.username;
-  
+       
       // Fetch course data (handle potential 404)
+      let courseData: Course | null = null;
       try {
         const courseResponse = await axiosInstance.get<Course>(`${backend_url}/courses/${courseCode}`);
         setCourse(courseResponse.data);
+        courseData = courseResponse.data;
       } catch (err: unknown) {
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 404) {
@@ -112,13 +117,26 @@ const CourseDetailsAdmin = () => {
       // Fetch modules data
       const modulesResponse = await axiosInstance.get<Module[]>(`${backend_url}/courses/${courseCode}/modulesAdmin`);
       setModules(modulesResponse.data);
-      try {
-        const response = await axiosInstance.get<number>(`${backend_url}/progress/enrolled/${courseCode}`);
-       const answer = response.data;
-        setTotalStudents(answer | 0);
-      } catch (error) {
-        console.error('Failed to fetch total students:', error);
-         setError('Error fetching data');
+  
+      // Fetch total students
+      const totalStudentsResponse = await axiosInstance.get<number>(`${backend_url}/progress/enrolled/${courseCode}`);
+      const totalStudents = totalStudentsResponse.data || 0; // Ensure it defaults to 0 if no data is returned
+      setTotalStudents(totalStudents);
+      // Fetch average rating
+      if (courseData && courseData._id) {
+        try {
+            const ratingResponse = await axiosInstance.get<number>(`${backend_url}/courses/getavg/${courseData._id}`);
+            const averageRating = ratingResponse.data;
+            setTotalRating(averageRating);
+            console.log('Average Rating:', averageRating);
+        } catch (ratingError) {
+            console.error('Failed to fetch course rating:', ratingError);
+            setError('Error fetching course rating.');
+        
+    }
+      } else {
+        console.error("Course ID is missing, cannot fetch rating.");
+        setError("Course ID is missing, cannot fetch rating.");
       }
     } catch (err) {
       console.error("Error fetching modules:", err);
@@ -127,6 +145,7 @@ const CourseDetailsAdmin = () => {
       setLoading(false);
     }
   }
+  
 
   useEffect(() => {
     fetchCourseAndModules();
@@ -340,9 +359,18 @@ const CourseDetailsAdmin = () => {
             <p><strong>Description:</strong> {course.description}</p>
             <p><strong>Category:</strong> {course.category}</p>
             <p><strong>Level:</strong> {course.level}</p>
-            <p><strong>Average Rating:</strong> {course.averageRating ?? 'N/A'}</p>
+           <p ><strong>
+                        Course Rating:</strong>
+                        {totalRating !== null ? totalRating : 'Loading...'}
+                    </p>
             <p><strong>Number of Students Enrolled:</strong>{totalStudents}</p>
-            <p><strong>Instructor:</strong> {course.created_by || 'N/A'}</p>
+            <p><strong>Instructor:</strong> 
+  {course.created_by ? (
+    <Link href={`/profile/${course.created_by}`}>
+      {course.created_by}
+    </Link>
+  ) : 'N/A'}
+</p>
           </div>
 
           <div className="flex flex-wrap gap-4">

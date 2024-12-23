@@ -30,7 +30,7 @@ export class ProgressController {
 
 
   @UseGuards(AuthorizationGuard) // Additional guard for authorization
-  @Roles(Role.Admin, Role.Instructor) //admin??
+  @Roles(Role.Admin, Role.Instructor, Role.User) //admin??
   @Get('user-course/:Username/:course_code') //instructer beyshoof progress of a student 
   async getProgressByUsernameAndCourse(
     @Param('Username') Username: string,

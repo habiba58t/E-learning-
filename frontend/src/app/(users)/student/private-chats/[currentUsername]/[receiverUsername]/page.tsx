@@ -150,16 +150,40 @@ const ChatPage = () => {
     setTheme(newTheme);
   };
 
-  const safeCurrentUsername = Array.isArray(currentUsername) ? currentUsername[0] : currentUsername;
 
   useEffect(() => {
+    const safeCurrentUsername = Array.isArray(currentUsername) ? currentUsername[0] : currentUsername;
+  
     if (safeCurrentUsername) {
       setUsername(safeCurrentUsername);
       fetchCookieData();
       createOrLoadChat();
     }
-  }, [safeCurrentUsername]);
-
+  
+    // Auto-select the chat with `receiverUsername` if it exists
+    if (receiverUsername) {
+      const safeReceiverUsername = Array.isArray(receiverUsername) ? receiverUsername[0] : receiverUsername;
+  
+      setSelectedUser(safeReceiverUsername);
+  
+      // Fetch chat for the selected user
+      const initializeChat = async () => {
+        try {
+          const chatData = await axiosInstance.get<ChatData>(
+            `http://localhost:3002/private-chat/get-chat/${safeCurrentUsername}/${safeReceiverUsername}`
+          );
+          setChat(chatData.data.Message);
+          setCurrentChatId(chatData.data._id);
+        } catch (error) {
+          console.error('Error fetching chat for receiverUsername:', error);
+          setError('Error initializing chat');
+        }
+      };
+  
+      initializeChat();
+    }
+  }, [currentUsername, receiverUsername]);
+  
   
 
 useEffect(() => {

@@ -43,7 +43,7 @@ export class AuthController {
             res.cookie('user_data', result, {
                 httpOnly: true, // Prevents client-side JavaScript access
                 secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-                maxAge: 3600 * 1000, // Cookie expiration time in milliseconds
+                maxAge: 86400 * 1000, // Cookie expiration time in milliseconds
             });
 
             // Return success response

@@ -74,60 +74,79 @@ const CourseDetails = () => {
   const [totalStudents, setTotalStudents] =  useState<number | undefined>();
   const [modalOpen, setModalOpen] = useState(false);
   const [students, setStudents] = useState<string[] | null>(null);
+  const [totalRating, setTotalRating] =  useState<number | 0>();
 
   const router = useRouter();
 
   async function fetchCourseAndModules() {
     try {
-      const cookieResponse = await fetch(`${backend_url}/auth/get-cookie-data`, {
-        credentials: "include",
-      });
-      const { userData } = await cookieResponse.json();
-  
-      if (!userData || !userData.payload?.username) {
-        throw new Error("No valid user data found in cookies.");
-      }
-  
-      const username = userData.payload.username;
-  
-      // Fetch course data (handle potential 404)
-      try {
-        const courseResponse = await axiosInstance.get<Course>(`${backend_url}/courses/${courseCode}`);
-        setCourse(courseResponse.data);
-      } catch (err: unknown) {
-        if (axios.isAxiosError(err)) {
-          if (err.response?.status === 404) {
-            console.error("Course not found:", err);
-            setError("Course not found. Please check the course code and try again.");
-          } else {
-            console.error("Error fetching course:", err);
-            setError("Failed to load the course. Please try again.");
-          }
-        } else if (err instanceof Error) {
-          console.error("Unknown error:", err);
-          setError("An unknown error occurred.");
+        const cookieResponse = await fetch(`${backend_url}/auth/get-cookie-data`, {
+            credentials: "include",
+        });
+        const { userData } = await cookieResponse.json();
+
+        if (!userData || !userData.payload?.username) {
+            throw new Error("No valid user data found in cookies.");
         }
-        setCourse(null);
-      }
-  
-      // Fetch modules data
-      const modulesResponse = await axiosInstance.get<Module[]>(`${backend_url}/courses/${username}/${courseCode}/modulesInstructor`);
-      setModules(modulesResponse.data);
-      try {
-        const response = await axiosInstance.get<number>(`${backend_url}/progress/enrolled/${courseCode}`);
-       const answer = response.data;
-        setTotalStudents(answer | 0);
-      } catch (error) {
-        console.error('Failed to fetch total students:', error);
-         setError('Error fetching data');
-      }
+
+        const username = userData.payload.username;
+
+        // Fetch course data
+        let courseData: Course | null = null;
+        try {
+            const courseResponse = await axiosInstance.get<Course>(`${backend_url}/courses/${courseCode}`);
+            courseData = courseResponse.data;
+            setCourse(courseData);
+        } catch (err: unknown) {
+            if (axios.isAxiosError(err)) {
+                if (err.response?.status === 404) {
+                    console.error("Course not found:", err);
+                    setError("Course not found. Please check the course code and try again.");
+                } else {
+                    console.error("Error fetching course:", err);
+                    setError("Failed to load the course. Please try again.");
+                }
+            } else if (err instanceof Error) {
+                console.error("Unknown error:", err);
+                setError("An unknown error occurred.");
+            }
+            setCourse(null);
+        }
+
+        // Fetch modules data
+        const modulesResponse = await axiosInstance.get<Module[]>(`${backend_url}/courses/${username}/${courseCode}/modulesInstructor`);
+        setModules(modulesResponse.data);
+
+        // Fetch total students
+        try {
+            const response = await axiosInstance.get<number>(`${backend_url}/progress/enrolled/${courseCode}`);
+            const totalStudents = response.data;
+            setTotalStudents(totalStudents || 0);
+
+            // Fetch course rating using courseData
+            if (courseData && courseData._id) {
+                try {
+                    const ratingResponse = await axiosInstance.get<number>(`${backend_url}/courses/getavg/${courseData._id}`);
+                    const averageRating = ratingResponse.data;
+                    setTotalRating(averageRating);
+                    console.log('Average Rating:', averageRating);
+                } catch (ratingError) {
+                    console.error('Failed to fetch course rating:', ratingError);
+                    setError('Error fetching course rating.');
+                }
+            }
+        } catch (error) {
+            console.error('Failed to fetch total students:', error);
+            setError('Error fetching data.');
+        }
     } catch (err) {
-      console.error("Error fetching modules:", err);
-      setError("Failed to load the modules. Please try again.");
+        console.error("Error fetching modules:", err);
+        setError("Failed to load the modules. Please try again.");
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  }
+}
+
 
   useEffect(() => {
     fetchCourseAndModules();
@@ -346,7 +365,10 @@ const CourseDetails = () => {
           <p><strong>Description:</strong> {course.description}</p>
           <p><strong>Category:</strong> {course.category}</p>
           <p><strong>Level:</strong> {course.level}</p>
-          <p><strong>Average Rating:</strong> {course.averageRating ?? 'N/A'}</p>
+          <p ><strong>
+                        Course Rating:</strong>
+                        {totalRating !== null ? totalRating : 'Loading...'}
+                    </p>
           <p><strong>Number of Students Enrolled:</strong> {totalStudents}</p>
         </div>
 
