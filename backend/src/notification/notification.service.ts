@@ -22,15 +22,16 @@ export class NotificationService {
     ){}
 
  //GET: 
- async getNotification(user:any): Promise<notificationDocument[]> {
-    console.log("username IS X2:");
-    console.log(user.username);
-    const User= await this.userModel.findOne({username: user.username});
+ async getNotification(username:string): Promise<notificationDocument[]> {
+
+    
+    const User= await this.userModel.findOne({username});
     if (!User) {
-        throw new NotFoundException(`User with username ${user} not found`);
+        throw new NotFoundException(`User with username ${username} not found`);
       }
     
       const notificationIds = User.notification;
+      console.log("Notification IDs:", notificationIds);
       console.log("number of notification");
       console.log(notificationIds.length);
       if (!notificationIds || notificationIds.length === 0) {
@@ -38,7 +39,15 @@ export class NotificationService {
         return;
       }
     
-      const notifications = await this.notificationModel.find({ _id: { $in: notificationIds }, isRead: false }).exec();
+      
+      //const notifications = await this.notificationModel.find({ _id: { $in: notificationIds }, isRead: false }).exec();
+      
+      const notificationObjectIds = notificationIds.map(id => new mongoose.Types.ObjectId(id));
+      console.log("Notification Query:", {
+        _id: { $in: notificationObjectIds },
+        isRead: false,
+      });
+const notifications = await this.notificationModel.find({ _id: { $in: notificationObjectIds }, isRead: false }).exec();
       if (!notifications || notifications.length === 0) {
         console.log('No notifications found for the user.');
         return;

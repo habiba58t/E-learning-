@@ -267,10 +267,6 @@ const ModulePage = () => {
     router.push(`/instructor/courses/${courseCode}/Quiz/${moduleId}`);
   };
 
-  const handleChat= () => {
-    router.push(`/student/chat/${courseCode}`);
-  };
-
   if (error) {
     return <div className="text-red-500">{error}</div>;
   }
@@ -332,13 +328,6 @@ const ModulePage = () => {
             onClick={() => setShowModal(true)}
           >
             Add Content
-          </button>
-  
-          <button
-            className="px-3 py-1 rounded-lg bg-teal-600 text-white shadow-md hover:bg-teal-700"
-            onClick={() => handleChat()}
-          >
-            Chat
           </button>
   
           {showModal && (

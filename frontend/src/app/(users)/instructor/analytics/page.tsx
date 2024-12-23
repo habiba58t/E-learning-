@@ -7,8 +7,9 @@ import { useState, useEffect } from 'react';
 import { jsPDF } from "jspdf"; // Import jsPDF
 
 import axiosInstance from "@/app/utils/axiosInstance";
-import InstructorSidebar from "@/app/components/instructor-sidebar/page";
+
 import { Course } from "../courses/[courseCode]/viewCourse/page";
+import InstructorSidebar from "@/app/components/instructor/instructor-sidebar/page";
 
 // Register chart components
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);

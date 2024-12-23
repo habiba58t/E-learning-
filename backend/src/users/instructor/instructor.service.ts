@@ -35,6 +35,10 @@ async getAvgRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
     const instructor = await this.userModel.findById(ObjectId);
     return instructor.averageRating;
    }
+   async getAvgRatingByUsername( username: string): Promise<number> {
+    const instructor = await this.userModel.findOne({username});
+    return instructor.averageRating;
+   }
    
 @UseGuards(AuthorizationGuard)
 @Roles(Role.User)
@@ -83,5 +87,7 @@ async getAvgRating( ObjectId: mongoose.Types.ObjectId): Promise<number> {
   
     return { message: `Instructor with username ${username} deleted successfully` };
   }
+
+
   
 }

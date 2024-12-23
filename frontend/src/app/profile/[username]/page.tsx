@@ -22,19 +22,23 @@ const ProfilePage = () => {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
+
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [updatedProfile, setUpdatedProfile] = useState<ProfileData | null>(null);
   const [isOwnProfile, setIsOwnProfile] = useState<boolean>(false);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+
   const backendUrl = "http://localhost:3002"; // Replace with your backend URL
 
-  // Default profile picture URL
-  const defaultProfilePicture = "https://static.vecteezy.com/system/resources/thumbnails/020/765/399/small/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg";
+  const defaultProfilePicture =
+    "https://static.vecteezy.com/system/resources/thumbnails/020/765/399/small/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg";
 
   const fetchCourseTitles = async (courseIds: mongoose.Types.ObjectId[]) => {
     try {
       const coursePromises = courseIds.map(async (courseId) => {
-        const response = await axiosInstance.get(`${backendUrl}/courses/id/${courseId}`);
+        const response = await axiosInstance.get(
+          `${backendUrl}/courses/id/${courseId}`
+        );
         return response.data.title;
       });
       return await Promise.all(coursePromises);
@@ -43,7 +47,6 @@ const ProfilePage = () => {
       return [];
     }
   };
-
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -55,7 +58,7 @@ const ProfilePage = () => {
         const response = await axios.get(`${backendUrl}/users/${username}`);
         const userProfile = response.data;
 
-        const loggedInRole = localStorage.getItem("role"); // Assuming role is stored in localStorage
+        const loggedInRole = localStorage.getItem("role");
         setIsAdmin(loggedInRole === "admin");
 
         if (userProfile.courses && userProfile.courses.length > 0) {
@@ -66,22 +69,15 @@ const ProfilePage = () => {
         setUpdatedProfile(userProfile);
         const loggedInUsername = localStorage.getItem("username");
         setIsOwnProfile(username === loggedInUsername);
-        // if(username.role=="admin"){
-        //   setISAdmin(userProfile);
-        // }
-       
       } catch (err: any) {
         setError(err.message || "Error fetching profile.");
       } finally {
         setLoading(false);
       }
-      
     };
 
     fetchProfile();
   }, [username]);
-
-  
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -97,14 +93,16 @@ const ProfilePage = () => {
   const handleSave = async () => {
     try {
       if (!updatedProfile) return;
-  
+
       const { name, email, pictureUrl } = updatedProfile;
       const updatedData = { name, email, pictureUrl };
-  
-      const response = await axiosInstance.put(`${backendUrl}/users/update/${updatedProfile.username}`, updatedData);
+
+      const response = await axiosInstance.put(
+        `${backendUrl}/users/update/${updatedProfile.username}`,
+        updatedData
+      );
       setProfile(response.data);
-  
-      // Reload the page to reflect changes
+
       window.location.reload();
       alert("Profile updated successfully!");
     } catch (err) {
@@ -112,288 +110,192 @@ const ProfilePage = () => {
       alert("Failed to update profile.");
     }
   };
-  
+
   const handleCancel = () => {
     setIsEditing(false);
-    setUpdatedProfile(profile); // Revert to original profile data
+    setUpdatedProfile(profile);
   };
 
   const handleMessage = () => {
-    // Open messaging interface or handle messaging logic here
+    
     alert("Message feature not implemented.");
   };
 
   const handleDeleteStudentAndAdmin = async () => {
     try {
-      // Handle account deletion (admin only)
       await axiosInstance.delete(`${backendUrl}/users/delete/${profile?.username}`);
       alert("Account deleted successfully!");
-      window.location.reload(); // Redirect after deletion (or wherever needed)
+      window.location.reload();
     } catch (err) {
       alert("Failed to delete account.");
     }
   };
 
   const handleDeleteInstructor = async () => {
-    // Ensure the profile exists and the role is 'instructor'
     if (profile?.role === "instructor") {
       try {
-        // Call the backend API to delete the instructor
         await axiosInstance.delete(
           `${backendUrl}/instructor/deleteInstructor/${profile?.username}`
         );
         alert("Instructor account deleted successfully!");
-        
-        // Optionally redirect to another page after successful deletion
-        window.location.reload(); // Refreshes the page
+        window.location.reload();
       } catch (err) {
-        // Handle any errors
-        // console.error(err); // Log the error for debugging
         alert("Failed to delete instructor account.");
       }
     } else {
       alert("Unauthorized action: Only instructors can perform this.");
     }
   };
-  
 
   if (loading) {
     return (
-      <div style={styles.container}>
-        <p style={styles.message}>Loading...</p>
+      <div className="flex justify-center items-center h-screen">
+        <p>Loading...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div style={styles.container}>
-        <p style={styles.error}>Error: {error}</p>
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-red-500">Error: {error}</p>
       </div>
     );
   }
 
   if (!profile) {
     return (
-      <div style={styles.container}>
-        <p style={styles.message}>No profile found for {username}.</p>
+      <div className="flex justify-center items-center h-screen">
+        <p>No profile found for {username}.</p>
       </div>
     );
   }
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <h1 style={styles.heading}>
-          Profile of {isEditing ? "Editing..." : profile.name}
-        </h1>
-        {isEditing ? (
-          <> 
-            <label style={styles.label}>
+    <section className="relative pt-40 pb-24">
+      <img
+        src="https://pagedone.io/asset/uploads/1705473908.png"
+        alt="cover-image"
+        className="w-full absolute top-0 left-0 z-0 h-60 object-cover"
+      />
+      <div className="w-full max-w-7xl mx-auto px-6 md:px-8 relative z-10">
+        <div className="flex items-center justify-center sm:justify-start mb-5">
+          <img
+            src={profile.pictureUrl || defaultProfilePicture}
+            alt="user-avatar-image"
+            className="border-4 border-solid border-white rounded-full object-cover w-32 h-32"
+          />
+        </div>
+        <div className="flex flex-col sm:flex-row sm:justify-between mb-5">
+          <div>
+            <h1 className="text-2xl font-bold">{profile.name}</h1>
+            <p className="text-lg">{profile.email}</p>
+            {profile.role === "instructor" && (
+              <p className="text-md">
+                <strong>Courses Given:</strong>{" "}
+                {profile.courses.length ? profile.courses.join(", ") : "No courses"}
+              </p>
+            )}
+            {profile.role === "student" && (
+              <p className="text-md">
+                <strong>Enrolled Courses:</strong>{" "}
+                {profile.courses.length ? profile.courses.join(", ") : "No courses"}
+              </p>
+            )}
+          </div>
+
+          <div className="mt-5 sm:mt-0">
+            {isOwnProfile && (
+              <button
+                onClick={() => setIsEditing(true)}
+                className="bg-blue-500 text-white py-2 px-4 rounded mb-2"
+              >
+                Edit Profile
+              </button>
+            )}
+            {!isOwnProfile && (
+              <button
+                onClick={handleMessage}
+                className="bg-blue-500 text-white py-2 px-4 rounded mb-2"
+              >
+                Message
+              </button>
+            )}
+
+            {(profile.role === "instructor" && isOwnProfile) ||
+            (isAdmin && !isOwnProfile && profile.role === "instructor") ? (
+              <button
+                onClick={handleDeleteInstructor}
+                className="bg-red-500 text-white py-2 px-4 rounded"
+              >
+                Delete Account
+              </button>
+            ) : (
+              (isOwnProfile && profile.role !== "instructor") ||
+              (isAdmin && !isOwnProfile && profile.role !== "instructor") ? (
+                <button
+                  onClick={handleDeleteStudentAndAdmin}
+                  className="bg-red-500 text-white py-2 px-4 rounded"
+                >
+                  Delete Account
+                </button>
+              ) : null
+            )}
+          </div>
+        </div>
+
+        {isEditing && (
+          <div className="space-y-4">
+            <label className="block">
               Profile Picture URL:
               <input
                 type="text"
                 name="pictureUrl"
                 value={updatedProfile?.pictureUrl || ""}
                 onChange={handleChange}
-                style={styles.input}
+                className="border px-4 py-2 rounded w-full"
               />
             </label>
-            
-            <label style={styles.label}>
+
+            <label className="block">
               Name:
               <input
                 type="text"
                 name="name"
                 value={updatedProfile?.name || ""}
                 onChange={handleChange}
-                style={styles.input}
+                className="border px-4 py-2 rounded w-full"
               />
             </label>
 
-            <label style={styles.label}>
+            <label className="block">
               Email:
               <input
                 type="email"
                 name="email"
                 value={updatedProfile?.email || ""}
                 onChange={handleChange}
-                style={styles.input}
+                className="border px-4 py-2 rounded w-full"
               />
             </label>
-            
-            <button onClick={handleSave} style={styles.saveButton}>
+
+            <button
+              onClick={handleSave}
+              className="bg-green-500 text-white py-2 px-4 rounded"
+            >
               Save
             </button>
-            <button onClick={handleCancel} style={styles.cancelButton}>
+            <button
+              onClick={handleCancel}
+              className="bg-gray-500 text-white py-2 px-4 rounded"
+            >
               Cancel
             </button>
-          </>
-        ) : (
-          <>
-            <p style={styles.info}>
-              <strong>Name:</strong> {profile.name}
-            </p>
-            <p style={styles.info}>
-              <strong>Email:</strong> {profile.email}
-            </p>
-            {profile.role === "instructor" && (
-              <p style={styles.info}>
-                <strong>Courses Given:</strong>{" "}
-                {profile.courses?.length
-                  ? profile.courses.join(", ")
-                  : "No courses available"}
-              </p>
-            )}
-            {profile.role === "student" && (
-              <p style={styles.info}>
-                <strong>Enrolled Courses:</strong>{" "}
-                {profile.courses?.length
-                  ? profile.courses.join(", ")
-                  : "No courses enrolled"}
-              </p>
-            )}
-            <img 
-              src={profile.pictureUrl || defaultProfilePicture} 
-              alt="Profile Picture" 
-              style={styles.profilePicture} 
-            />
-            {isOwnProfile&& (
-              <button onClick={() => setIsEditing(true)} style={styles.editButton}>
-                Edit Profile
-              </button>
-            )}
-            {!isOwnProfile&& (
-              <button onClick={handleMessage} style={styles.messageButton}>
-                Message
-              </button>
-            )}
-  <>
-  {
-  (profile.role === "instructor" && isOwnProfile) ||
-  (isAdmin && !isOwnProfile && profile.role === "instructor") ? (
-    <button onClick={handleDeleteInstructor} style={styles.deleteButton}>
-      Delete Instructor Account
-    </button>
-  ) : (
-    (isOwnProfile && profile.role !== "instructor") ||
-    (isAdmin && !isOwnProfile && profile.role !== "instructor") ? (
-      <button onClick={handleDeleteStudentAndAdmin} style={styles.deleteButton}>
-        Delete Account
-      </button>
-    ) : null
-  )
-}
-
-  </>
-
-          </>
+          </div>
         )}
       </div>
-    </div>
+    </section>
   );
-};
-
-const styles = {
-  container: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    height: "100vh",
-    backgroundColor: "#f0f4f8",
-    padding: "20px",
-  },
-  card: {
-    backgroundColor: "#ffffff",
-    borderRadius: "10px",
-    padding: "40px 60px",  // Increased padding for more space inside the card
-    boxShadow: "0px 8px 16px rgba(8, 10, 49, 0.1)", // A larger shadow to match the size increase
-    maxWidth: "800px", // Increased maxWidth for a much larger card
-    width: "100%",
-    textAlign: "center" as const,
-  },
-  profilePicture: {
-    width: "100px",
-    height: "100px",
-    borderRadius: "50%",
-    marginBottom: "100px",
-  },
-  heading: {
-    color: "#007BFF",
-    fontSize: "24px",
-    marginBottom: "15px",
-  },
-  label: {
-    display: "block",
-    marginBottom: "10px",
-    fontSize: "14px",
-    color: "#333",
-  },
-  input: {
-    width: "100%",
-    padding: "8px",
-    marginBottom: "15px",
-    borderRadius: "5px",
-    border: "1px solid #ccc",
-  },
-  
-  info: {
-    fontSize: "16px",
-    color: "#333",
-    marginBottom: "10px",
-  },
-  message: {
-    fontSize: "18px",
-    color: "#555",
-  },
-  error: {
-    fontSize: "18px",
-    color: "red",
-  },
-  editButton: {
-    backgroundColor: "#007BFF",
-    color: "#fff",
-    border: "none",
-    borderRadius: "5px",
-    padding: "10px 15px",
-    cursor: "pointer",
-    marginTop: "10px",
-  },
-  saveButton: {
-    backgroundColor: "#28a745",
-    color: "#fff",
-    border: "none",
-    borderRadius: "5px",
-    padding: "10px 15px",
-    cursor: "pointer",
-    marginRight: "10px",
-  },
-  cancelButton: {
-    backgroundColor: "#dc3545",
-    color: "#fff",
-    border: "none",
-    borderRadius: "5px",
-    padding: "10px 15px",
-    cursor: "pointer",
-  },
-  messageButton: {
-    backgroundColor: "#007BFF",
-    color: "#fff",
-    border: "none",
-    borderRadius: "5px",
-    padding: "10px 15px",
-    cursor: "pointer",
-    marginTop: "10px",
-  },
-   deleteButton: {
-    backgroundColor: "#dc3545",
-    color: "#fff",
-    border: "none",
-    borderRadius: "5px",
-    padding: "10px 15px",
-    cursor: "pointer",
-    marginTop: "10px",
-  },
 };
 
 export default ProfilePage;
