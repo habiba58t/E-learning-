@@ -147,7 +147,7 @@ let questions: QuestionsDocument[]; //array of populated questions
 
 
 
-async updateQuizTypeOfQuestions(quizId: string, types_of_questions: 'mcq' | 't/f' | 'both') {
+async updateQuiz(quizId: string, no_of_questions:number, types_of_questions: 'mcq' | 't/f' | 'both', ) {
   try {
     const quizObjectId = new mongoose.Types.ObjectId(quizId);
     const quiz = await this.quizModel.findById(quizObjectId);
@@ -161,31 +161,32 @@ async updateQuizTypeOfQuestions(quizId: string, types_of_questions: 'mcq' | 't/f
     }
 
     quiz.types_of_questions = types_of_questions;
+    quiz.no_of_questions=no_of_questions;
     await quiz.save();
   } catch (error) {
     throw new BadRequestException(error.message || 'Error updating quiz');
   }
 }
 
-async updateQuizNumberOfQuestions(quizId: string, no_of_questions: number) {
-  try {
-    const quizObjectId = new mongoose.Types.ObjectId(quizId);
-    const quiz = await this.quizModel.findById(quizObjectId);
+// async updateQuizNumberOfQuestions(quizId: string, no_of_questions: number) {
+//   try {
+//     const quizObjectId = new mongoose.Types.ObjectId(quizId);
+//     const quiz = await this.quizModel.findById(quizObjectId);
 
-    if (!quiz) {
-      throw new NotFoundException('Quiz not found');
-    }
+//     if (!quiz) {
+//       throw new NotFoundException('Quiz not found');
+//     }
 
-    if (quiz.responses && quiz.responses.length > 0) {
-      throw new BadRequestException("You can't update a quiz with responses!");
-    }
+//     if (quiz.responses && quiz.responses.length > 0) {
+//       throw new BadRequestException("You can't update a quiz with responses!");
+//     }
 
-    quiz.no_of_questions = no_of_questions;
-    await quiz.save();
-  } catch (error) {
-    throw new BadRequestException(error.message || 'Error updating quiz');
-  }
-}
+//     quiz.no_of_questions = no_of_questions;
+//     await quiz.save();
+//   } catch (error) {
+//     throw new BadRequestException(error.message || 'Error updating quiz');
+//   }
+// }
 
 
 

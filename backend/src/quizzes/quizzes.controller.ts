@@ -53,35 +53,37 @@ export class QuizzesController {
     }
   }
 
-  @Put('updateQuiz/:quizId/:types_of_questions')
-  async updatetypeQuesByQuizId(
-    @Param('quizId') quizId: string,
-    @Param('types_of_questions') types_of_questions: 'mcq' | 't/f' | 'both',
-  ) {
-    try {
-      // Call the service to update the quiz type of questions
-      await this.quizzesService.updateQuizTypeOfQuestions(quizId, types_of_questions);
-      return { message: 'Quiz type of questions updated successfully' };
-    } catch (error) {
-      throw new BadRequestException(error.message || 'Error updating quiz');
-    }
-  }
+  // @Put('updateQuiz1/:quizId/:types_of_questions')
+  // async updatetypeQuesByQuizId(
+  //   @Param('quizId') quizId: string,
+  //   @Param('types_of_questions') types_of_questions: 'mcq' | 't/f' | 'both',
+  // ) {
+  //   try {
+  //     // Call the service to update the quiz type of questions
+  //     await this.quizzesService.updateQuizTypeOfQuestions(quizId, types_of_questions,);
+  //     return { message: 'Quiz type of questions updated successfully' };
+  //   } catch (error) {
+  //     throw new BadRequestException(error.message || 'Error updating quiz');
+  //   }
+  // }
 
-  @Put('updateQuiz/:quizId/:no_of_questions')
+  @Put('updateQuiz2/:quizId/')
   async updatenumQuesByQuizId(
     @Param('quizId') quizId: string,
-    @Param('no_of_questions') no_of_questions: number,
+    @Body('no_of_questions') no_of_questions: number,
+    @Body('types_of_questions') types_of_questions: 'mcq' | 't/f' | 'both',
+
   ) {
     try {
       // Call the service to update the number of questions
-      await this.quizzesService.updateQuizNumberOfQuestions(quizId, no_of_questions);
+      await this.quizzesService.updateQuiz(quizId, no_of_questions, types_of_questions);
       return { message: 'Quiz number of questions updated successfully' };
     } catch (error) {
       throw new BadRequestException(error.message || 'Error updating quiz');
     }
   }
 
-    @Get(':quizId')
+    @Get('get-quiz/:quizId')
     async getQuizByQuizId(@Param('quizId') quizId: string) {
       try {
         // Validate and convert the quizId to an ObjectId
@@ -167,8 +169,8 @@ export class QuizzesController {
   }
 
   //skipped toggle outdated
-  @UseGuards(AuthorizationGuard) // Additional guard for authorization
-@Roles(Role.Admin, Role.Instructor) // Restrict roles to admin and instructor
+//   @UseGuards(AuthorizationGuard) // Additional guard for authorization
+// @Roles(Role.Admin, Role.Instructor) // Restrict roles to admin and instructor
   @Get('responses/:quizId')
   async getResponsesByQuizId(@Param('quizId') quizId: string) {
     try {
