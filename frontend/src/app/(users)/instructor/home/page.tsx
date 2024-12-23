@@ -272,13 +272,13 @@
 
 'use client'
 
-import Navbar from "@/app/components/Navbar_s/page"
 import Hero from "./hero"
 
 import InstructorPage from "./instructor"
 import CoursePage from "./coursePage"
 import Footer from "@/app/sections/footer/page"
 import StudentPage from "./students"
+import Navbar from "@/app/components/NavBar/page"
 
 
 

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import * as mongoose from "mongoose";
 import axiosInstance from "@/app/utils/axiosInstance";
+import Navbar from "@/app/components/NavBar/page";
 
 const backend_url = "http://localhost:3002";
 
@@ -181,7 +182,11 @@ export default function Quiz() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8 px-4">
+      <div className="min-h-screen bg-gray-100">
+      <div className="sticky top-0 z-10 bg-white shadow-md">
+                <Navbar />
+            </div>
+      <div className="p-8"></div>
       <div className="max-w-4xl mx-auto bg-white shadow-md rounded-lg p-6">
         <h1 className="text-2xl font-bold text-black mb-4">Create a Quiz</h1>
 

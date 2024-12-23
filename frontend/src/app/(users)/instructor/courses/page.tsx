@@ -7,6 +7,7 @@ import * as mongoose from 'mongoose';
 import InstructorSidebar from '@/app/components/instructor/instructor-sidebar/page';
 import Navbar from '@/app/components/NavBar/page';
 
+
 export interface Course {
   _id: string;
   course_code: string;
@@ -207,7 +208,9 @@ export default function InstructorPage () {
   }
   return (
     <div className="min-h-screen bg-gray-100">
-      <Navbar />
+      <div className="sticky top-0 z-10 bg-white shadow-md">
+                <Navbar />
+            </div>
       <div className="p-8">
         <h1 className="text-3xl font-bold text-center text-black mb-6">Courses</h1>
   

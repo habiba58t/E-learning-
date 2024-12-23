@@ -1,22 +1,20 @@
-'use client';
+"use client";
 
 import React, { useState, useEffect } from "react";
 import axiosInstance from "@/app/utils/axiosInstance";
 import Sidebar from "@/app/components/instructor/instructor-sidebar/page";
-import { useRouter } from "next/navigation";
 
 interface InstructorData {
   _id: string;
-  name: string;
-  username: string;
-  email: string;
+  name?: string;
+  username?: string;
+  email?: string;
 }
 
 const InstructorPage = () => {
-  const [searchQuery, setSearchQuery] = useState("");
   const [instructors, setInstructors] = useState<InstructorData[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
-   const router = useRouter(); 
 
   useEffect(() => {
     fetchInstructors();
@@ -25,65 +23,103 @@ const InstructorPage = () => {
   const fetchInstructors = async () => {
     setError("");
     try {
-      const response = await axiosInstance.get<InstructorData[]>("http://localhost:3002/users/search/private", {
-        params: { role: "instructor", name: searchQuery.trim() },
-      });
+      const response = await axiosInstance.get<InstructorData[]>(
+        "http://localhost:3002/users/search/private",
+        {
+          params: {
+            role: "instructor",
+            name: searchQuery.trim(),
+          },
+        }
+      );
       setInstructors(response.data || []);
     } catch (err) {
+      console.error("Error fetching instructors:", err);
       setError("Error fetching instructors");
-      console.error(err);
     }
   };
 
-  const handleUsernameClick = (username: string) => {
-    router.push(`/profile/${username}`);
-  };
+  // Limit displayed instructors to the first three unless searching
+  const displayedInstructors =
+    searchQuery.trim() === ""
+      ? instructors.slice(0, 3) // Only show the first three instructors
+      : instructors;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-teal-100">
       <Sidebar />
-      <header className="bg-teal-600 text-white py-4 shadow-md">
-        <div className="container mx-auto flex justify-between items-center px-6">
-          <h1 className="text-2xl font-bold">Instructors</h1>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-white text-gray-700 rounded-lg px-4 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-teal-300"
-            placeholder="Search by name..."
-          />
-        </div>
-      </header>
+      <section className="py-20" id="section_instructors">
+        <div className="container mx-auto px-4">
+          <h2 className="text-gray-500 text-3xl font-bold text-center mb-10">
+            Meet your Instructors
+          </h2>
 
-      <main className="container mx-auto px-6 py-8">
-        <h2 className="text-3xl font-bold text-gray-700 text-center mb-6">Search Results</h2>
+          {/* Search Bar */}
+          <div className="flex justify-center mb-8">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-white text-gray-700 rounded-full px-4 py-2 w-full md:w-1/3 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              placeholder="Search instructors by name..."
+            />
+          </div>
 
-        {error && <p className="text-center text-red-500">{error}</p>}
+          {/* Instructors Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {displayedInstructors.length > 0 ? (
+              displayedInstructors.map((instructor) => (
+                <InstructorCard
+                  key={instructor._id}
+                  instructor={instructor}
+                />
+              ))
+            ) : (
+              <p className="text-center text-gray-500 col-span-3">
+                No instructors found
+              </p>
+            )}
+          </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {instructors.length > 0 ? (
-            instructors.map((instructor) => (
-              <div key={instructor._id} className="bg-white shadow-lg rounded-lg p-4 hover:shadow-xl transition duration-300">
-                <h3 className="font-bold text-lg text-blue-600">{instructor.name}</h3>
-                <p className="text-gray-600">Email: {instructor.email}</p>
-                <p className="text-gray-600">
-                  Username:{" "}
-                  <span
-                    className="font-bold text-blue-600 cursor-pointer hover:underline"
-                    onClick={() => handleUsernameClick(instructor.username)}
-                  >
-                    {instructor.username}
-                  </span>
-                </p>
-              </div>
-            ))
-          ) : (
-            <p className="text-center text-gray-500">No results found</p>
+          {/* View More Button */}
+          {searchQuery.trim() === "" && instructors.length > 3 && (
+            <div className="text-center mt-8">
+              <button
+                className="px-6 py-3 bg-blue-800 text-white font-bold rounded-full hover:bg-blue-700 transition duration-300"
+                onClick={() => setSearchQuery("*")}
+              >
+                View More
+              </button>
+            </div>
           )}
         </div>
-      </main>
+      </section>
     </div>
   );
 };
+
+function InstructorCard({ instructor }: { instructor: InstructorData }) {
+  return (
+    <div className="relative bg-white rounded-xl shadow-md hover:shadow-lg overflow-hidden transition-transform transform hover:scale-105">
+      {/* Profile Image */}
+      <div className="relative w-full h-40 bg-gray-100 flex items-center justify-center">
+        <img
+          className="object-cover w-24 h-24 rounded-full shadow"
+          src="https://static.vecteezy.com/system/resources/thumbnails/020/765/399/small/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg"
+          alt={instructor.name || "Instructor"}
+        />
+      </div>
+
+      {/* Instructor Details */}
+      <div className="p-6">
+        <h5 className="text-lg font-semibold text-gray-800 mb-2">
+          {instructor.name}
+        </h5>
+        <p className="text-sm text-gray-600">Username: {instructor.username}</p>
+        <p className="text-sm text-gray-600">Email: {instructor.email}</p>
+      </div>
+    </div>
+  );
+}
 
 export default InstructorPage;
