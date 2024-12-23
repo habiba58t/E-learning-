@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UseGuards ,forwardRef,Inject} from '@nestjs/common';
+import { Injectable, NotFoundException, UseGuards ,forwardRef,Inject, BadRequestException} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { Quiz, QuizzesDocument } from './quizzes.schema';  // Assuming your Quiz schema is defined
@@ -144,6 +144,52 @@ let questions: QuestionsDocument[]; //array of populated questions
   // and calc score using length of answers array as it changes dynamically if length of this < no of questions
   // specified by the instructor*
 // Updated `prepareQuizForStudent` method
+
+
+
+async updateQuizTypeOfQuestions(quizId: string, types_of_questions: 'mcq' | 't/f' | 'both') {
+  try {
+    const quizObjectId = new mongoose.Types.ObjectId(quizId);
+    const quiz = await this.quizModel.findById(quizObjectId);
+
+    if (!quiz) {
+      throw new NotFoundException('Quiz not found');
+    }
+
+    if (quiz.responses && quiz.responses.length > 0) {
+      throw new BadRequestException("You can't update a quiz with responses!");
+    }
+
+    quiz.types_of_questions = types_of_questions;
+    await quiz.save();
+  } catch (error) {
+    throw new BadRequestException(error.message || 'Error updating quiz');
+  }
+}
+
+async updateQuizNumberOfQuestions(quizId: string, no_of_questions: number) {
+  try {
+    const quizObjectId = new mongoose.Types.ObjectId(quizId);
+    const quiz = await this.quizModel.findById(quizObjectId);
+
+    if (!quiz) {
+      throw new NotFoundException('Quiz not found');
+    }
+
+    if (quiz.responses && quiz.responses.length > 0) {
+      throw new BadRequestException("You can't update a quiz with responses!");
+    }
+
+    quiz.no_of_questions = no_of_questions;
+    await quiz.save();
+  } catch (error) {
+    throw new BadRequestException(error.message || 'Error updating quiz');
+  }
+}
+
+
+
+
 async prepareQuizForStudent(
   qId: string,
   username: string,
@@ -530,11 +576,10 @@ async deleteQuiz(quizId: mongoose.Types.ObjectId): Promise<{ message: string }> 
     throw new Error('Quiz not found');
   }
 
-  // Step 2: Delete all responses associated with the quiz
-  // Loop through the quiz's responses array and delete each response
-  for (const responseId of quiz.responses) {
-    await this.responseModel.findByIdAndDelete(responseId).exec();
+  if (quiz.responses && quiz.responses.length > 0) {
+    throw new BadRequestException("You can't update a quiz with responses!");
   }
+
 
   // Step 3: Remove the quiz reference from the module
   // Assuming the module has a 'quizzes' array that contains this quizId

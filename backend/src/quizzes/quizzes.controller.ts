@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Request, NotFoundException, BadRequestException, UseGuards, Req, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Request, NotFoundException, BadRequestException, UseGuards, Req, Res, Put } from '@nestjs/common';
 import { QuizzesService } from './quizzes.service';
 import { CreateQuizDto } from './dto/create-quiz.dto';
 import mongoose, {Types} from 'mongoose';
@@ -53,7 +53,34 @@ export class QuizzesController {
     }
   }
 
- 
+  @Put('updateQuiz/:quizId/:types_of_questions')
+  async updatetypeQuesByQuizId(
+    @Param('quizId') quizId: string,
+    @Param('types_of_questions') types_of_questions: 'mcq' | 't/f' | 'both',
+  ) {
+    try {
+      // Call the service to update the quiz type of questions
+      await this.quizzesService.updateQuizTypeOfQuestions(quizId, types_of_questions);
+      return { message: 'Quiz type of questions updated successfully' };
+    } catch (error) {
+      throw new BadRequestException(error.message || 'Error updating quiz');
+    }
+  }
+
+  @Put('updateQuiz/:quizId/:no_of_questions')
+  async updatenumQuesByQuizId(
+    @Param('quizId') quizId: string,
+    @Param('no_of_questions') no_of_questions: number,
+  ) {
+    try {
+      // Call the service to update the number of questions
+      await this.quizzesService.updateQuizNumberOfQuestions(quizId, no_of_questions);
+      return { message: 'Quiz number of questions updated successfully' };
+    } catch (error) {
+      throw new BadRequestException(error.message || 'Error updating quiz');
+    }
+  }
+
     @Get(':quizId')
     async getQuizByQuizId(@Param('quizId') quizId: string) {
       try {

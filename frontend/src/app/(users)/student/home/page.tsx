@@ -18,6 +18,10 @@ interface UserorCourseData {
   course_code: string; // For courses
 }
 
+interface CourseData{
+  course_code: string;
+}
+
 const HomePage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("student");
@@ -27,6 +31,8 @@ const HomePage = () => {
   const [username, setUsername] = useState<string | null>(null);
   const [enrollmentStatus, setEnrollmentStatus] = useState<Record<string, string>>({});
 
+
+  
   const router = useRouter(); // Use the hook here
 
   useEffect(() => {
@@ -119,14 +125,18 @@ const HomePage = () => {
       );
       alert("You enrolled successfully!")
 
-
-
-      router.push("/student/courses");
+      const courses = await axiosInstance.get<CourseData>(`http://localhost:3002/courses/id/${key}`)
+      const course = courses.data.course_code;
+      router.push(`/student/${course}`);
     } catch (err) {
       alert(`Error enrolling in course: ${err}`);
     }
   };
 
+  const handleUsernameClick = (username: string) => {
+    router.push(`/profile/${username}`);
+  };
+  
   const handleIsEnrolled = async (courseid: string) => {
     if (!username) {
       setError("User is not logged in");
@@ -162,10 +172,10 @@ const HomePage = () => {
     }
   };
 //username is from token and other is the one i want to message
-  const handleRedirectToChat = (receiverUsername: string | undefined) => {
-    const currentUsername = username;
-    router.push(`/student/private-chats/${currentUsername}/${receiverUsername}`);
-  };
+  // const handleRedirectToChat = (receiverUsername: string | undefined) => {
+  //   const currentUsername = username;
+  //   router.push(`/student/private-chats/${currentUsername}/${receiverUsername}`);
+  // };
 
   const renderResult = (item: UserorCourseData) => {
     if (selectedCategory === "course") {
@@ -204,16 +214,23 @@ const HomePage = () => {
         >
           <h3 className="font-bold text-lg text-blue-600">{item.name}</h3>
           <p className="text-gray-600">Email: {item.email}</p>
-          <p className="text-gray-600">Username: {item.username}</p>
-          {/* Add "Message" button for students */}
-          {selectedCategory === "student" && (
+          <p className="text-gray-600">
+          Username:{" "}
+          <span
+            className="font-bold text-blue-600 cursor-pointer hover:underline"
+            onClick={() => handleUsernameClick(item.username || "")}
+          >
+            {item.username}
+          </span>
+        </p>            {/* Add "Message" button for students */}
+          {/* {selectedCategory === "student" && (
             <button
               onClick={() => handleRedirectToChat(item.username)}
               className="mt-2 bg-gradient-to-br from-sky-600 to-sky-900 text-white px-4 py-2 rounded-lg hover:shadow-xl hover:bg-gradient-to-br from-slate-500 via-indigo-900 to-zinc-800"
             >
               Message
             </button>
-          )}
+          )} */}
         </div>
       );
     }

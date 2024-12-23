@@ -1,4 +1,5 @@
-"use client";
+"use client"
+
 import { useEffect, useState } from "react";
 import * as mongoose from "mongoose";
 import axiosInstance from "@/app/utils/axiosInstance";
@@ -59,6 +60,7 @@ export default function Quiz() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [isEditingQuiz, setIsEditingQuiz] = useState<string | null>(null);
 
   async function fetchCookieData() {
     setLoading(true);
@@ -154,23 +156,24 @@ export default function Quiz() {
     }
   };
 
-  const handleUpdateQuiz = async (quizId: string) => {
-    const no_of_questions = prompt("Enter the new number of questions:");
-    const types_of_questions = prompt("Enter the new question type (mcq/t/f/both):");
+  const handleUpdateQuiz = async (quiz: Quiz) => {
+    setIsEditingQuiz(quiz._id);
+    setQuizDetails({
+      no_of_questions: quiz.no_of_questions,
+      types_of_questions: quiz.types_of_questions as "mcq" | "t/f" | "both",
+    });
+  };
 
-    if (!no_of_questions || !types_of_questions) {
-      alert("Both fields are required for updating the quiz.");
-      return;
-    }
-
+  const handleSubmitUpdateQuiz = async (quizId: string) => {
     const payload = {
-      no_of_questions: parseInt(no_of_questions),
-      types_of_questions: types_of_questions,
+      no_of_questions: quizDetails.no_of_questions,
+      types_of_questions: quizDetails.types_of_questions,
     };
 
     try {
-      const response = await axiosInstance.put(`${backend_url}/quizzes/update`, payload);
+      const response = await axiosInstance.put(`${backend_url}/quizzes/update/${quizId}`, payload);
       alert("Quiz updated successfully");
+      setIsEditingQuiz(null);
       if (selectedModule) await fetchQuizzes(selectedModule);
     } catch (err) {
       alert("Failed to update quiz. Please try again.");
@@ -270,38 +273,38 @@ export default function Quiz() {
 
               <button
                 type="submit"
-                className="w-full bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-indigo-500"
+                className="w-full py-2 bg-indigo-600 text-white rounded-lg font-semibold focus:outline-none hover:bg-indigo-700"
               >
                 Generate Quiz
               </button>
             </form>
           </div>
         ) : (
-          <div className="mt-8">
-            <h2 className="text-xl font-semibold text-gray-800 mb-3">Manage Quizzes</h2>
-            <div className="text-[#0369a1] bg-gray-50 p-4 rounded-lg shadow">
-              {quizzes.length > 0 ? (
-                quizzes.map((quiz) => (
-                  <div key={quiz._id} className="flex items-center justify-between mb-3">
-                    <div>
-                      <h3 className="font-medium text-gray-800">Creation Date: {new Date(quiz.created_at).toLocaleDateString()}</h3>
-                      <p className="text-sm text-gray-600">
-                        Number of Questions: {quiz.no_of_questions} | Type of Questions: {quiz.types_of_questions}
-                      </p>
-                    </div>
-                    <div className="flex space-x-2">
-                      <button onClick={() => handleUpdateQuiz(quiz._id)} className="text-blue-600 hover:underline">
-                        Update
-                      </button>
-                      <button onClick={() => handleDeleteQuiz(quiz._id)} className="text-red-600 hover:underline">
-                        Delete
-                      </button>
-                    </div>
+          <div>
+            <h2 className="text-xl font-semibold text-gray-800 mb-3">Quizzes</h2>
+            <div className="space-y-4">
+              {quizzes.map((quiz) => (
+                <div key={quiz._id} className="bg-white shadow-lg rounded-lg p-4">
+                  <h3 className="text-lg font-semibold">{`Quiz #${quiz._id}`}</h3>
+                  <p className="text-gray-600">
+                    {quiz.no_of_questions} Questions | {quiz.types_of_questions}
+                  </p>
+                  <div className="flex space-x-2 mt-4">
+                    <button
+                      onClick={() => handleDeleteQuiz(quiz._id)}
+                      className="bg-red-600 text-white py-2 px-4 rounded-lg"
+                    >
+                      Delete Quiz
+                    </button>
+                    <button
+                      onClick={() => handleUpdateQuiz(quiz)}
+                      className="bg-indigo-600 text-white py-2 px-4 rounded-lg"
+                    >
+                      Update Quiz
+                    </button>
                   </div>
-                ))
-              ) : (
-                <p>No quiz found for this module.</p>
-              )}
+                </div>
+              ))}
             </div>
           </div>
         )}

@@ -161,6 +161,11 @@ export default function ForumPage() {
 
 
   const handleCreateThread = async () => {
+    if (!selectedCourse) {
+      alert("Please select a course before creating a thread.");
+      return;
+    }
+    
     if (!newThreadTitle.trim() || !newThreadMessage.trim()) {
       setError("Title and message cannot be empty.");
       return;

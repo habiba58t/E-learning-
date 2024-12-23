@@ -49,6 +49,12 @@ const HomePage = () => {
     fetchCookieData();
   }, []);
 
+
+  const handleUsernameClick = (username: string) => {
+    router.push(`/profile/${username}`);
+  };
+
+
   const fetchCookieData = async () => {
     try {
       const response = await fetch("http://localhost:3002/auth/get-cookie-data", {
@@ -160,7 +166,15 @@ const HomePage = () => {
         >
           <h3 className="font-bold text-lg text-blue-600">{item.name}</h3>
           <p className="text-gray-600">Email: {item.email}</p>
-          <p className="text-gray-600">Username: {item.username}</p>
+          <p className="text-gray-600">
+          Username:{" "}
+          <span
+            className="font-bold text-blue-600 cursor-pointer hover:underline"
+            onClick={() => handleUsernameClick(item.username || "")}
+          >
+            {item.username}
+          </span>
+        </p>        
         </div>
       );
     }

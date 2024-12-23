@@ -28,6 +28,9 @@ const ProfilePage = () => {
   const [isOwnProfile, setIsOwnProfile] = useState<boolean>(false);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
+  const[role, setRole] = useState<string>("")
+  const[currentUsername, setcUsername] = useState<string>('');
+
   const backendUrl = "http://localhost:3002"; // Replace with your backend URL
 
   const defaultProfilePicture =
@@ -45,6 +48,35 @@ const ProfilePage = () => {
     } catch (err) {
       setError("Error fetching courses");
       return [];
+    }
+  };
+
+  useEffect(() => {
+    // Fetch user data on component mount
+    fetchCookieData();
+  }, []);
+
+  const fetchCookieData = async () => {
+    try {
+      const response = await fetch("http://localhost:3002/auth/get-cookie-data", {
+        credentials: "include",
+      });
+      const { userData } = await response.json();
+
+      if (!userData?.payload?.username) {
+        console.error("No cookie data found");
+        setError("No cookie data found");
+        return;
+      }
+
+      const user = userData.payload.username;
+      const role = userData.payload.role;
+      setRole(role)
+      setcUsername(user);
+      console.log("User logged in:", user);
+    } catch (err) {
+      console.error("Error fetching cookie data:", err);
+      setError("Error fetching cookie data");
     }
   };
 
@@ -117,8 +149,8 @@ const ProfilePage = () => {
   };
 
   const handleMessage = () => {
-    
-    alert("Message feature not implemented.");
+    const receiverUsername = username;
+    router.push(`/student/private-chats/${currentUsername}/${receiverUsername}`);
   };
 
   const handleDeleteStudentAndAdmin = async () => {
@@ -172,7 +204,7 @@ const ProfilePage = () => {
   }
 
   return (
-    <section className="relative pt-40 pb-24">
+    <section className="text-black relative pt-40 pb-24">
       <img
         src="https://pagedone.io/asset/uploads/1705473908.png"
         alt="cover-image"
@@ -213,7 +245,7 @@ const ProfilePage = () => {
                 Edit Profile
               </button>
             )}
-            {!isOwnProfile && (
+            {!isOwnProfile && profile.role==="student" && role==="student" &&(
               <button
                 onClick={handleMessage}
                 className="bg-blue-500 text-white py-2 px-4 rounded mb-2"
