@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import router from 'next/router';
-
+import Link from 'next/link';
 
 
 interface CourseParams {
@@ -24,7 +24,7 @@ interface Course {
     modules: string[];
     averageRating:string
     totalStudents:string
-   
+    created_by: string;
 }
 
 interface Module {
@@ -187,6 +187,14 @@ const CourseDetails = () => {
                     <p className="bg-blue-800 py-2 px-4 rounded-full shadow-md">
                         <span className="font-semibold">Total Students:</span> {totalStudents}
                     </p>
+                    <p className="bg-blue-800 py-2 px-4 rounded-full shadow-md">
+        <span className="font-semibold">Instructor:</span> 
+        {course?.created_by ? (
+            <Link href={`/profile/${course.created_by}`} className="text-white hover:underline">
+                {course.created_by}
+            </Link>
+        ) : 'N/A'}
+    </p>
                 </div>
                 <div className="flex justify-center mt-6">
                 <button
