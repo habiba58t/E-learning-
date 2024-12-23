@@ -72,7 +72,14 @@ chats: Map<mongoose.Types.ObjectId,boolean>;
 @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Threads' }] })
 threads: mongoose.Types.ObjectId[];
 
+
+@Prop({ type: [String], default: [] })  // Array of strings, default to empty array
+hasRated: string[];  // Array of usernames (strings)
+
 }
+
+
+
 
 
 
