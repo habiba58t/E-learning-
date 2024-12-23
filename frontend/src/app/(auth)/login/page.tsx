@@ -26,7 +26,7 @@ const LoginPage = () => {
         } else if (user.role === "instructor") {
           router.push("/instructor/home");
         } else if(user.role==="student"){ 
-          router.push("/student/home");
+          router.push("/student/homeS");
         }
       }
     } catch (error) {
