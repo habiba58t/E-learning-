@@ -122,12 +122,12 @@ const ProfilePage = () => {
       } finally {
         setLoading(false);
       }
-    
+        }
     };
 
     checkHasRated();
     fetchProfile();
-  }}, [username]);
+  }, [username]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -277,16 +277,17 @@ const ProfilePage = () => {
           <div>
             <h1 className="text-2xl font-bold text-black">{profile.name}</h1>
             <p className="text-2xl font-bold text-black">{profile.email}</p>
-            {profile.role === "instructor" && ( <p className="text-2xl font-bold text-black">
-              Instructor Rating: {profile.averageRating?.toFixed(2) || "N/A"}
-            </p> 
-               )}
             {profile.role === "instructor" && (
-              <p className="text-2xl font-bold text-black">
-                <strong>Courses Given:</strong>{" "}
-                {profile.courses.length ? profile.courses.join(", ") : "No courses"}
-              </p>
-            )}
+  <>
+    <p className="text-2xl font-bold text-black">
+      Instructor Rating: {profile.averageRating?.toFixed(2) || "N/A"}
+    </p>
+    <p className="text-2xl font-bold text-black">
+      <strong>Courses Given:</strong>{" "}
+      {profile.courses.length ? profile.courses.join(", ") : "No courses"}
+    </p>
+  </>
+)}
             {profile.role === "student" && (
               <p className="text-2xl font-bold text-black">
                 <strong>Enrolled Courses:</strong>{" "}
