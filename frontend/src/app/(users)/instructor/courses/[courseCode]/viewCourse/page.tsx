@@ -166,7 +166,7 @@ const CourseDetails = () => {
         throw new Error("No valid user data found in cookies.");
       }
       const username = userData.payload.username;
-      await axiosInstance.put(`${backend_url}/courses/${username}/${courseCode}/delete`);
+      await axiosInstance.put(`${backend_url}/courses/${courseCode}/${username}/delete`);
       router.push(`/instructor/courses`);
     } catch (err) {
       console.error("Error fetching data:", err);

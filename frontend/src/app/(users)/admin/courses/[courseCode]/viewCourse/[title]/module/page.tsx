@@ -24,7 +24,12 @@ export interface Content {
 interface ContentWithDownload extends Content {
   download?: () => void; // Optional, as some contents may not have resources
 }
-
+type UserData = {
+  payload: {
+    username: string;
+    role: 'student' | 'instructor' | 'admin';
+  };
+};
 const backend_url = "http://localhost:3002";
 
 const ModulePage = () => {
@@ -47,6 +52,7 @@ const ModulePage = () => {
     "easy" | "medium" | "hard" | "Select Difficulty Level"
   >("easy");
   const [actionType, setActionType] = useState<"update" | "delete" | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
 
   const router = useRouter();
 
@@ -57,7 +63,7 @@ const ModulePage = () => {
         credentials: "include",
       });
       const { userData } = await cookieResponse.json();
-
+      setUserData(userData);
       if (!userData || !userData.payload?.username) {
         throw new Error("No valid user data found in cookies.");
       }
@@ -288,6 +294,38 @@ const ModulePage = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+       {/* Navbar */}
+       <div className="fixed w-full z-30 flex bg-white p-2 items-center justify-between h-16 px-10 shadow-md top-0 left-0">
+        <div className="flex items-center space-x-6">
+        <a href="/admin/users" className="text-sm md:text-md font-medium text-gray-700 hover:text-gray-900">
+            Users
+          </a>
+          <a href="/admin/homeA" className="text-sm md:text-md font-medium text-gray-700 hover:text-gray-900">
+            Dashboard
+          </a>
+          <a href="/admin/courses" className="text-sm md:text-md font-medium text-gray-700 hover:text-gray-900">
+            Courses
+          </a>
+        </div>
+
+        <div className="flex-none h-full text-center flex items-center justify-center">
+          <div className="flex space-x-3 items-center px-3">
+            <div className="flex-none flex justify-center">
+              <div className="w-8 h-8 flex">
+                <img
+                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcShta_GXR2xdnsxSzj_GTcJHcNykjVKrCBrZ9qouUl0usuJWG2Rpr_PbTDu3sA9auNUH64&usqp=CAU"
+                  alt="profile"
+                  className="shadow rounded-full object-cover"
+                />
+              </div>
+            </div>
+            <div className="hidden md:block text-sm md:text-md text-black">
+              {userData?.payload.username}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="mt-20">
       {/* Module Header */}
       <div className="mb-6 bg-white border border-gray-200 p-6 rounded-md shadow-md">
         <h1 className="text-3xl font-semibold text-blue-600 mb-2">
@@ -468,7 +506,7 @@ const ModulePage = () => {
           </div>
         </div>
       )}
-
+</div>
       {/* Module Contents Section */}
       <div className="mt-8 bg-white border border-gray-200 p-6 rounded-md shadow-md">
         <h2 className="text-2xl font-semibold text-gray-800 mb-4">Contents</h2>

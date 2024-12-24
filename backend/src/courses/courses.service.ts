@@ -453,6 +453,7 @@ async getCourseForModule (moduleTitle:string): Promise<courseDocument>{
 
 
 //DELETE COURSE (MAKE IT UNAVAILABLE)
+//DELETE COURSE (MAKE IT UNAVAILABLE)
 async deleteCourse(course_code: string,username: string): Promise <courseDocument>{//Promise<{ message: string }> {
   const course = await this.courseModel.findOne({ course_code, Unavailable: false }).exec();
     if (!course) {

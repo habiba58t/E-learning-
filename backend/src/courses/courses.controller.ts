@@ -226,11 +226,12 @@ async getNonOutdatedCoursesForStudent(@Param('username') username: string) {
 //DELETE COURSE (MAKE IT UNAVAILABLE)
 @UseGuards(AuthGuard, AuthorizationGuard)
 @Roles(Role.Admin, Role.Instructor)
-@Put(':username/:course_code/delete')
-  async markCourseAsUnavailable(@Param('course_code') courseId: string, @Param('username')username:string) :Promise<courseDocument> {
-    return await this.coursesService.deleteCourse(courseId,username);
+@Put(':course_code/:username/delete')
+  async markCourseAsUnavailable(@Param('course_code') course_code : string, @Param('username')username:string) :Promise<courseDocument> {
+    return await this.coursesService.deleteCourse(course_code,username);
   }
 
+  
 //  @UseGuards(AuthGuard, AuthorizationGuard)
 // @Roles(Role.Admin, Role.User, Role.Instructor)
 @Get(':username/courses')

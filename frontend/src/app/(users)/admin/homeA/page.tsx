@@ -145,8 +145,8 @@ export default function AdminDashboard() {
       {/* Navbar */}
       <div className="fixed w-full z-30 flex bg-white p-2 items-center justify-between h-16 px-10 shadow-md">
         <div className="flex items-center space-x-6">
-          <a href="/main-page" className="text-sm md:text-md font-medium text-gray-700 hover:text-gray-900">
-            Home
+          <a href="/admin/users" className="text-sm md:text-md font-medium text-gray-700 hover:text-gray-900">
+            Users
           </a>
           <a href="/admin/homeA" className="text-sm md:text-md font-medium text-gray-700 hover:text-gray-900">
             Dashboard
@@ -284,51 +284,23 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-        {filteredLogs.map((log) => (
-          <tr
-            key={log._id}
-            className={`${
-              log.success ? 'bg-green-100 dark:bg-green-400' : 'bg-red-100 dark:bg-red-400'
-            } border-b dark:border-gray-700`}
-          >
-            <td
-              className={`px-4 py-2 ${
-                log.success ? 'text-green-700 dark:text-green-100' : 'text-red-700 dark:text-red-100'
-              }`}
-            >
-              {getUsername(log.username)}
-            </td>
-            <td
-              className={`px-4 py-2 ${
-                log.success ? 'text-green-700 dark:text-green-100' : 'text-red-700 dark:text-red-100'
-              }`}
-            >
-              {log.role}
-            </td>
-            <td
-              className={`px-4 py-2 ${
-                log.success ? 'text-green-700 dark:text-green-100' : 'text-red-700 dark:text-red-100'
-              }`}
-            >
-              {log.action}
-            </td>
-            <td
-              className={`px-4 py-2 ${
-                log.success ? 'text-green-700 dark:text-green-100' : 'text-red-700 dark:text-red-100'
-              }`}
-            >
-              {log.success ? 'Yes' : 'No'}
-            </td>
-            <td
-              className={`px-4 py-2 ${
-                log.success ? 'text-green-700 dark:text-green-100' : 'text-red-700 dark:text-red-100'
-              }`}
-            >
-              {new Date(log.timestamp).toLocaleString()}
-            </td>
-          </tr>
-        ))}
-      </tbody>
+                {filteredLogs.map((log) => (
+                  <tr
+                    key={log._id}
+                    className={`${
+                      log.success ? 'bg-green-100 dark:bg-green-400' : 'bg-red-100 dark:bg-red-400'
+                    } border-b dark:border-gray-700`}
+                  >
+                    <td className={`px-4 py-2 ${log.success ? 'text-green-100 dark:text-green-100' : 'text-red-100 dark:text-red-100'}`}>{getUsername(log.username)}</td>
+                    <td className={`px-4 py-2 ${log.success ? 'text-green-100 dark:text-green-100' : 'text-red-100 dark:text-red-100'}`}>{log.role}</td>
+                    <td className={`px-4 py-2 ${log.success ? 'text-green-100 dark:text-green-100' : 'text-red-100 dark:text-red-100'}`}>{log.action}</td>
+                    <td className={`px-4 py-2 ${log.success ? 'text-green-100 dark:text-green-100' : 'text-red-100 dark:text-red-100'}`}>{log.success ? 'Yes' : 'No'}</td>
+                    <td className={`px-4 py-2 ${log.success ? 'text-green-100 dark:text-green-100' : 'text-red-100 dark:text-red-100'}`}>
+                      {new Date(log.timestamp).toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
             </table>
           </div>
         </div>
@@ -336,4 +308,3 @@ export default function AdminDashboard() {
     </div>
   );
 }
-

@@ -180,7 +180,7 @@ export default function ProgressPage() {
                                         {/* <p className="text-gray-600">
                                             Last Accessed: {new Date(course.last_accessed).toLocaleDateString()}
                                         </p> */}
-                                        <p className="text-gray-800">Average Score: {course.avgScore}</p>
+                                        <p className="text-gray-800"> Average Score: {course.avgScore ? course.avgScore : 0}</p>
                                         <p>Level: {course.level}</p>
                                         <p>Completion Percentage: {completionPercentages[course.course_code]}</p>                                    </div>
                                     <div className="text-gray-700 font-bold ">

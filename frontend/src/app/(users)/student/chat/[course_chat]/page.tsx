@@ -6,17 +6,6 @@ import { useParams } from "next/navigation";
 import axiosInstance from "@/app/utils/axiosInstance";
 import Picker from 'emoji-picker-react';
 
-// Add user to the group when they click "Join"
-const joinGroupChat = async (groupName: string, username: string, onSuccess: () => void) => {
-  try {
-    await axiosInstance.post(`http://localhost:3002/group-chat/${groupName}/add-user/${username}`);
-    alert("Successfully joined the group!");
-    onSuccess();
-  } catch (error) {
-    console.error("Error adding user to group:", error);
-    alert("Failed to join the group.");
-  }
-};
 
 
 
@@ -64,6 +53,19 @@ const ChatPage: React.FC = () => {
     }
   };
   
+  // Add user to the group when they click "Join"
+const joinGroupChat = async (groupName: string, username: string, onSuccess: () => void) => {
+  try {
+    await axiosInstance.post(`http://localhost:3002/group-chat/${groupName}/add-user/${username}`);
+    setErrorMessage("Successfully joined the group!");
+    setTimeout(() => setErrorMessage(null), 5000); // Hide after 5 seconds    alert("Failed to join the group.");
+    onSuccess();
+  } catch (error) {
+    setErrorMessage("Cannot join the group chat!");
+    setTimeout(() => setErrorMessage(null), 5000); // Hide after 5 seconds    alert("Failed to join the group.");
+  }
+};
+
   useEffect(() => {
     const fetchUsername = async () => {
       const usernameFromCookies = await fetchUsernameFromCookies();
@@ -210,8 +212,8 @@ const ChatPage: React.FC = () => {
       // Hide the menu after deletion
    
     } catch (error) {
-      console.error("Error deleting group:", error);
-      alert("Failed to delete the group.");
+      setErrorMessage("Cannot delete group!");
+      setTimeout(() => setErrorMessage(null), 5000); // Hide after 5 seconds      alert("Failed to delete the group.");
     }
   };
 

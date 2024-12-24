@@ -10,12 +10,19 @@ interface User {
   email: string;
   role: string; // Added role field
 }
-
+type UserData = {
+  payload: {
+    username: string;
+    role: 'student' | 'instructor' | 'admin';
+  };
+};
 const UsersPage = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loggedInUsername, setLoggedInUsername] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
+   const [userData, setUserData] = useState<UserData | null>(null);
+  
 
   useEffect(() => {
     const fetchCookieData = async () => {
@@ -29,7 +36,7 @@ const UsersPage = () => {
         }
 
         const { userData } = await response.json();
-
+        setUserData(userData);
         if (!userData?.payload?.username) {
           console.error("No cookie data found");
           setError("No cookie data found");
@@ -72,6 +79,38 @@ const UsersPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      {/* Navbar */}
+      <div className="fixed w-full z-30 flex bg-white p-2 items-center justify-between h-16 px-10 shadow-md top-0 left-0">
+        <div className="flex items-center space-x-6">
+        <a href="/admin/users" className="text-sm md:text-md font-medium text-gray-700 hover:text-gray-900">
+            Users
+          </a>
+          <a href="/admin/homeA" className="text-sm md:text-md font-medium text-gray-700 hover:text-gray-900">
+            Dashboard
+          </a>
+          <a href="/admin/courses" className="text-sm md:text-md font-medium text-gray-700 hover:text-gray-900">
+            Courses
+          </a>
+        </div>
+
+        <div className="flex-none h-full text-center flex items-center justify-center">
+          <div className="flex space-x-3 items-center px-3">
+            <div className="flex-none flex justify-center">
+              <div className="w-8 h-8 flex">
+                <img
+                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcShta_GXR2xdnsxSzj_GTcJHcNykjVKrCBrZ9qouUl0usuJWG2Rpr_PbTDu3sA9auNUH64&usqp=CAU"
+                  alt="profile"
+                  className="shadow rounded-full object-cover"
+                />
+              </div>
+            </div>
+            <div className="hidden md:block text-sm md:text-md text-black">
+              {userData?.payload.username}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="mt-10">
       <div className="container mx-auto py-10 px-4">
         <h1 className="text-2xl font-bold text-gray-800 mb-4">Users Page</h1>
 
@@ -109,6 +148,7 @@ const UsersPage = () => {
           <p className="text-gray-500">No users found.</p>
         )}
       </div>
+    </div>
     </div>
   );
 };

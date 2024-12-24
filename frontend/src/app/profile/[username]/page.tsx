@@ -147,9 +147,10 @@ const ProfilePage = () => {
         if(user.role === 'instructor'){
         const student= await fetchUsernameFromCookies();
       try {
+        if(student !== username){
         const response = await axiosInstance.get(`${backendUrl}/users/hasRated/${user._id}/${student}`);
         setHasRated(response.data);  // Assuming the response is a boolean indicating if rated or not
-      } catch (error) {
+      } }catch (error) {
         console.error('Error checking if the user has rated:', error);
       } finally {
         setLoading(false);

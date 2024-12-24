@@ -22,6 +22,12 @@ export interface Course {
   isOutdated: boolean;
   threads: mongoose.Types.ObjectId[];
 }
+type UserData = {
+  payload: {
+    username: string;
+    role: 'student' | 'instructor' | 'admin';
+  };
+};
 
 const backend_url = "http://localhost:3002";
 
@@ -32,6 +38,7 @@ export default function AdminPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [showCreateForm, setShowCreateForm] = useState<boolean>(false);
+    const [userData, setUserData] = useState<UserData | null>(null);
   const [newCourse, setNewCourse] = useState({
     course_code: '',
     title: '',
@@ -50,7 +57,7 @@ export default function AdminPage() {
         credentials: "include",
       });
       const { userData } = await cookieResponse.json();
-
+      setUserData(userData);
       if (!userData || !userData.payload?.username) {
         throw new Error("No valid user data found in cookies.");
       }
@@ -214,7 +221,40 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white to-blue-50 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-white to-blue-50 py-8 px-4 pt-16">
+      {/* Navbar */}
+      <div className="fixed w-full z-30 flex bg-white p-2 items-center justify-between h-16 px-10 shadow-md top-0 left-0">
+        <div className="flex items-center space-x-6">
+        <a href="/admin/users" className="text-sm md:text-md font-medium text-gray-700 hover:text-gray-900">
+            Users
+          </a>
+          <a href="/admin/homeA" className="text-sm md:text-md font-medium text-gray-700 hover:text-gray-900">
+            Dashboard
+          </a>
+          <a href="/admin/courses" className="text-sm md:text-md font-medium text-gray-700 hover:text-gray-900">
+            Courses
+          </a>
+        </div>
+
+
+        <div className="flex-none h-full text-center flex items-center justify-center">
+          <div className="flex space-x-3 items-center px-3">
+            <div className="flex-none flex justify-center">
+              <div className="w-8 h-8 flex">
+                <img
+                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcShta_GXR2xdnsxSzj_GTcJHcNykjVKrCBrZ9qouUl0usuJWG2Rpr_PbTDu3sA9auNUH64&usqp=CAU"
+                  alt="profile"
+                  className="shadow rounded-full object-cover"
+                />
+              </div>
+            </div>
+            <div className="hidden md:block text-sm md:text-md text-black">
+              {userData?.payload.username}
+            </div>
+          </div>
+        </div>
+      </div>
+      
       <div className="container mx-auto max-w-7xl">
         <h1 className="text-4xl font-extrabold text-center mb-10 text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-blue-700 drop-shadow-md">
           Courses
