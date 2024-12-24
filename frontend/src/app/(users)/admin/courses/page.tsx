@@ -343,7 +343,7 @@ export default function AdminPage() {
                   } transition-all`}
                   onClick={() => handleToggleOutdated(course.course_code)}
                 >
-                  {course.isOutdated ? "Mark Current" : "Mark Outdated"}
+                  {course.isOutdated ? "Outdated" : "Up-to-date"}
                 </button>
               </div>
             </div>

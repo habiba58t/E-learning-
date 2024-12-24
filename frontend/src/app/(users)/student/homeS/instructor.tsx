@@ -1,22 +1,22 @@
-"use client"; // Ensure this is placed at the top of the file to indicate client-side rendering
+"use client";
 
 import React, { useState, useEffect } from "react";
 import axiosInstance from "@/app/utils/axiosInstance";
 import Sidebar from "@/app/components/student-sidebar/page";
-import { useRouter } from "next/navigation";
+import { FaStar } from "react-icons/fa";
 
 interface InstructorData {
   _id: string;
   name?: string; // For instructors
-  username: string; // For instructors
+  username?: string; // For instructors
   email?: string; // For instructors
+  averageRating?:number; // For instructor
 }
 
 const InstructorPage = () => {
   const [instructors, setInstructors] = useState<InstructorData[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
-  const router = useRouter();
 
   useEffect(() => {
     fetchInstructors();
@@ -39,10 +39,6 @@ const InstructorPage = () => {
       console.error("Error fetching instructors:", err);
       setError("Error fetching instructors");
     }
-  };
-
-  const handleUsernameClick = (username: string) => {
-    router.push(`/profile/${username}`);
   };
 
   // Limit displayed instructors to the first three unless searching
@@ -78,7 +74,6 @@ const InstructorPage = () => {
                 <InstructorCard
                   key={instructor._id}
                   instructor={instructor}
-                  handleUsernameClick={handleUsernameClick} // Pass the function as a prop
                 />
               ))
             ) : (
@@ -105,19 +100,14 @@ const InstructorPage = () => {
   );
 };
 
-interface InstructorCardProps {
-  instructor: InstructorData;
-  handleUsernameClick: (username: string) => void; // Define the prop type for handleUsernameClick
-}
-
-function InstructorCard({ instructor, handleUsernameClick }: InstructorCardProps) {
+function InstructorCard({ instructor }: { instructor: InstructorData }) {
   return (
     <div className="relative bg-white rounded-xl shadow-md hover:shadow-lg overflow-hidden transition-transform transform hover:scale-105">
       {/* Profile Image */}
       <div className="relative w-full h-40 bg-gray-100 flex items-center justify-center">
         <img
           className="object-cover w-24 h-24 rounded-full shadow"
-          src="https://static.vecteezy.com/system/resources/thumbnails/020/765/399/small/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg"
+          src= "https://static.vecteezy.com/system/resources/thumbnails/020/765/399/small/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg"
           alt={instructor.name || "Instructor"}
         />
       </div>
@@ -127,18 +117,21 @@ function InstructorCard({ instructor, handleUsernameClick }: InstructorCardProps
         <h5 className="text-lg font-semibold text-gray-800 mb-2">
           {instructor.name}
         </h5>
-
-        <p className="text-gray-600">
-          Username:{" "}
-          <span
-            className="font-bold text-blue-600 cursor-pointer hover:underline"
-            onClick={() => handleUsernameClick(instructor.username || "")}
-          >
-            {instructor.username}
-          </span>
-        </p>  
-
+        <p className="text-sm text-gray-600">Username: {instructor.username}</p>
         <p className="text-sm text-gray-600">Email: {instructor.email}</p>
+        <p className="text-sm text-gray-600 flex items-center">
+  <strong className="mr-2">Instructor Rating:</strong>
+  {instructor?.averageRating !== undefined && instructor?.averageRating !== null ? (
+    <>
+      {Number.isInteger(instructor.averageRating)
+        ? instructor.averageRating.toString()
+        : instructor.averageRating.toFixed(2)}
+      <FaStar className="ml-1 text-yellow-500" />
+    </>
+  ) : (
+    "Not Rated"
+  )}
+</p>
       </div>
     </div>
   );

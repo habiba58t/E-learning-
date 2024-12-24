@@ -77,6 +77,7 @@ const CourseDetails = () => {
   const [students, setStudents] = useState<string[] | null>(null);
   const [totalRating, setTotalRating] =  useState<number | 0>();
 
+
   const router = useRouter();
 
   async function fetchCourseAndModules() {
@@ -287,6 +288,7 @@ const CourseDetails = () => {
   }
   
   return (
+    
     <div className="min-h-screen bg-gray-100">
     <div className="sticky top-0 z-10 bg-white shadow-md">
               <Navbar />

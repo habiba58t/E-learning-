@@ -11,10 +11,10 @@ const FeaturedSection = () => {
           {/* Web Design Card */}
           <div className="w-full lg:w-1/3 px-4 mb-6 lg:mb-0">
             <div className="bg-white shadow-lg rounded-[20px] p-6">
-              <h5 className="text-[24px] font-semibold text-[#000] mb-4">Web Design</h5>
+              <h5 className="text-[24px] font-semibold text-[#000] mb-4">Learn, Grow, Succeed—Anywhere, Anytime</h5>
               <p className="text-[20px] text-[#717275] mb-6">
-                When you search for free CSS templates, you will notice that TemplateMo is one of the best websites.
-              </p>
+              Empower your learning journey anytime, anywhere with our interactive e-learning
+               platform, designed to make education accessible and engaging for everyone              </p>
               <Image
                 src={image2}
                 alt="Web Design"

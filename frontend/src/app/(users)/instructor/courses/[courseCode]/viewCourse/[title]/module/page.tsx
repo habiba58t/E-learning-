@@ -260,14 +260,14 @@ const ModulePage = () => {
   }
 
 
-  const handleQuestion = (moduleId: string) => {
-    router.push(`/instructor/courses/${courseCode}/Question/${moduleId}`);
+  const handleQuestion = () => {
+    router.push(`/instructor/questions`);  // Absolute path from the root
   };
-
-  const handleQuiz = (moduleId: string) => {
-    router.push(`/instructor/courses/${courseCode}/Quiz/${moduleId}`);
+  
+  const handleQuiz = () => {
+    router.push(`/instructor/quizzes`);  // Add a leading slash for an absolute path
   };
-
+  
   if (error) {
     return <div className="text-red-500">{error}</div>;
   }
@@ -314,14 +314,14 @@ const ModulePage = () => {
           </button>
   
           <button
-            onClick={() => handleQuiz(module._id)}
+            onClick={() => handleQuiz()}
             className="px-3 py-1 bg-purple-600 text-white rounded-lg shadow-md hover:bg-purple-700"
           >
             Create Quiz
           </button>
   
           <button
-            onClick={() => handleQuestion(module._id)}
+            onClick={() => handleQuestion()}
             className="px-3 py-1 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700"
           >
             Question Bank
@@ -419,9 +419,9 @@ const ModulePage = () => {
           {/* Outdated Toggle */}
           <button
             onClick={() => handleEnableNotes()}
-            className={`px-3 py-1 bg-gray-600 text-white rounded-lg ${module.enableNotes ? 'bg-red-600' : 'bg-green-600'} mb-4`}
+            className={`px-3 py-1 bg-gray-600 text-white rounded-lg ${module.enableNotes ? 'bg-green-600' : 'bg-red-600'} mb-4`}
           >
-            {module.enableNotes ? 'Notes Disabled' : 'Notes Enabled'}
+            {module.enableNotes ? 'Notes Enabled' : 'Notes Disabled'}
           </button>
         </div>
   

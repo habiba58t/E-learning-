@@ -264,7 +264,6 @@ const ModulePage = () => {
 
       await axiosInstance.put<Module>(
         `${backend_url}/modules/${username}/${moduleTitle}/updateModule`,moduleDto,
-        
       );
       setModuleLevel("Select Difficulty Level");
       fetchModule();
@@ -354,8 +353,7 @@ const ModulePage = () => {
               }
             `}
           >
-            {module.enableNotes ? "Disable Notes" : "Enable Notes"}
-          </button>
+            {module.enableNotes ? "Notes Disabled" : "Notes Enabled"}          </button>
         </div>
       </div>
 
