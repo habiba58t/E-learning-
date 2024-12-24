@@ -46,7 +46,7 @@ export class PrivateChatService {
   
     // Send a notification to member2 that member1 initiates a chat
     await this.notifService.createPrivateChatNotification(member1, member2);
-  
+
     // Save the new chat and return the saved chat
     return await newChat.save();
   }
@@ -80,6 +80,8 @@ export class PrivateChatService {
     } catch (error) {
       throw new Error(error.message || 'An error occurred while adding the message to the private chat');
     }
+
+
   }
 
   // Get all messages in a private chat

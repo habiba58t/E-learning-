@@ -5,6 +5,7 @@ import axiosInstance from "@/app/utils/axiosInstance";
 import { FaUserCircle, FaBell, FaSignOutAlt } from 'react-icons/fa'; // Icons for profile, notifications, and logout
 import { motion } from 'framer-motion';
 import InstructorSidebar from '../instructor/instructor-sidebar/page';
+import { useRouter } from "next/navigation"; // Import useRouter
 
 const Navbar = () => {
   const [notifications, setNotifications] = useState<any[]>([]); // State for storing notifications
@@ -12,6 +13,9 @@ const Navbar = () => {
   const [notificationCount, setNotificationCount] = useState(0); // State to store the notification count
   const [username, setUsername] = useState<string | null>(null);
   const [error, setError] = useState("");
+
+
+  const router = useRouter();
 
   // useEffect(() => {
   //   // Fetch user data on component mount
@@ -83,7 +87,9 @@ const Navbar = () => {
     setNotificationCount(0); // Hide the notification count when the panel is opened
   };
   
-
+  const handleProfileRedirect = () => {
+    router.push(`/profile/${username}`);
+  };
   
 
   return (
@@ -96,7 +102,8 @@ const Navbar = () => {
           whileHover={{ scale: 1.1 }} // Slightly enlarge on hover
           whileTap={{ scale: 0.9 }} // Shrink slightly on click
           transition={{ duration: 0.2 }} // Quick, smooth transition
-        >
+          onClick={handleProfileRedirect} // Add onClick for redirection
+       >
           <FaUserCircle size={24} />
         </motion.div>
 

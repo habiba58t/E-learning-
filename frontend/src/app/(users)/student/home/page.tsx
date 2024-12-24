@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import axiosInstance from "@/app/utils/axiosInstance";
 import router, { useRouter } from "next/navigation";
 import { setDefaultResultOrder } from "dns";
-import Sidebar from "@/app/components/student-sidebar/page";
 
 interface UserorCourseData {
   _id: string;
@@ -19,6 +18,10 @@ interface UserorCourseData {
   course_code: string; // For courses
 }
 
+interface CourseData{
+  course_code: string;
+}
+
 const HomePage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("student");
@@ -28,6 +31,8 @@ const HomePage = () => {
   const [username, setUsername] = useState<string | null>(null);
   const [enrollmentStatus, setEnrollmentStatus] = useState<Record<string, string>>({});
 
+
+  
   const router = useRouter(); // Use the hook here
 
   useEffect(() => {
@@ -71,7 +76,9 @@ const HomePage = () => {
     }
   };
 
-  
+  // const getRating = async (course) =>{
+  //   const ratingResponse = await axiosInstance.get<number>(`http://localhost:3002/courses/getavg/${course._id}`);
+  // }
   const fetchResults = async () => {
     setError("");
     try {
@@ -120,14 +127,18 @@ const HomePage = () => {
       );
       alert("You enrolled successfully!")
 
-
-
-      router.push("/student/courses");
+      const courses = await axiosInstance.get<CourseData>(`http://localhost:3002/courses/id/${key}`)
+      const course = courses.data.course_code;
+      router.push(`/student/${course}`);
     } catch (err) {
       alert(`Error enrolling in course: ${err}`);
     }
   };
 
+  const handleUsernameClick = (username: string) => {
+    router.push(`/profile/${username}`);
+  };
+  
   const handleIsEnrolled = async (courseid: string) => {
     if (!username) {
       setError("User is not logged in");
@@ -163,10 +174,10 @@ const HomePage = () => {
     }
   };
 //username is from token and other is the one i want to message
-  const handleRedirectToChat = (receiverUsername: string | undefined) => {
-    const currentUsername = username;
-    router.push(`/student/private-chats/${currentUsername}/${receiverUsername}`);
-  };
+  // const handleRedirectToChat = (receiverUsername: string | undefined) => {
+  //   const currentUsername = username;
+  //   router.push(`/student/private-chats/${currentUsername}/${receiverUsername}`);
+  // };
 
   const renderResult = (item: UserorCourseData) => {
     if (selectedCategory === "course") {
@@ -205,16 +216,23 @@ const HomePage = () => {
         >
           <h3 className="font-bold text-lg text-blue-600">{item.name}</h3>
           <p className="text-gray-600">Email: {item.email}</p>
-          <p className="text-gray-600">Username: {item.username}</p>
-          {/* Add "Message" button for students */}
-          {selectedCategory === "student" && (
+          <p className="text-gray-600">
+          Username:{" "}
+          <span
+            className="font-bold text-blue-600 cursor-pointer hover:underline"
+            onClick={() => handleUsernameClick(item.username || "")}
+          >
+            {item.username}
+          </span>
+        </p>            {/* Add "Message" button for students */}
+          {/* {selectedCategory === "student" && (
             <button
               onClick={() => handleRedirectToChat(item.username)}
               className="mt-2 bg-gradient-to-br from-sky-600 to-sky-900 text-white px-4 py-2 rounded-lg hover:shadow-xl hover:bg-gradient-to-br from-slate-500 via-indigo-900 to-zinc-800"
             >
               Message
             </button>
-          )}
+          )} */}
         </div>
       );
     }
@@ -239,9 +257,8 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      <Sidebar />
       {/* Header */}
-      <header className="bg-blue-700 text-white py-4 shadow-md">
+      <header className="bg-blue-600 text-white py-4 shadow-md">
         <div className="container mx-auto flex justify-between items-center px-6">
           <h1 className="text-2xl font-bold">Home</h1>
           <div className="flex items-center gap-4">

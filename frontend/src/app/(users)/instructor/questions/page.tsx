@@ -91,7 +91,7 @@ const QuestionPage = () => {
       setUsername(user);
       console.log("User logged in:", user);
 
-      await fetchCoursesAndModules();
+      await fetchCoursesAndModules(user);
       await fetchQuestionsByCreator(user);
       setLoading(false);
     } catch (error) {
@@ -101,8 +101,9 @@ const QuestionPage = () => {
     }
   };
 
-  const fetchCoursesAndModules = async () => {
+  const fetchCoursesAndModules = async (username: string) => {
     try {
+      console.log(username)
       const coursesResponse = await axiosInstance.get<coursedata[]>(`http://localhost:3002/courses/coursesInstructor/${username}`);
       if (!coursesResponse.data || coursesResponse.data.length === 0) {
        // setError('No courses found');
@@ -142,7 +143,7 @@ const QuestionPage = () => {
 
   // Assuming instructor is passed as a prop or derived from context
   useEffect(() => {
-    fetchCoursesAndModules();
+    fetchCookieData();
   }, []);
 
   const handleCourseSelect = (courseCode: string) => {
@@ -583,4 +584,3 @@ const QuestionPage = () => {
 };
 
 export default QuestionPage;
-

@@ -29,8 +29,8 @@ export class PrivateChatController {
 //4-each user sees themself on the right side of the chat which is by using member1, member 2, messages having sent_by, and token username
   @Post('/create/:member1/:member2')
   async createPrivateChat(
-    @Param('member1') member1: string,  // Retrieve member1 from the URL path
-    @Param('member2') member2: string   // Retrieve member2 from the URL path
+    @Param('member1') member1: string,  // Retrieve member1 from the URL path s
+    @Param('member2') member2: string   // Retrieve member2 from the URL path r
   ) {
     try {
       const chat = await this.privateChatService.createPrivateChat(member1, member2);

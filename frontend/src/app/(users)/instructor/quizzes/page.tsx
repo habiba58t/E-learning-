@@ -152,11 +152,11 @@ export default function Quiz() {
       alert(response.data.message || "Quiz deleted successfully");
       if (selectedModule) await fetchQuizzes(selectedModule);
     } catch (err) {
-      alert("Failed to delete quiz. Please try again.");
+      alert("You can't update a quiz that has responses!");
     }
   };
 
-  const handleUpdateQuiz = async (quiz: Quiz) => {
+  const handleUpdateQuiz = (quiz: Quiz) => {
     setIsEditingQuiz(quiz._id);
     setQuizDetails({
       no_of_questions: quiz.no_of_questions,
@@ -164,19 +164,21 @@ export default function Quiz() {
     });
   };
 
-  const handleSubmitUpdateQuiz = async (quizId: string) => {
+  const handleSubmitUpdateQuiz = async () => {
+    if (!isEditingQuiz) return;
+
     const payload = {
       no_of_questions: quizDetails.no_of_questions,
       types_of_questions: quizDetails.types_of_questions,
     };
 
     try {
-      const response = await axiosInstance.put(`${backend_url}/quizzes/update/${quizId}`, payload);
+      const response = await axiosInstance.put(`${backend_url}/quizzes/updateQuiz2/${isEditingQuiz}`, payload);
       alert("Quiz updated successfully");
       setIsEditingQuiz(null);
       if (selectedModule) await fetchQuizzes(selectedModule);
     } catch (err) {
-      alert("Failed to update quiz. Please try again.");
+      alert(`You can't update this quiz, it!`);
     }
   };
 
@@ -227,7 +229,59 @@ export default function Quiz() {
           </select>
         </div>
 
-        {quizzes.length === 0 ? (
+        {isEditingQuiz ? (
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-3">Edit Quiz</h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSubmitUpdateQuiz();
+              }}
+            >
+              <div className="mb-4">
+                <label htmlFor="no_of_questions" className="block text-gray-700 font-medium mb-2">
+                  Number of Questions
+                </label>
+                <input
+                  type="number"
+                  id="no_of_questions"
+                  name="no_of_questions"
+                  value={quizDetails.no_of_questions}
+                  onChange={handleQuizDetailsChange}
+                  placeholder="Enter number of questions"
+                  className="text-gray-500 w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                  required
+                />
+              </div>
+
+              <div className="mb-4">
+                <label htmlFor="types_of_questions" className="block text-gray-700 font-medium mb-2">
+                  Question Type
+                </label>
+                <select
+                  id="types_of_questions"
+                  name="types_of_questions"
+                  value={quizDetails.types_of_questions}
+                  onChange={handleQuizDetailsChange}
+                  className="text-gray-500 w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                  required
+                >
+                  <option value="">Select question type</option>
+                  <option value="mcq">Multiple Choice (MCQ)</option>
+                  <option value="t/f">True/False</option>
+                  <option value="both">Both</option>
+                </select>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-2 bg-indigo-600 text-white rounded-lg font-semibold focus:outline-none hover:bg-indigo-700"
+              >
+                Update Quiz
+              </button>
+            </form>
+          </div>
+        ) : quizzes.length === 0 ? (
           <div className="mb-6">
             <h2 className="text-xl font-semibold text-gray-800 mb-3">Quiz Details</h2>
             <form

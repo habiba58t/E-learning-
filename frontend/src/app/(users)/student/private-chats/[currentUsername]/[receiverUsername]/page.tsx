@@ -49,7 +49,7 @@ const ChatPage = () => {
 
   const createOrLoadChat = async () => {
     try {
-      await axiosInstance.post<ChatData[]>(`http://localhost:3002/private-chat/create/${receiverUsername}/${currentUsername}`);
+      await axiosInstance.post<ChatData[]>(`http://localhost:3002/private-chat/create/${currentUsername}/${receiverUsername}`);
 
       const myChats = await axiosInstance.get<ChatData[]>(`http://localhost:3002/private-chat/user/${currentUsername}`);
       const otherMembers = myChats.data.map(chat =>

@@ -34,11 +34,43 @@ const ProfilePage = () => {
   const [selectedRating, setSelectedRating] = useState(0);
   const [hasRated, setHasRated] = useState<boolean>(false);
 
+  const[role, setRole] = useState<string>("")
+  const[currentUsername, setcUsername] = useState<string>('');
 
   const backendUrl = "http://localhost:3002"; // Replace with your backend URL
 
   const defaultProfilePicture =
     "https://static.vecteezy.com/system/resources/thumbnails/020/765/399/small/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg";
+
+
+    const fetchCookieData = async () => {
+      try {
+        const response = await fetch("http://localhost:3002/auth/get-cookie-data", {
+          credentials: "include",
+        });
+        const { userData } = await response.json();
+  
+        if (!userData?.payload?.username) {
+          console.error("No cookie data found");
+          setError("No cookie data found");
+          return;
+        }
+  
+        const user = userData.payload.username;
+        const role = userData.payload.role;
+        setRole(role)
+        setcUsername(user);
+        console.log("User logged in:", user);
+      } catch (err) {
+        console.error("Error fetching cookie data:", err);
+        setError("Error fetching cookie data");
+      }
+    };
+
+    useEffect(() => {
+      // Fetch user data on component mount
+      fetchCookieData();
+    }, []);
 
   const fetchCourseTitles = async (courseIds: mongoose.Types.ObjectId[]) => {
     try {
@@ -133,8 +165,8 @@ const ProfilePage = () => {
   };
 
   const handleMessage = () => {
-    router.push(`/student/chat/private-chat`);
-   
+    const receiverUsername = username;
+    router.push(`/student/private-chats/${currentUsername}/${receiverUsername}`);
   };
 
   const handleDeleteStudentAndAdmin = async () => {
@@ -261,14 +293,16 @@ const ProfilePage = () => {
                 Edit Profile
               </button>
             )}
-            {!isOwnProfile && (
-              <button
-                onClick={handleMessage}
-                className="bg-blue-500 text-white py-2 px-4 rounded mb-2"
-              >
-                Message
-              </button>
-            )}
+            {!isOwnProfile && profile.role === "student" && role === "student" && (
+  <button
+    onClick={handleMessage}
+    className="bg-blue-500 text-white py-2 px-4 rounded mb-2"
+  >
+    Message
+  </button>
+)}
+
+
           {!isOwnProfile && isStudent && profile.role === "instructor" && !hasRated && (
   <button
     onClick={() => setIsRating(true)} // Open the rating interface

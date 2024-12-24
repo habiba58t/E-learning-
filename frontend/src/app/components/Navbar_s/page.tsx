@@ -6,6 +6,8 @@ import { FaUserCircle, FaBell, FaSignOutAlt } from "react-icons/fa";
 import { motion } from "framer-motion";
 import Sidebar from "../student-sidebar/page";
 
+import { useRouter } from "next/navigation"; // Import useRouter
+
 const Navbar = () => {
   const [notifications, setNotifications] = useState<any[]>([]); 
   const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false); 
@@ -13,6 +15,8 @@ const Navbar = () => {
   const [username, setUsername] = useState<string | null>(null);
   const [error, setError] = useState("");
 
+  const router = useRouter();
+  
   useEffect(() => {
     const fetchCookieData = async () => {
       try {
@@ -71,6 +75,11 @@ const Navbar = () => {
     }
   };
 
+  const handleProfileRedirect = () => {
+    router.push(`/profile/${username}`);
+  };
+  
+
   return (
     <div className="sticky top-0 bg-blue-800 text-white p-4 shadow-md z-50">
       <Sidebar />
@@ -80,6 +89,8 @@ const Navbar = () => {
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           transition={{ duration: 0.2 }}
+          onClick={handleProfileRedirect} // Add onClick for redirection
+
         >
           <FaUserCircle size={24} className="text-white" />
         </motion.div>
