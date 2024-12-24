@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import axiosInstance from "@/app/utils/axiosInstance";
 import axios, { AxiosError } from 'axios';
 import InstructorSidebar from '@/app/components/instructor/instructor-sidebar/page';
+import Navbar from '@/app/components/NavBar/page';
 
 export interface Module {
   _id: string;
@@ -280,8 +281,11 @@ const ModulePage = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <InstructorSidebar/>
+    <div className="min-h-screen bg-gray-100">
+    <div className="sticky top-0 z-10 bg-white shadow-md">
+              <Navbar />
+          </div>
+
       <div className="mb-6">
         <h1 className="text-3xl font-semibold text-teal-600 mb-4">{module.title}</h1>
         <p className="text-lg text-gray-800">Level: {module.level}</p>

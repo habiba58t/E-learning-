@@ -6,6 +6,7 @@ import axiosInstance from "@/app/utils/axiosInstance";
 import { Types } from 'mongoose';
 import axios, { AxiosError } from 'axios';
 import InstructorSidebar from '@/app/components/instructor/instructor-sidebar/page';
+import Navbar from '@/app/components/NavBar/page';
 
 export interface Course {
   _id: string;
@@ -286,8 +287,12 @@ const CourseDetails = () => {
   }
   
   return (
-  <div className="container mx-auto px-4 py-8">
-    <InstructorSidebar/>
+    <div className="min-h-screen bg-gray-100">
+    <div className="sticky top-0 z-10 bg-white shadow-md">
+              <Navbar />
+          </div>
+ 
+    
     {updateMode ? (
       <div className="bg-white shadow-lg rounded-lg p-6 mb-6">
         <h2 className="text-2xl font-semibold text-teal-600 mb-4">Update Course</h2>

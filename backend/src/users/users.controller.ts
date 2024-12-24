@@ -92,20 +92,20 @@ async deleteProfile(@Param('username') username: string):Promise<userDocument>{
   return await this.usersService.deleteUser(username);
 }
 
-@UseGuards(AuthorizationGuard)
-@Roles(Role.User)
-@Put('setRating/:ObjectId/:score')
-async setRating(@Param('ObjectId') ObjectId: string, @Param('score')score:number): Promise<void> {
- const objectId = new mongoose.Types.ObjectId(ObjectId)
- await this.usersService.setRating(objectId,score);
-} //instructor rating
+// @UseGuards(AuthorizationGuard)
+// @Roles(Role.User)
+// @Put('setRating/:ObjectId/:score')
+// async setRating(@Param('ObjectId') ObjectId: string, @Param('score')score:number): Promise<void> {
+//  const objectId = new mongoose.Types.ObjectId(ObjectId)
+//  await this.usersService.setRating(objectId,score);
+// } //instructor rating
 
 
-  @Get('InstructorRating/:instructorId')
-  async getAvgRating(@Param('ObjectId') ObjectId: string): Promise<number> {
-    const objectId = new mongoose.Types.ObjectId(ObjectId)
-   return await this.usersService.getAvgRating(objectId);
-  }
+//   @Get('InstructorRating/:instructorId')
+//   async getAvgRating(@Param('ObjectId') ObjectId: string): Promise<number> {
+//     const objectId = new mongoose.Types.ObjectId(ObjectId)
+//    return await this.usersService.getAvgRating(objectId);
+//   }
 
 
 // @Roles(Role.Admin)
@@ -115,5 +115,81 @@ async getUserCount(): Promise<{ count: number }> {
   return { count };
 }
 
+// @UseGuards(AuthorizationGuard)
+// @Roles(Role.User)
+// @Put('setRatingNew/:studentUsername/:ObjectId/:score')
+// async setRatingNew(
+//   @Param('studentUsername') studentUsername: string,
+//   @Param('ObjectId') ObjectId: string,
+//   @Param('score') score: number
+// ): Promise<void> {
+//   const objectId = new mongoose.Types.ObjectId(ObjectId);
+
+//   // Call the updated setRatingNew method from the service
+//   await this.usersService.setRatingNew(studentUsername, objectId, score);
+// }
+
+
+// @UseGuards(AuthorizationGuard)
+// @Roles(Role.User)
+// @Put('setRating/:studentUsername/:ObjectId/:score')
+// async setRating(@Param('studentUsername') studentUsername: string,@Param('ObjectId') ObjectId: string, @Param('score')score:string): Promise<number> {
+//  const objectId = new mongoose.Types.ObjectId(ObjectId)
+//  const scoreNumber = Number(score);
+//   if (isNaN(scoreNumber)) {
+//     throw new HttpException('Invalid score provided', HttpStatus.BAD_REQUEST);
+//   }
+//  return await this.usersService.setRatingN(studentUsername,objectId,scoreNumber);
+
+// } //instructor rating
+
+
+//   @Get('InstructorRating/:instructorId')
+//   async getAvgRating(@Param('instructorId') instructorId: string): Promise<number> {
+//     const objectId = new mongoose.Types.ObjectId(instructorId)
+//    return await this.usersService.getAvgRating(objectId);
+//   }
+
+//   @UseGuards(AuthorizationGuard)
+// @Roles(Role.User)
+// @Put('setRating/:studentUsername/:ObjectId/:score')
+// async setRating(@Param('studentUsername') studentUsername: string,@Param('ObjectId') ObjectId: string, @Param('score')score:string): Promise<number> {
+//  const objectId = new mongoose.Types.ObjectId(ObjectId)
+//  const scoreNumber = Number(score);
+//   if (isNaN(scoreNumber)) {
+//     throw new HttpException('Invalid score provided', HttpStatus.BAD_REQUEST);
+//   }
+//  return await this.usersService.setRating(objectId,studentUsername,scoreNumber);
+
+// } //instructor rating
+
+@UseGuards(AuthorizationGuard)
+@Roles(Role.User)
+@Put('setRating/:studentUsername/:ObjectId/:score')
+async setRating(@Param('studentUsername') studentUsername: string,@Param('ObjectId') ObjectId: string, @Param('score')score:string): Promise<number> {
+ const objectId = new mongoose.Types.ObjectId(ObjectId)
+ const scoreNumber = Number(score);
+  if (isNaN(scoreNumber)) {
+    throw new HttpException('Invalid score provided', HttpStatus.BAD_REQUEST);
+  }
+ return await this.usersService.setRating(objectId,studentUsername,scoreNumber);
+
+} //instructor rating
+
+
+  @Get('InstructorRating/:instructorId')
+  async getAvgRating(@Param('instructorId') instructorId: string): Promise<number> {
+    const objectId = new mongoose.Types.ObjectId(instructorId)
+   return await this.usersService.getAvgRating(objectId);
+  }
+@UseGuards(AuthorizationGuard)
+@Roles(Role.User)
+@Get('hasRated/:instructorId/:username')
+ async hasRated(@Param('instructorId') instructorId: string, @Param('username') username: string): Promise<boolean> {
+  const objectId = new mongoose.Types.ObjectId(instructorId)
+  return await this.usersService.hasRated(objectId,username);}
+
+
+  
 
 }

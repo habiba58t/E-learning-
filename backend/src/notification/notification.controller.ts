@@ -61,7 +61,7 @@ async replytoForumNotification(@Param('threadtitle') threadtitle:string, @Param(
 //create notification for chat inform receiver
 @UseGuards(AuthGuard, AuthorizationGuard)
 @Roles(Role.Admin, Role.User)
-@Post('private-chatsent/:recieverUsername')
+@Post('private-chatsent/:username/:recieverUsername')
 async createPrivateChatNotification(@Param('username') username, @Param('recieverUsername')recieverUsername:string): Promise<notificationDocument>{
     return this.notificationService.createPrivateChatNotification(username ,recieverUsername);
 }

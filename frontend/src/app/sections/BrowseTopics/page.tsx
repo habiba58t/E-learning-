@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import axiosInstance from '@/app/utils/axiosInstance';
+import { useEffect, useState } from 'react';
 
 const backend_url = 'http://localhost:3002';
 
@@ -35,10 +35,8 @@ export default function BrowseTopics() {
         console.error('Error fetching categories:', error);
       }
     }
-
     fetchCategories();
   }, []);
-
   useEffect(() => {
     if (activeCategory) {
       // Fetch courses for the active category
@@ -54,7 +52,6 @@ export default function BrowseTopics() {
       fetchCourses();
     }
   }, [activeCategory]);
-
   return (
     <section className="py-20" id="section_2">
     <div className="container mx-auto px-4">
@@ -72,7 +69,6 @@ export default function BrowseTopics() {
           </button>
         ))}
       </div>
-
         {/* Course Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {courses.slice(0, 3).map((course) => (
@@ -100,7 +96,6 @@ function TopicItem({ course }: { course: Course }) {
       <div className="absolute top-4 right-4 bg-blue-500 text-white text-xs font-bold rounded-full px-3 py-1">
         {course.level}
       </div>
-
       {/* Image */}
       {course.imageUrl && (
         <div className="relative w-full h-40 bg-gray-100">

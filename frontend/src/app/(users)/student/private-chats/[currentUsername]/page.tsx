@@ -48,6 +48,7 @@ const ChatPage2 = () => {
 
   const createOrLoadChat = async () => {
     try {
+
       const myChats = await axiosInstance.get<ChatData[]>(`http://localhost:3002/private-chat/user/${currentUsername}`);
       const otherMembers = myChats.data.map(chat =>
         chat.member1 === currentUsername ? chat.member2 : chat.member1
@@ -85,9 +86,10 @@ const ChatPage2 = () => {
 
     const newMessage = {
       content: inputMessage,
-      sentBy: currentUsername,
+      sentBy: Array.isArray(currentUsername) ? currentUsername.join(', ') : currentUsername || '', // Ensure it's a string
       sentAt: new Date(),  // Temporary timestamp for UI
     };
+    
 
     setChat(prevChat => [...prevChat, newMessage]);
     setInputMessage('');  // Clear input field immediately

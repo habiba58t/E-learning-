@@ -99,7 +99,7 @@ export default function ForumPage() {
   const fetchForums = async (course_code: string) => {
     setLoading(true);
     setError(null); // Reset error state before starting
-  
+    console.log(username)
     try {
       // Fetch threads for the given course
       const response = await axiosInstance.get<Threads[]>(`${backend_url}/forum/course/${course_code}`);
@@ -161,11 +161,6 @@ export default function ForumPage() {
 
 
   const handleCreateThread = async () => {
-    if (!selectedCourse) {
-      alert("Please select a course before creating a thread.");
-      return;
-    }
-    
     if (!newThreadTitle.trim() || !newThreadMessage.trim()) {
       setError("Title and message cannot be empty.");
       return;
@@ -368,7 +363,7 @@ export default function ForumPage() {
                         {new Date(thread.timestamp).toLocaleDateString()}
                       </p>
                     </div>
-                    {thread.created_by === username || role==='instructor'  && (
+                    {(thread.created_by === username || role==='instructor')  && (
                       <div className="space-x-2">
                         <button
                           onClick={() => handleEditThread(thread._id)}

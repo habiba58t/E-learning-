@@ -497,10 +497,14 @@ async getcoursesforuser(username: string): Promise<courseDocument[]> {
     throw new NotFoundException(`Student with username ${username} not found`);
   }
 
-  const courses = await this.courseModel.find({_id: { $in: student.courses }}).exec();
-
+  const courses = await this.courseModel
+  .find({ _id: { $in: student.courses }, isOutdated: false, Unavailable: false })
+  .exec();
   return courses;
 }
+
+
+
 
 async findByCategory(category: string): Promise<Courses[]> {
   return this.courseModel.find({ category }).exec(); 

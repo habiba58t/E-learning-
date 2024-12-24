@@ -87,13 +87,12 @@ const ChatPage = () => {
 
   const handleSentMessage = async () => {
     if (!inputMessage || !currentChatId) return;
-  
     const newMessage = {
       content: inputMessage,
-      sentBy: currentUsername,
-      sentAt: new Date(), // Temporary timestamp for UI
+      sentBy: Array.isArray(currentUsername) ? currentUsername.join(', ') : currentUsername || '', // Ensure it's a string
+      sentAt: new Date(),  // Temporary timestamp for UI
     };
-      
+    
     // Optimistically update local state
     setChat(prevChat => [...prevChat, newMessage]);
     setInputMessage(''); // Clear input field immediately
@@ -102,19 +101,13 @@ const ChatPage = () => {
       const response = await axiosInstance.post(
         `http://localhost:3002/private-chat/${currentChatId}/message`,
         { content: inputMessage, sentBy: currentUsername }
-      );
-
-      // Update local state while merging with new messages
-      // setChat(prevChat => {
-      //   const mergedChat: MessageData[] = [...prevChat, newMessage];
-      //   const uniqueChat = Array.from(new Set(mergedChat.map(msg => JSON.stringify(msg)))).map(
-      //     msg => JSON.parse(msg)
-      //   );
-      //   return uniqueChat;
-      // });
+      );  
+      console.log("aaa")
+      const response2 =await axiosInstance.post(`http://localhost:3002/notification/private-chatsent/${currentUsername}/${selectedUser}`);    
+      console.log(response2.data)
 
     } catch (error) {
-      console.error('Error sending message:', error);
+        console.error('Error sending message:', error);
       setError('Error sending message');
 
       // Rollback: Remove the optimistic message on error
