@@ -41,12 +41,15 @@ const ModulePage = () => {
   const [showModal, setShowModal] = useState(false);
   const [contentTitle, setContentTitle] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const [contentList, setContentList] = useState<{   _id: string,title: string; resources: any[] }[] | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [moduleLevel, setModuleLevel] = useState<"easy" | "medium" | "hard" | "Select Difficulty Level">("easy");
   const [actionType, setActionType] = useState<"update" | "delete" | null>(null);
 
-
+  const [contentList, setContentList] = useState<
+  {
+    isOutdated: any; _id: string; title: string; resources: any[] ; created_at:Date
+}[] | null
+>(null);
 
   const router = useRouter();
 
@@ -72,19 +75,24 @@ const ModulePage = () => {
       console.log("Fetched moduleData:", module);
       try {
         const response = await axios.get(
-          `${backend_url}/modules/${username}/${moduleTitle}/content`,
+          `${backend_url}/modules/${username}/${moduleTitle}/contentAdmin`,
           { withCredentials: true }
         );
 
         const contents = response.data;
 
         // Ensure each content item has the `download` function if resources exist
-        const modifiedContent: ContentWithDownload[] = contents.map((item: any) => ({
-          ...item, // Keep all the existing properties from the content
-          download: item.resources && item.resources.length > 0
-            ? () => downloadFile(item.resources[0].filePath, item.resources[0].originalName)
-            : undefined, // Set to undefined if no resources
-        }));
+          // Add download function if resources exist
+          const modifiedContent: ContentWithDownload[] = contents
+          .filter((item: any) => item && item.resources && item.resources.length > 0) // Filter out invalid or empty resources
+          .map((item: any) => ({
+            ...item,
+            download: () =>
+              downloadFile(
+                item.resources[0].filePath,
+                item.resources[0].originalName
+              ),
+          }));
 
         // Now, set the modified content
         setContentList(modifiedContent);
@@ -259,6 +267,18 @@ const ModulePage = () => {
   }
   }
 
+  const handleOutdated = async (objectid:string) => {
+    console.log("objectid: " ,objectid);
+     try {
+       await axiosInstance.put<Content>(
+        `${backend_url}/content/toggleoutdated/${objectid}`
+       );
+       fetchModule(); // Refresh after enabling/disabling notes
+     } catch (err) {
+       console.error("Error toggling notes:", err);
+       setError("Failed to toggle notes. Please try again.");
+     }
+   };
 
   const handleQuestion = () => {
     router.push(`/instructor/questions`);  // Absolute path from the root
@@ -436,7 +456,18 @@ const ModulePage = () => {
                 key={content._id || `content-${index}`}
                 className="border-b border-gray-300 py-4 flex items-center relative"
               >
+                {/* Outdated Toggle Button */}
+              <button
+                onClick={() => handleOutdated(content._id)}
+                className={`absolute right-20 px-4 py-2 text-white font-semibold rounded-full shadow-md transition-transform transform hover:-translate-y-0.5 ${
+                  content.isOutdated ? "bg-gray-500" : "bg-green-500"
+                }`}
+              >
+                {content.isOutdated ? " Outdated" : "Updated"}
+              </button>
+
                 {/* Content Title */}
+                
                 <h3 className="text-xl font-semibold text-teal-600 pr-16">{content.title}</h3>
   
                 {/* Delete Button */}

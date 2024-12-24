@@ -26,6 +26,15 @@ export class ContentService {
     return content;
   }
 
+
+  //toggle notes enable
+async toggle(objectId: mongoose.Types.ObjectId ): Promise<void> {
+  const content = await this.contentModel.findById(objectId);
+  content.isOutdated = !content.isOutdated;
+   await content.save();
+
+}
+
   // Create a new content
 async createContent(createContentDto: CreateContentDto): Promise<contentDocument> {
     const newContent = new this.contentModel(createContentDto);

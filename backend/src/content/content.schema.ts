@@ -11,6 +11,9 @@ export class Content {
   @Prop({ required: true })
   isOutdated: boolean = false;
 
+  @Prop({ required: true, default: new Date() })
+  created_at: Date;
+
   @Prop({ type: [{ filePath: String, fileType: String, originalName: String }], default: [] })
   resources: { filePath: string; fileType: string; originalName: string }[];  // This should match the CreateContentDto
 }

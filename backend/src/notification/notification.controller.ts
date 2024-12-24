@@ -61,7 +61,7 @@ async replytoForumNotification(@Param('threadtitle') threadtitle:string, @Param(
 //create notification for chat inform receiver
 @UseGuards(AuthGuard, AuthorizationGuard)
 @Roles(Role.Admin, Role.User)
-@Post('private-chatsent/:username/recieverUsername')
+@Post('private-chatsent/:username/:recieverUsername')
 async createPrivateChatNotification(@Param('username') username, @Param('recieverUsername')recieverUsername:string): Promise<notificationDocument>{
     return this.notificationService.createPrivateChatNotification(username ,recieverUsername);
 }
@@ -81,11 +81,9 @@ async createPublicChatNotification(@Param('username') username: string, @Param('
 @UseGuards(AuthGuard, AuthorizationGuard)
 @Roles(Role.Admin, Role.User, Role.Instructor) 
 @Post('public-chatsent/:chatId')
-async sendPublicChatNotification( @Param('chatId') chatId:string): Promise<void>{
-    return this.notificationService.sendPublicChatNotification( chatId );
+async sendPublicChatNotification( @Param('chatId') chatId:string,@Param('username') username:string): Promise<void>{
+    return this.notificationService.sendPublicChatNotification( chatId,username );
 }
-
-
 
 
 

@@ -62,6 +62,49 @@ export class ModulesService {
         return this.moduleModel.find().exec();
       }
 
+
+      async getContentForModule2(username: string, title: string): Promise<Content[]> {
+        const module = await this.moduleModel.findOne({ title }).exec();
+        if (!module) {
+            throw new NotFoundException(`Module with title ${title} not found`);
+        }
+    
+        const course = await this.coursesService.findCourseByModuleId(module._id);
+        if (!course) {
+            throw new NotFoundException(`Course with ID ${module._id} not found`);
+        }
+    
+        const contentIds = module.content;
+        if (!contentIds || contentIds.length === 0) {
+            console.log("No content IDs found", contentIds);
+            return []; // Return an empty array if no content IDs are provided
+        }
+    
+        console.log("Content IDs found:", contentIds);
+    
+        try {
+            // Use Promise.all to resolve all async calls concurrently
+            const contents = await Promise.all(
+                contentIds.map(async (id) => {
+                    const content = await this.contentService.findById(id);
+                    console.log("Content:", content);
+                    if (!content) {
+                        throw new NotFoundException(`Content with ID ${id} not found`);
+                    }
+                    return content; // Return the content object
+                })
+            );
+    
+            return contents; // Return the resolved array of contents
+        } catch (error) {
+            console.error("Error fetching contents:", error);
+            throw new InternalServerErrorException("Failed to retrieve contents");
+        }
+    }
+    
+
+
+
 //get module by id for courses
       async findById(moduleId: mongoose.Types.ObjectId): Promise<moduleDocument> {
         const module = await this.moduleModel.findById(moduleId).exec();
@@ -164,7 +207,7 @@ async addQuestionToModule(moduleId: mongoose.Types.ObjectId, questionId: mongoos
   }
 
   // Add the quiz ID to the array
-  module.quizzes.push(questionId);
+  module.questions.push(questionId);
 
   // Save the updated module
   await module.save();
@@ -382,12 +425,16 @@ async getContentForModule( username: string, title: string): Promise<Content[]> 
     const contents = await Promise.all(
       contentIds.map(async (id) => {
         const content = await this.contentService.findById(id);
+        
+        
         console.log("content:", content);
         if (!content) {
           throw new NotFoundException(`Content with ID ${id} not found`);
         }
+        if(content.isOutdated===false){
         return content; // Return the content object
-      })
+     
+   } })
     );
 
     return contents; // Return the resolved array of contents

@@ -364,7 +364,7 @@ export default function Quiz() {
               {quizzes.map((quiz) => (
                 <li key={quiz._id} className="bg-gray-100 p-4 rounded-lg shadow-md">
                   <div className="flex justify-between items-center mb-3">
-                    <h3 className="font-semibold text-lg text-black">{quiz._id}</h3>
+                    <h3 className="font-semibold text-lg text-black">Quiz</h3>
                     <div className="flex space-x-2">
                       <button
                         onClick={() => handleSeeResponses(quiz._id)}

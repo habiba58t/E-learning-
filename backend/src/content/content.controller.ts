@@ -23,6 +23,16 @@ export class ContentController {
   return await this.contentService.createContent(createContentDto);
  }
 
+
+ //toggle notes enable
+ @UseGuards(AuthGuard, AuthorizationGuard)
+ @Roles(Role.Admin, Role.Instructor)
+ @Put('toggleoutdated/:ObjectId')
+ async toggle( @Param('ObjectId') ObjectId: string): Promise<void> {
+  const objectId = new mongoose.Types.ObjectId(ObjectId);
+    this.contentService.toggle(objectId);
+ }
+
 // DELETE content
 @UseGuards(AuthGuard,AuthorizationGuard)
 @Roles(Role.Admin, Role.Instructor)

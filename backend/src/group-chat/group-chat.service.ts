@@ -46,7 +46,7 @@ export class GroupChatService {
       
           // Save the updated module
           await group.save();
-          await this.notificationService.sendPublicChatNotification(groupName)
+          await this.notificationService.sendPublicChatNotification(groupName, message.sentBy)
         
           return group;
           // notify the user of a new message 

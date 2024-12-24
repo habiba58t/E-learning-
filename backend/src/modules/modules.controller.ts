@@ -150,6 +150,15 @@ async addQuestionToModule( @Req() {user},@Param('moduleId') moduleId: string, @P
     return this.modulesService.toggleOutdated(title,username);
   } 
 
+//get content for specific module
+@UseGuards(AuthGuard,AuthorizationGuard)
+@Roles(Role.Admin,Role.Instructor, Role.User)
+  @Get(':username/:title/contentAdmin')
+  async getContentForModule2(@Param('username') username: string,@Param('title') title: string): Promise<Content[]> {
+    return this.modulesService.getContentForModule2(username, title);
+  }
+
+
 // Upload files to resourses array
 @UseGuards(AuthGuard, AuthorizationGuard)
 @Roles(Role.Admin, Role.Instructor)
