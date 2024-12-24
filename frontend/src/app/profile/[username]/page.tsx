@@ -16,6 +16,7 @@ interface ProfileData {
   role: "student" | "instructor" | "admin";
   pictureUrl?: string; // Optional picture URL field
   rated?: boolean; 
+  averageRating?:number;
 }
 
 const ProfilePage = () => {
@@ -32,10 +33,12 @@ const ProfilePage = () => {
   const [isStudent, setStudent] = useState<boolean>(false);
   const [isRating, setIsRating] = useState(false);
   const [selectedRating, setSelectedRating] = useState(0);
-  const [hasRated, setHasRated] = useState<boolean>(false);
-
+  const [rated, Setrated] = useState<boolean>(false);
+  const [hasRated, setHasRated] = useState(false);
+ 
 
   const backendUrl = "http://localhost:3002"; // Replace with your backend URL
+  
 
   const defaultProfilePicture =
     "https://static.vecteezy.com/system/resources/thumbnails/020/765/399/small/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg";
@@ -55,7 +58,22 @@ const ProfilePage = () => {
     }
   };
 
+  const fetchUsernameFromCookies = async (): Promise<string | null> => {
+    try {
+        const response = await axiosInstance.get('http://localhost:3002/auth/get-cookie-data', {
+            withCredentials: true,
+        });
+        const { userData } = response.data;
+        return userData?.payload?.username || null;
+    } catch (err) {
+        console.error('Failed to fetch username from cookies:', err);
+        return null;
+}
+};
+
+
   useEffect(() => {
+    
     const fetchProfile = async () => {
       try {
         if (!username) {
@@ -64,13 +82,15 @@ const ProfilePage = () => {
 
         const response = await axiosInstance.get(`${backendUrl}/users/${username}`);
         const userProfile = response.data;
+       
+        
 
         const loggedInRole = localStorage.getItem("role");
         setIsAdmin(loggedInRole === "admin");
         setStudent(loggedInRole==="student");
 
-        const storedRatingStatus = localStorage.getItem("hasRated");
-        setHasRated(storedRatingStatus === "true");
+        // const storedRatingStatus = localStorage.getItem("hasRated");
+        // setHasRated(storedRatingStatus === "true");
 
         if (userProfile.courses && userProfile.courses.length > 0) {
           const courseTitles = await fetchCourseTitles(userProfile.courses);
@@ -79,9 +99,6 @@ const ProfilePage = () => {
         setProfile(userProfile);
         setUpdatedProfile(userProfile);
 
-        if (userProfile.rating && userProfile.rating > 0) {
-          setHasRated(true);
-        }
         const loggedInUsername = localStorage.getItem("username");
         setIsOwnProfile(username === loggedInUsername);
       } catch (err: any) {
@@ -90,9 +107,27 @@ const ProfilePage = () => {
         setLoading(false);
       }
     };
+    const checkHasRated = async () => {
 
+      const userResponse = await axiosInstance.get(`${backendUrl}/users/${username}`);
+        const user = userResponse.data;
+        console.log(user.username);
+        if(user.role === 'instructor'){
+        const student= await fetchUsernameFromCookies();
+      try {
+        const response = await axiosInstance.get(`${backendUrl}/users/hasRated/${user._id}/${student}`);
+        setHasRated(response.data);  // Assuming the response is a boolean indicating if rated or not
+      } catch (error) {
+        console.error('Error checking if the user has rated:', error);
+      } finally {
+        setLoading(false);
+      }
+    
+    };
+
+    checkHasRated();
     fetchProfile();
-  }, [username]);
+  }}, [username]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -164,18 +199,22 @@ const ProfilePage = () => {
   };
   const handleSaveRating = async () => {
     const userResponse = await axiosInstance.get(`${backendUrl}/users/${username}`);
-        const user = userResponse.data;
-        console.log(user.username);
+    const user = userResponse.data;
+        // console.log(user.username);
     if (selectedRating === 0) {
       alert("Please select a rating before saving.");
       return;
     }
+    
   
     try {
-      const response = await axiosInstance.put(`${backendUrl}/users/setRating/${user._id}/${selectedRating}`);
-      setIsRating(false); // Exit rating mode after saving
+      const student= await fetchUsernameFromCookies();
+    // console.log("username studentt:"+fetchUsernameFromCookies());
+      const Rate = await axiosInstance.put(`${backendUrl}/users/setRating/${student}/${user._id}/${selectedRating}`);
+      const RateResponse= Rate.data;
       alert("instructor rating saved!");
-      setHasRated(true);
+      window.location.reload();
+      
       localStorage.setItem("hasRated", "true");
     } catch (error) {
       if (error instanceof Error) {
@@ -238,6 +277,10 @@ const ProfilePage = () => {
           <div>
             <h1 className="text-2xl font-bold text-black">{profile.name}</h1>
             <p className="text-2xl font-bold text-black">{profile.email}</p>
+            {profile.role === "instructor" && ( <p className="text-2xl font-bold text-black">
+              Instructor Rating: {profile.averageRating?.toFixed(2) || "N/A"}
+            </p> 
+               )}
             {profile.role === "instructor" && (
               <p className="text-2xl font-bold text-black">
                 <strong>Courses Given:</strong>{" "}
@@ -269,7 +312,7 @@ const ProfilePage = () => {
                 Message
               </button>
             )}
-          {!isOwnProfile && isStudent && profile.role === "instructor" && !hasRated && (
+          {!isOwnProfile && isStudent && profile.role === "instructor" && (
   <button
     onClick={() => setIsRating(true)} // Open the rating interface
     className="bg-blue-500 text-white py-2 px-4 rounded mb-2"
@@ -349,22 +392,26 @@ const ProfilePage = () => {
             </button>
           </div>
         )}
-  {isRating && !hasRated && (
+ {isRating &&  (
   <div className="space-y-4">
     <label className="block">
       Rate Instructor:
       <div className="flex justify-center space-x-2 my-4">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <button
-            key={star}
-            onClick={() => setSelectedRating(star)}
-            className={`text-3xl ${
-              star <= selectedRating ? "text-yellow-500" : "text-gray-300"
-            }`}
-          >
-            ★
-          </button>
-        ))}
+        {!hasRated &&
+          // Only show the rating button if the user hasn't rated
+          [1, 2, 3, 4, 5].map((star) => (
+            <button
+              key={star}
+              onClick={() => setSelectedRating(star)}
+              className={`text-3xl ${star <= selectedRating ? 'text-yellow-500' : 'text-gray-300'}`}
+            >
+              ★
+            </button>
+          ))}
+        {hasRated && (
+          // Optionally, you can show a message if the user has already rated
+          <span className="text-gray-500">You have already rated this instructor</span>
+        )}
       </div>
     </label>
 
@@ -382,6 +429,7 @@ const ProfilePage = () => {
     </button>
   </div>
 )}
+
 
       </div>
     </section>

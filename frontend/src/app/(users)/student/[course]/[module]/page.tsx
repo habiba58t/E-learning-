@@ -411,7 +411,9 @@ const ModuleDetails = () => {
                     // If notes are disabled for this module, show an alert
                     setNoteError("Notes for this module are disabled.");
                 } else
-                {setShowNoteModal(true)}}}
+                {setShowNoteModal(true),setNote("")
+                  ,setNoteTitle("")
+                }}}
                 className="bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600 transition"
               >
                 Take a Note

@@ -4,12 +4,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import axiosInstance from "@/app/utils/axiosInstance";
 import { Types } from 'mongoose';
-<<<<<<< HEAD
 import axios, { AxiosError } from 'axios';
 import Link from 'next/link';
-=======
-import axios from 'axios';
->>>>>>> 64463697 (alia&shahd)
 
 export interface Course {
   _id: string;
@@ -39,12 +35,11 @@ export interface Module {
 }
 
 export interface Content {
-  _id: string;
+  _id: string
   title: string;
   isOutdated: boolean;
   resources: { filePath: string; fileType: string; originalName: string }[];
 }
-
 interface ContentWithDownload {
   title: string;
   resources: {
@@ -66,7 +61,7 @@ const CourseDetailsAdmin = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
-  const [updateMode, setUpdateMode] = useState<boolean>(false);
+  const [updateMode, setUpdateMode] = useState<boolean>(false); // Toggle update form
   const [updatedCourse, setUpdatedCourse] = useState({
     title: '',
     description: '',
@@ -76,7 +71,7 @@ const CourseDetailsAdmin = () => {
   const [moduleTitle, setModuleTitle] = useState("");
   const [moduleLevel, setModuleLevel] = useState<"easy" | "medium" | "hard">("easy");
   const [showForm, setShowForm] = useState(false);
-  const [totalStudents, setTotalStudents] = useState<number | undefined>();
+  const [totalStudents, setTotalStudents] =  useState<number | undefined>();
   const [modalOpen, setModalOpen] = useState(false);
   const [students, setStudents] = useState<string[] | null>(null);
   const [totalRating, setTotalRating] =  useState<number | 0>();
@@ -85,29 +80,20 @@ const CourseDetailsAdmin = () => {
 
   async function fetchCourseAndModules() {
     try {
-<<<<<<< HEAD
       // Fetch user data from cookies
-=======
-      // Check user auth cookie
->>>>>>> 64463697 (alia&shahd)
       const cookieResponse = await fetch(`${backend_url}/auth/get-cookie-data`, {
         credentials: "include",
       });
       const { userData } = await cookieResponse.json();
-
+  
       if (!userData || !userData.payload?.username) {
         throw new Error("No valid user data found in cookies.");
       }
-<<<<<<< HEAD
   
       const username = userData.payload.username;
        
       // Fetch course data (handle potential 404)
       let courseData: Course | null = null;
-=======
-
-      // Fetch course data
->>>>>>> 64463697 (alia&shahd)
       try {
         const courseResponse = await axiosInstance.get<Course>(`${backend_url}/courses/${courseCode}`);
         setCourse(courseResponse.data);
@@ -127,11 +113,10 @@ const CourseDetailsAdmin = () => {
         }
         setCourse(null);
       }
-
+  
       // Fetch modules data
       const modulesResponse = await axiosInstance.get<Module[]>(`${backend_url}/courses/${courseCode}/modulesAdmin`);
       setModules(modulesResponse.data);
-<<<<<<< HEAD
   
       // Fetch total students
       const totalStudentsResponse = await axiosInstance.get<number>(`${backend_url}/progress/enrolled/${courseCode}`);
@@ -152,17 +137,6 @@ const CourseDetailsAdmin = () => {
       } else {
         console.error("Course ID is missing, cannot fetch rating.");
         setError("Course ID is missing, cannot fetch rating.");
-=======
-
-      // Fetch total students
-      try {
-        const response = await axiosInstance.get<number>(`${backend_url}/progress/enrolled/${courseCode}`);
-        const answer = response.data;
-        setTotalStudents(answer || 0);
-      } catch (error) {
-        console.error('Failed to fetch total students:', error);
-        setError('Error fetching data');
->>>>>>> 64463697 (alia&shahd)
       }
     } catch (err) {
       console.error("Error fetching modules:", err);
@@ -175,8 +149,8 @@ const CourseDetailsAdmin = () => {
 
   useEffect(() => {
     fetchCourseAndModules();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   const handleDelete = async () => {
     try {
@@ -184,13 +158,13 @@ const CourseDetailsAdmin = () => {
         credentials: "include",
       });
       const { userData } = await cookieResponse.json();
-
+  
       if (!userData || !userData.payload?.username) {
         throw new Error("No valid user data found in cookies.");
       }
       const username = userData.payload.username;
       await axiosInstance.put(`${backend_url}/courses/${username}/${courseCode}/delete`);
-      router.push("/admin/courses");
+      router.push(`/admin/courses`);
     } catch (err) {
       console.error("Error fetching data:", err);
       setError("Failed to get cookie. Please try again.");
@@ -203,17 +177,17 @@ const CourseDetailsAdmin = () => {
         credentials: "include",
       });
       const { userData } = await cookieResponse.json();
-
+  
       if (!userData || !userData.payload?.username) {
         throw new Error("No valid user data found in cookies.");
       }
-
+  
       const username = userData.payload.username;
-
+  
       try {
         const response = await axiosInstance.get<Course>(`${backend_url}/courses/${courseCode}`);
         const currentCourse = response.data;
-
+  
         // Prepare updated data, using current values for any missing fields
         const updatedData = {
           title: updatedCourse.title || currentCourse.title,
@@ -221,11 +195,11 @@ const CourseDetailsAdmin = () => {
           category: updatedCourse.category || currentCourse.category,
           level: updatedCourse.level || currentCourse.level,
         };
-
-        await axiosInstance.put(`${backend_url}/courses/updateCourse/${username}/${courseCode}`, updatedData);
+  ``
+        await axiosInstance.put(`${backend_url}/courses/updateCourse/${username}/${courseCode}, updatedData`);
         setUpdateMode(false); // Hide the form
         fetchCourseAndModules(); // Refresh data
-
+  
         // Reset updatedCourse state
         setUpdatedCourse({
           title: '',
@@ -243,7 +217,7 @@ const CourseDetailsAdmin = () => {
     }
   };
 
-  const handleCreateModule = async () => {
+  const handleCreateModule =async  () => {
     try {
       const cookieResponse = await fetch(`${backend_url}/auth/get-cookie-data`, {
         credentials: "include",
@@ -254,26 +228,24 @@ const CourseDetailsAdmin = () => {
         throw new Error("No valid user data found in cookies.");
       }
       const username = userData.payload.username;
-
-      const moduleDto = {
+       const moduleDto ={
         title: moduleTitle,
         level: moduleLevel,
-      };
+       }
+       const response = await axiosInstance.put(`${backend_url}/courses/${username}/${courseCode}/modules,moduleDto`);
+       const moduleCreated= response.data;
+      await setModules((prev) => [...prev, moduleCreated]);
 
-      const response = await axiosInstance.put(`${backend_url}/courses/${username}/${courseCode}/modules,moduleDto`);
-      const moduleCreated = response.data;
-      setModules((prev) => [...prev, moduleCreated]);
-
-      console.log("Creating module:", { moduleTitle, moduleLevel });
-      fetchCourseAndModules();
-      // Reset the form and hide it
-      setModuleTitle("");
-      setModuleLevel("easy");
-      setShowForm(false);
-    } catch (err) {
-      console.error("Error creating course:", err);
-      setError("Failed to create course. Please try again.");
-    }
+    console.log("Creating module:", { moduleTitle, moduleLevel });
+    fetchCourseAndModules();
+    // Reset the form and hide it
+    setModuleTitle("");
+    setModuleLevel("easy");
+    setShowForm(false);
+  } catch (err) {
+    console.error("Error creating course:", err);
+    setError("Failed to create course. Please try again.");
+  }
   };
 
   const handleViewModule = (title: string) => {
@@ -288,7 +260,7 @@ const CourseDetailsAdmin = () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await axiosInstance.get(`${backend_url}/progress/enrolledStudents/${courseCode}`);
+        const response =await axiosInstance.get(`${backend_url}/progress/enrolledStudents/${courseCode}`);
         const students: string[] = response.data; // API returns usernames directly
         setStudents(students);
       } catch (err) {
@@ -305,94 +277,73 @@ const CourseDetailsAdmin = () => {
   };
 
   if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center">
-        <p className="text-red-500 font-medium text-lg">{error}</p>
-      </div>
-    );
+    return <div className="text-red-500">{error}</div>;
   }
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-8 px-4 sm:px-8">
-      {updateMode ? (
-        // Update Course Form
-        <div className="max-w-3xl mx-auto bg-white border border-blue-100 shadow-xl rounded-lg p-6 mb-6 mt-8">
-          <h2 className="text-2xl font-bold text-blue-700 mb-4">Update Course</h2>
-          <form className="space-y-4">
-            <div>
-              <label className="block text-gray-700 font-semibold mb-1">Title</label>
+    <div className="container mx-auto px-4 py-8">
+            {updateMode ? (
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg rounded-lg p-6 mb-6">
+          <h2 className="text-2xl font-semibold text-blue-600 mb-4">Update Course</h2>
+          <form>
+            <div className="mb-4">
+              <label className="block text-gray-700">Title</label>
               <input
                 type="text"
                 value={updatedCourse.title}
-                onChange={(e) =>
-                  setUpdatedCourse({ ...updatedCourse, title: e.target.value })
-                }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                onChange={(e) => setUpdatedCourse({ ...updatedCourse, title: e.target.value })}
+                className="w-full px-4 py-2 border rounded-lg"
               />
             </div>
-            <div>
-              <label className="block text-gray-700 font-semibold mb-1">Description</label>
+            <div className="mb-4">
+              <label className="block text-gray-700">Description</label>
               <textarea
                 value={updatedCourse.description}
-                onChange={(e) =>
-                  setUpdatedCourse({ ...updatedCourse, description: e.target.value })
-                }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                onChange={(e) => setUpdatedCourse({ ...updatedCourse, description: e.target.value })}
+                className="w-full px-4 py-2 border rounded-lg"
               />
             </div>
-            <div>
-              <label className="block text-gray-700 font-semibold mb-1">Category</label>
+            <div className="mb-4">
+              <label className="block text-gray-700">Category</label>
               <input
                 type="text"
                 value={updatedCourse.category}
-                onChange={(e) =>
-                  setUpdatedCourse({ ...updatedCourse, category: e.target.value })
-                }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                onChange={(e) => setUpdatedCourse({ ...updatedCourse, category: e.target.value })}
+                className="w-full px-4 py-2 border rounded-lg"
               />
             </div>
-            <div>
-              <label className="block text-gray-700 font-semibold mb-1">
-                Difficulty Level
-              </label>
-              <select
-                value={updatedCourse.level || ""}
-                onChange={(e) =>
-                  setUpdatedCourse({ ...updatedCourse, level: e.target.value })
-                }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-              >
-                <option value="" disabled>
-                  Select Difficulty Level
-                </option>
-                <option value="easy">Easy</option>
-                <option value="medium">Medium</option>
-                <option value="hard">Hard</option>
-              </select>
-            </div>
-            <div className="flex gap-4 pt-4">
+            <div className="mb-4">
+  <label className="block text-gray-700">Difficulty Level</label>
+  <select
+    value={updatedCourse.level || ""}
+    onChange={(e) => setUpdatedCourse({ ...updatedCourse, level: e.target.value })}
+    className="w-full px-4 py-2 border rounded-lg"
+  >
+    <option value="" disabled>
+      Select Difficulty Level
+    </option>
+    <option value="easy">Easy</option>
+    <option value="medium">Medium</option>
+    <option value="hard">Hard</option>
+  </select>
+</div>
+            <div className="flex gap-4">
               <button
                 type="button"
                 onClick={() => {
-                  if (
-                    !updatedCourse.title &&
-                    !updatedCourse.description &&
-                    !updatedCourse.category &&
-                    !updatedCourse.level
-                  ) {
-                    alert("Must fill at least one field");
-                    return;
+                  if (!updatedCourse.title && !updatedCourse.description && !updatedCourse.category && !updatedCourse.level) {
+                    alert("must fill at least one field");
+                    return; // Exit if any field is missing
                   }
-                  handleUpdateCourse();
+                  handleUpdateCourse(); // Call the function to create the course
                 }}
-                className="px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition duration-300"
+                className="px-4 py-2 bg-green-500 text-white rounded-lg"
               >
                 Confirm Update
               </button>
               <button
                 type="button"
                 onClick={() => setUpdateMode(false)}
-                className="px-4 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition duration-300"
+                className="px-4 py-2 bg-red-500 text-white rounded-lg"
               >
                 Cancel
               </button>
@@ -400,7 +351,6 @@ const CourseDetailsAdmin = () => {
           </form>
         </div>
       ) : course ? (
-<<<<<<< HEAD
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg rounded-lg p-6 mb-6">
           <h1 className="text-3xl font-semibold text-blue-600 mb-4">{course.title}</h1>
           <div className="text-gray-700 mb-6">
@@ -453,207 +403,117 @@ const CourseDetailsAdmin = () => {
                 className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter module title"
               />
-=======
-        <>
-          {/* Course Details Card */}
-          <div className="max-w-3xl mx-auto bg-white border border-blue-100 shadow-xl rounded-lg p-6 mb-6 mt-8">
-            <h1 className="text-3xl font-bold text-blue-700 mb-4">{course.title}</h1>
-            <div className="text-gray-700 space-y-2 mb-6">
-              <p>
-                <strong>Code:</strong> {course.course_code}
-              </p>
-              <p>
-                <strong>Description:</strong> {course.description}
-              </p>
-              <p>
-                <strong>Category:</strong> {course.category}
-              </p>
-              <p>
-                <strong>Level:</strong> {course.level}
-              </p>
-              <p>
-                <strong>Average Rating:</strong> {course.averageRating ?? "N/A"}
-              </p>
-              <p>
-                <strong>Number of Students Enrolled:</strong> {totalStudents}
-              </p>
-              <p>
-                <strong>Instructor:</strong> {course.created_by || "N/A"}
-              </p>
->>>>>>> 64463697 (alia&shahd)
             </div>
 
-            <div className="flex flex-wrap gap-4">
-              <button
-                onClick={() => setUpdateMode(true)}
-                className="px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 hover:scale-105 transition duration-300"
+            <div className="mb-4">
+              <label htmlFor="moduleLevel" className="block text-gray-700 font-medium mb-1">
+                Level:
+              </label>
+              <select
+                id="moduleLevel"
+                value={moduleLevel}
+                onChange={(e) => setModuleLevel(e.target.value as "easy" | "medium" | "hard")}
+                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                Update Course
-              </button>
-              <button
-                onClick={handleDelete}
-                className="px-4 py-2 bg-gradient-to-r from-red-400 via-red-500 to-red-600 text-white font-semibold rounded-lg shadow-md hover:scale-105 transition duration-300"
-              >
-                Delete Course
-              </button>
-              <button
-                onClick={() => setShowForm((prev) => !prev)}
-                className="px-4 py-2 bg-gradient-to-r from-blue-400 via-purple-500 to-indigo-500 text-white font-semibold rounded-lg shadow-md hover:scale-105 transition duration-300"
-              >
-                Create Module
-              </button>
-              <button
-                onClick={toggleModal}
-                className="px-4 py-2 bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 text-white font-semibold rounded-lg shadow-md hover:scale-105 transition duration-300"
-              >
-                Enrolled Students
-              </button>
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+            </div>
 
-              {/* Create Module Modal */}
-              {showForm && (
-                <div className="fixed inset-0 bg-blue-900 bg-opacity-50 flex justify-center items-center z-50">
-                  <div className="bg-white p-6 rounded-xl shadow-xl w-96 relative">
-                    <button
-                      onClick={() => setShowForm(false)}
-                      className="absolute top-2 right-2 text-gray-600 hover:text-gray-800"
-                    >
-                      &times;
-                    </button>
-                    <h3 className="text-lg font-bold text-blue-700 mb-4">
-                      Create New Module
-                    </h3>
-                    <div className="mb-4">
-                      <label
-                        htmlFor="moduleTitle"
-                        className="block text-gray-700 font-semibold mb-1"
-                      >
-                        Module Title:
-                      </label>
-                      <input
-                        type="text"
-                        id="moduleTitle"
-                        value={moduleTitle}
-                        onChange={(e) => setModuleTitle(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        placeholder="Enter module title"
-                      />
-                    </div>
-                    <div className="mb-4">
-                      <label
-                        htmlFor="moduleLevel"
-                        className="block text-gray-700 font-semibold mb-1"
-                      >
-                        Level:
-                      </label>
-                      <select
-                        id="moduleLevel"
-                        value={moduleLevel}
-                        onChange={(e) =>
-                          setModuleLevel(e.target.value as "easy" | "medium" | "hard")
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-                      >
-                        <option value="easy">Easy</option>
-                        <option value="medium">Medium</option>
-                        <option value="hard">Hard</option>
-                      </select>
-                    </div>
-                    <div className="flex items-center gap-4 mt-4">
-                      <button
-                        onClick={handleCreateModule}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition-all"
-                      >
-                        Confirm
-                      </button>
-                      <button
-                        onClick={() => setShowForm(false)}
-                        className="px-4 py-2 bg-red-500 text-white rounded-lg shadow-md hover:bg-red-600 transition-all"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleCreateModule}
+                className="px-4 py-2 bg-green-500 text-white rounded-lg shadow-md hover:bg-green-600 transition-all"
+              >
+                Confirm Create
+              </button>
+              <button
+                onClick={() => setShowForm(false)}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg shadow-md hover:bg-red-600 transition-all"
+              >
+                Cancel
+              </button>
+              </div>
+          </div>
+        </div>
+            )}
+            <button
+        onClick={toggleModal}
+        className="px-4 py-2 bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 text-white rounded-lg shadow-md hover:opacity-90 transition-all"
+      >
+        Enrolled Students
+      </button>
+       {/* Modal */}
+       {modalOpen && (
+        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg w-96 p-6 relative">
+            {/* Close Button */}
+            <button
+              onClick={toggleModal}
+              className="absolute top-2 right-2 text-gray-600 hover:text-gray-800"
+            >
+              &times;
+            </button>
 
-              {/* Enrolled Students Modal */}
-              {modalOpen && (
-                <div className="fixed inset-0 bg-blue-900 bg-opacity-50 flex items-center justify-center z-50">
-                  <div className="bg-white rounded-xl shadow-xl w-96 p-6 relative">
-                    <button
-                      onClick={toggleModal}
-                      className="absolute top-2 right-2 text-gray-600 hover:text-gray-800"
-                    >
-                      &times;
-                    </button>
-                    <h2 className="text-2xl font-bold text-blue-700 mb-4">
-                      Enrolled Students
-                    </h2>
-                    {loading && <p className="text-gray-500">Loading...</p>}
-                    {error && <p className="text-red-500">{error}</p>}
-                    {!loading && !error && students && (
-                      <ul className="space-y-2">
-                        {students.length > 0 ? (
-                          students.map((username) => (
-                            <li key={username}>
-                              <button
-                                onClick={() => handleUserClick(username)}
-                                className="text-blue-600 hover:underline w-full text-left"
-                              >
-                                {username}
-                              </button>
-                            </li>
-                          ))
-                        ) : (
-                          <p className="text-gray-500">No students enrolled.</p>
-                        )}
-                      </ul>
-                    )}
-                  </div>
-                </div>
-              )}
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Enrolled Students</h2>
+
+            {loading && <p className="text-gray-500">Loading...</p>}
+            {error && <p className="text-red-500">{error}</p>}
+
+            {!loading && !error && students && (
+              <ul className="space-y-2">
+                {students.length > 0 ? (
+                  students.map((username) => (
+                    <li key={username}>
+                      <button
+                        onClick={() => handleUserClick(username)}
+                        className="text-blue-600 hover:underline w-full text-left"
+                      >
+                        {username}
+                      </button>
+                    </li>
+                  ))
+                ) : (
+                  <p className="text-gray-500">No students enrolled.</p>
+                )}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}      
             </div>
           </div>
+      ) : (
+        <div>No course found with the specified code.</div>
+      )}
 
-          {/* Modules Section */}
-          <div className="max-w-3xl mx-auto bg-white border border-blue-100 shadow-xl rounded-lg p-6">
-            <h2 className="text-2xl font-bold text-blue-700 mb-4">Modules</h2>
-            {modules.length > 0 ? (
-              modules.map((module) => (
-                <div
-                  key={module._id}
-                  className="border-b border-gray-200 py-4 flex justify-between items-center"
-                >
-                  {/* Module title and level side by side */}
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-xl text-blue-600 font-semibold">
-                      {module.title}
-                    </h3>
-                    <span className="text-sm text-gray-500 bg-blue-50 px-2 py-1 rounded-md">
-                      {module.level}
-                    </span>
+      {/* Modules Section */}
+      <h2 className="text-2xl font-semibold text-gray-800 mb-4">Modules</h2>
+      {modules.length > 0 ? (
+               modules.map((module) => (
+                <div key={module._id} className="border-b border-gray-300 py-4">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-xl text-blue-600">{module.title}</h3>
+                      <span className="text-sm text-gray-500 bg-gray-200 px-2 py-1 rounded-md">{module.level}</span>
+                    </div>
+                    <div className="flex gap-2 ml-auto">
+                      <button
+                        onClick={() => handleViewModule(module.title)}
+                        className="px-3 py-1 bg-teal-500 text-white rounded-lg shadow-md hover:opacity-80"
+                      >
+                        View Module
+                      </button>
+                    </div>
                   </div>
-
-                  <button
-                    onClick={() => handleViewModule(module.title)}
-                    className="px-3 py-1 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition-all"
-                  >
-                    View Module
-                  </button>
                 </div>
               ))
             ) : (
-              <p className="text-gray-500">No modules available.</p>
+              <p>No modules available.</p>
             )}
           </div>
-        </>
-      ) : (
-        <div className="text-center text-gray-600 mt-8">
-          No course found with the specified code.
-        </div>
-      )}
-    </div>
-  );
+        );
 };
 
 export default CourseDetailsAdmin;

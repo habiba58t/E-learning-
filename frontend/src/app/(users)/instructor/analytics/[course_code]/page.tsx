@@ -16,6 +16,7 @@ import { jsPDF } from "jspdf";
 
 import { useParams } from "next/navigation";
 import InstructorSidebar from "@/app/components/instructor/instructor-sidebar/page";
+import Navbar from "@/app/components/NavBar/page";
 
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
@@ -36,7 +37,7 @@ interface AnalyticsData {
   avgCompletion: number;
   avgScore: number;
   avgRatingCourse: number;
-  // InstructorRating: number;
+  InstructorRating: number;
   modules: Module[];
   numberOfStudentsbelowAvg: number;
   numberOfStudentsAvg: number;
@@ -80,7 +81,7 @@ const Analytics = () => {
           avgCompletionResponse,
           avgScoreResponse,
           ratingResponse,
-          // InstructorRatingResponse,
+          InstructorRatingResponse,
           modulesResponse,
           studentsBelowAvgResponse,
           studentsAvgResponse,
@@ -91,7 +92,7 @@ const Analytics = () => {
           axiosInstance.get(`${backend_url}/progress/avgCompletion/${course_code}`),
           axiosInstance.get(`${backend_url}/courses/${course_code}/average-score`),
           axiosInstance.get(`${backend_url}/courses/getavg/${course._id}`),
-          //axiosInstance.get(`${backend_url}/instructor/rating/${username}`),
+          axiosInstance.get(`${backend_url}/users/InstructorRating/${user._id}`),
         //  axiosInstance.get(`${backend_url}/users/InstructorRating/${user._id}`),
           axiosInstance.get(`${backend_url}/courses/${course_code}/modulesinstructor`), // Fetch modules for the course
           axiosInstance.get(`${backend_url}/student/levelEasy/${course._id}`),
@@ -107,7 +108,7 @@ const Analytics = () => {
           avgCompletion: avgCompletionResponse.data,
           avgScore: avgScoreResponse.data,
           avgRatingCourse: ratingResponse.data,
-          //  InstructorRating: InstructorRatingResponse.data,
+          InstructorRating: InstructorRatingResponse.data,
           modules: modulesResponse.data.map((module: any) => ({
             _id: module._id,
             title: module.title,
@@ -148,8 +149,8 @@ const Analytics = () => {
     yPosition += 10;
     doc.text(`Average Course Rating: ${data.avgRatingCourse}`, 20, yPosition);
     yPosition += 10;
-    // doc.text(`Instructor Rating: ${data.InstructorRating}`, 20, yPosition);
-    // yPosition += 10;
+    doc.text(`Instructor Rating: ${data.InstructorRating}`, 20, yPosition);
+    yPosition += 10;
     // Add modules and dynamically adjust the position
     data.modules.forEach((module, index) => {
       doc.text(`Module: ${module.title}, Average Rating: ${module.averageRating}`, 20, yPosition);
@@ -157,8 +158,8 @@ const Analytics = () => {
     });
   
     // Adjust the position to avoid overlap with modules
-    // doc.text(`Students Below Average: ${data.numberOfStudentsbelowAvg}`, 20, yPosition);
-    // yPosition += 10;
+    doc.text(`Students Below Average: ${data.numberOfStudentsbelowAvg}`, 20, yPosition);
+    yPosition += 10;
     doc.text(`Students at Average: ${data.numberOfStudentsAvg}`, 20, yPosition);
     yPosition += 10;
     doc.text(`Students Above Average: ${data.numberOfStudentsAboveAvg}`, 20, yPosition);
@@ -195,8 +196,10 @@ const Analytics = () => {
   };
 
   return (
-    <div className="flex">
-      <InstructorSidebar />
+    <div className="min-h-screen bg-gray-100">
+      <div className="sticky top-0 z-10 bg-white shadow-md">
+                <Navbar />
+            </div>
       <div className="flex-1 p-6">
         <h1 className="text-2xl font-bold mb-6">Course Analytics</h1>
         <div className="bg-white shadow-md rounded-lg p-4 border border-gray-200">
@@ -208,7 +211,7 @@ const Analytics = () => {
             <p className="text-gray-700">Completed Students: {analytics.completedStudents}</p>
             <p className="text-gray-700">Average Completion: {analytics.avgCompletion}%</p>
             <p className="text-gray-700">Average Course Rating: {analytics.avgRatingCourse}</p>
-            {/* <p className="text-gray-700">Average Instructor Rating: {analytics.InstructorRating}</p> */}
+            <p className="text-gray-700">Average Instructor Rating: {analytics.InstructorRating}</p>
           </div>
 
           <div className="mb-6">

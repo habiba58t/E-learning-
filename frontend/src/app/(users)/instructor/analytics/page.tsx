@@ -8,6 +8,7 @@ import InstructorSidebar from "@/app/components/instructor/instructor-sidebar/pa
 
 
 import { useState, useEffect } from 'react';
+import Navbar from '@/app/components/NavBar/page';
 
 const backend_url = "http://localhost:3002";
 
@@ -67,8 +68,11 @@ const AnalyticsPage = () => {
   }
 
   return (
+    <div className="min-h-screen bg-gray-100">
+      <div className="sticky top-0 z-10 bg-white shadow-md">
+                <Navbar />
+            </div>
     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif', maxWidth: '900px', margin: '0 auto' }}>
-      <h1>Your Courses</h1>
       <ul style={{ listStyleType: 'none', padding: '0' }}>
         {courses.map((course) => (
           <li key={course._id} style={{
@@ -102,6 +106,7 @@ const AnalyticsPage = () => {
         ))}
       </ul>
     </div>
+   </div> 
   );
 };
 
