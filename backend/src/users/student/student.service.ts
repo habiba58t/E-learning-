@@ -223,6 +223,7 @@ async getStudentLevel(username: string, objectId: mongoose.Types.ObjectId): Prom
   return level ?? null;
 }
 
+
 //SET STUDENT SCORE
  async setStudentScore(username: string, objectId: mongoose.Types.ObjectId, newScore: number): Promise<void> {
   // Find the user by username
@@ -236,15 +237,15 @@ async getStudentLevel(username: string, objectId: mongoose.Types.ObjectId): Prom
     throw new Error(`Student score map not found for user ${username}`);
   }
 
-  const currentScore = student.studentScore.get(objectId); 
-  const updatedScore = currentScore + newScore;
+  // const currentScore = student.studentScore.get(objectId); 
+  // const updatedScore =  newScore;
 
   // Set the new score in the map
-  student.studentScore.set(objectId, updatedScore);
+  student.studentScore.set(objectId, newScore);
 
 
   await student.save();
-  await this.setStudentLevel(username,objectId, updatedScore);
+  await this.setStudentLevel(username,objectId, newScore);
  
 }
 

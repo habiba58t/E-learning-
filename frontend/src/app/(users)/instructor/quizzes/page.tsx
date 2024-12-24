@@ -1,9 +1,9 @@
-"use client"
+"use client";  // This should be at the top of the file
 
 import { useEffect, useState } from "react";
 import * as mongoose from "mongoose";
 import axiosInstance from "@/app/utils/axiosInstance";
-import Navbar from "@/app/components/NavBar/page";
+import { useRouter } from "next/navigation";
 
 const backend_url = "http://localhost:3002";
 
@@ -117,15 +117,14 @@ export default function Quiz() {
     fetchQuizzes(moduleId);
   };
 
-  const handleQuizDetailsChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const handleQuizDetailsChange = (e) => {
     const { name, value } = e.target;
-    setQuizDetails((prev) => ({
-      ...prev,
-      [name]: name === "no_of_questions" ? parseInt(value) : value,
+    setQuizDetails((prevDetails) => ({
+      ...prevDetails,
+      [name]: value,
     }));
   };
+
 
   const handleGenerateQuiz = async () => {
     if (!selectedModule) {
@@ -143,7 +142,7 @@ export default function Quiz() {
       alert("Quiz generated successfully");
       await fetchQuizzes(selectedModule);
     } catch (err) {
-      alert("Failed to generate quiz. Please try again.");
+      alert("Failed to generate quiz. Please try again after creating enough questions.");
     }
   };
 
@@ -153,8 +152,13 @@ export default function Quiz() {
       alert(response.data.message || "Quiz deleted successfully");
       if (selectedModule) await fetchQuizzes(selectedModule);
     } catch (err) {
-      alert("You can't update a quiz that has responses!");
+      alert(`You can't delete this quiz, it has responses!`);
     }
+  };
+
+  const router = useRouter();
+  const handleSeeResponses = (quizId: string) => {
+    router.push(`/instructor/quizzes/${quizId}`);
   };
 
   const handleUpdateQuiz = (quiz: Quiz) => {
@@ -179,16 +183,20 @@ export default function Quiz() {
       setIsEditingQuiz(null);
       if (selectedModule) await fetchQuizzes(selectedModule);
     } catch (err) {
-      alert(`You can't update this quiz, it!`);
+      alert(`You can't update this quiz, it has responses!`);
     }
   };
 
+  const handleCancelUpdate = () => {
+    setIsEditingQuiz(null);
+    setQuizDetails({
+      no_of_questions: 0,
+      types_of_questions: "" as "mcq" | "t/f" | "both",
+    });
+  };
+
   return (
-      <div className="min-h-screen bg-gray-100">
-      <div className="sticky top-0 z-10 bg-white shadow-md">
-                <Navbar />
-            </div>
-      <div className="p-8"></div>
+    <div className="min-h-screen bg-gray-100 py-8 px-4">
       <div className="max-w-4xl mx-auto bg-white shadow-md rounded-lg p-6">
         <h1 className="text-2xl font-bold text-black mb-4">Create a Quiz</h1>
 
@@ -284,17 +292,27 @@ export default function Quiz() {
               >
                 Update Quiz
               </button>
+
+              <button
+                type="button"
+                onClick={handleCancelUpdate}
+                className="w-full mt-4 py-2 bg-gray-600 text-white rounded-lg font-semibold focus:outline-none hover:bg-gray-700"
+              >
+                Cancel Update
+              </button>
             </form>
           </div>
         ) : quizzes.length === 0 ? (
           <div className="mb-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-3">Quiz Details</h2>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleGenerateQuiz();
-              }}
-            >
+          <h2 className="text-xl font-semibold text-gray-800 mb-3">No Quizzes Available</h2>
+          <p>No quizzes have been created yet for this module.</p>
+          {/* Show Generate Quiz Form */}
+          <div className="mt-6">
+            <h3 className="text-lg font-medium text-gray-700 mb-2">Generate a New Quiz</h3>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              handleGenerateQuiz();
+            }}>
               <div className="mb-4">
                 <label htmlFor="no_of_questions" className="block text-gray-700 font-medium mb-2">
                   Number of Questions
@@ -310,7 +328,7 @@ export default function Quiz() {
                   required
                 />
               </div>
-
+      
               <div className="mb-4">
                 <label htmlFor="types_of_questions" className="block text-gray-700 font-medium mb-2">
                   Question Type
@@ -329,7 +347,7 @@ export default function Quiz() {
                   <option value="both">Both</option>
                 </select>
               </div>
-
+      
               <button
                 type="submit"
                 className="w-full py-2 bg-indigo-600 text-white rounded-lg font-semibold focus:outline-none hover:bg-indigo-700"
@@ -338,33 +356,43 @@ export default function Quiz() {
               </button>
             </form>
           </div>
-        ) : (
+        </div>
+      ) : (
           <div>
             <h2 className="text-xl font-semibold text-gray-800 mb-3">Quizzes</h2>
-            <div className="space-y-4">
+            <ul className="space-y-4">
               {quizzes.map((quiz) => (
-                <div key={quiz._id} className="bg-white shadow-lg rounded-lg p-4">
-                  <h3 className="text-lg font-semibold">{`Quiz #${quiz._id}`}</h3>
-                  <p className="text-gray-600">
-                    {quiz.no_of_questions} Questions | {quiz.types_of_questions}
-                  </p>
-                  <div className="flex space-x-2 mt-4">
-                    <button
-                      onClick={() => handleDeleteQuiz(quiz._id)}
-                      className="bg-red-600 text-white py-2 px-4 rounded-lg"
-                    >
-                      Delete Quiz
-                    </button>
-                    <button
-                      onClick={() => handleUpdateQuiz(quiz)}
-                      className="bg-indigo-600 text-white py-2 px-4 rounded-lg"
-                    >
-                      Update Quiz
-                    </button>
+                <li key={quiz._id} className="bg-gray-100 p-4 rounded-lg shadow-md">
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="font-semibold text-lg text-black">{quiz._id}</h3>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleSeeResponses(quiz._id)}
+                        className="bg-indigo-600 text-white rounded-lg py-1 px-3"
+                      >
+                        See Responses
+                      </button>
+                      <button
+                        onClick={() => handleDeleteQuiz(quiz._id)}
+                        className="bg-red-600 text-white rounded-lg py-1 px-3"
+                      >
+                        Delete Quiz
+                      </button>
+                      <button
+                        onClick={() => handleUpdateQuiz(quiz)}
+                        className="bg-yellow-500 text-white rounded-lg py-1 px-3"
+                      >
+                        Edit Quiz
+                      </button>
+                    </div>
                   </div>
-                </div>
+                  <div className="text-sm text-gray-600">
+                    <p><strong>No. of Questions:</strong> {quiz.no_of_questions}</p>
+                    <p><strong>Question Types:</strong> {quiz.types_of_questions}</p>
+                  </div>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
         )}
       </div>

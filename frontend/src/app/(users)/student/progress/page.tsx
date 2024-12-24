@@ -21,6 +21,8 @@ export default function ProgressPage() {
     const [progress, setProgress] = useState<Progress[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
+    const [username, setUsername] = useState<string>('');
+
     const router = useRouter();
 
     async function fetchCookieData() {
@@ -35,12 +37,9 @@ export default function ProgressPage() {
             }
 
             const username = userData.payload.username;
-
-            const apiUrl = `${backend_url}/progress/user/${username}`;
-            console.log("Fetching progress from:", apiUrl);
-
-            const response = await axiosInstance.get<Progress[]>(apiUrl);
-            const progresses = response.data;
+            setUsername(username)
+            const courses = await axiosInstance.get(`http://localhost:3002/courses/${username}/courses`)
+            const progresses = courses.data;
 
             console.log("Initial progress data:", progresses);
 
@@ -52,34 +51,43 @@ export default function ProgressPage() {
 
             for (const course of progresses) {
                 try {
-                    const course_code = course.course_code
+                    const courseId = course._id
 
-                    const getCourse = await axiosInstance.get(`http://localhost:3002/courses/${course_code}`)
-                    console.log(getCourse.data)
                     // Fetch avgScore and level for each course
                     const avgScoreResponse = await axiosInstance.get<number>(
                        // `${backend_url}/student/${username}/level/${course._id}`
-                        `http://localhost:3002/student/${username}/score/${getCourse.data._id}`
+                        `http://localhost:3002/student/${username}/score/${courseId}`
                     );
                     const levelResponse = await axiosInstance.get<string>(
-                         `http://localhost:3002/student/${username}/level/${getCourse.data._id}`
+                         `http://localhost:3002/student/${username}/level/${courseId}`
                         
                     );
 
+                    const completionPercentage = await axiosInstance.get(`http://localhost:3002/progress/completionPercentage/${username}`)
+                    
+
+                    console.log("completetion Percentage", completionPercentage.data);
                     console.log("Average Score Response:", avgScoreResponse.data);
                     console.log("Level Response:", levelResponse.data);
+                    console.log("completion Response:", completionPercentage.data);
+
 
                     // Check for null or undefined values
                     const avgScore = avgScoreResponse.data ?? "No score available";
                     const level = levelResponse.data ?? "No level available";
+                    const completion_percentage = completionPercentage.data ?? "No percentage available";
+
 
                     console.log("Fetched score:", avgScore);
                     console.log("Fetched level:", level);
+                    console.log("Fetched percentage:", completion_percentage);
+
 
                     progressWithAdditionalData.push({
                         ...course,
                         avgScore,  // Set avgScore from response
                         level,     // Set level from response
+                        completion_percentage
                     });
                 } catch (err) {
                     console.error(`Error fetching additional data for course:`, err);
@@ -141,17 +149,17 @@ export default function ProgressPage() {
                                         <p>Level: {course.level}</p>
                                     </div>
                                     <div className="text-gray-700 font-bold ">
-                                        {course.completion_percentage}%
+                                        {course.completion_percentage}
                                     </div>
                                 </div>
 
                                 <div className="relative w-full h-4 bg-gray-300 rounded-full mt-4">
-                                    <div
+                                    {/* <div
                                         className="absolute h-4 bg-blue-500 rounded-full "
                                         style={{
                                             width: `${course.completion_percentage}%`,
                                         }}
-                                    ></div>
+                                    ></div> */}
                                 </div>
                             </div>
                         ))}

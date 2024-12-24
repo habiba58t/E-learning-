@@ -99,7 +99,11 @@ const ChatPage2 = () => {
         `http://localhost:3002/private-chat/${currentChatId}/message`,
         { content: inputMessage, sentBy: currentUsername }
       );
-    } catch (error) {
+      const response2 =await axiosInstance.post(`http://localhost:3002/notification/private-chatsent/${currentUsername}/${selectedUser}`);    
+
+    } 
+
+    catch (error) {
       console.error('Error sending message:', error);
       setError('Error sending message');
       setChat(prevChat => prevChat.filter(msg => msg !== newMessage));  // Rollback on error

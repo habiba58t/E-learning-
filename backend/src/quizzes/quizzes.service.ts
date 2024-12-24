@@ -491,11 +491,11 @@ async submitQuiz(
 
   const allQuestions = await this.questionModel.find({ '_id': { $in: quiz.questions } });
   if (allQuestions.length === 0) throw new Error('No questions found for the quiz');
-
   const studentAnswers = Object.keys(studentAnswersObject).map((key) => ({
     questionId: new mongoose.Types.ObjectId(key),
     answer: studentAnswersObject[key],
   }));
+  const no_of_questions = allQuestions.length > quiz.no_of_questions?  quiz.no_of_questions: allQuestions.length;
 
   // Step 2: Calculate the score
   let score = 0;
@@ -506,7 +506,7 @@ async submitQuiz(
     }
   });
 
-  const scorePercentage = score / allQuestions.length;
+  const scorePercentage = score / no_of_questions;
   const penalty = scorePercentage < 0.5 ? -(1 - scorePercentage) : 0;
 
   // Step 3: Check for an existing response for the quiz and student
@@ -542,8 +542,11 @@ async submitQuiz(
     if (course) {
       let courseStudentScore = await this.studentService.getStudentScore(studentUsername, course._id);
 
-      if (courseStudentScore) {
-        courseStudentScore += penalty ? penalty : scorePercentage;
+      if (courseStudentScore ) {
+        if(penalty===0)
+        courseStudentScore += scorePercentage;
+        else
+          courseStudentScore -= penalty;
       } else {
         courseStudentScore = scorePercentage;
       }

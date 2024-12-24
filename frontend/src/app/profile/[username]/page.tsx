@@ -350,12 +350,7 @@ const ProfilePage = () => {
 
 {!isOwnProfile && isStudent && profile.role === "instructor" && !hasRated && (
   <>
-    <button
-      onClick={handleMessage}
-      className="bg-blue-500 text-white py-2 px-4 rounded mb-2"
-    >
-      Message
-    </button>
+   
 
     <button
       onClick={() => setIsRating(true)} // Open the rating interface
@@ -366,15 +361,15 @@ const ProfilePage = () => {
   </>
 )}
 
-
-          {!isOwnProfile && isStudent && profile.role === "instructor" && (
-  <button
-    onClick={() => setIsRating(true)} // Open the rating interface
-    className="bg-blue-500 text-white py-2 px-4 rounded mb-2"
-  >
-    Rate Instructor
-  </button>
-)}
+{/* 
+          {!isOwnProfile && isStudent && profile.role === "student" && (
+ <button
+      onClick={handleMessage}
+      className="bg-blue-500 text-white py-2 px-4 rounded mb-2"
+    >
+      Message
+    </button>
+)} */}
 
             {(profile.role === "instructor" && isOwnProfile) ||
             (isAdmin && !isOwnProfile && profile.role === "instructor") ? (

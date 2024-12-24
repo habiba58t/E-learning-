@@ -128,51 +128,62 @@ async deleteProgressByUsername(Username: string) {
       }
 
 
-      async setCompletionPercentage(Username: string): Promise<number[]>{
-        let CompPercentage: number[];
-        const student= await this.userModel.findOne({Username}).exec();
-        const courses= await this.courseModel.find({_id:{ $in:student.courses}}).exec();
-        let ModulesCompleted=0;
-        
+      async setCompletionPercentage(Username: string): Promise<number[]> {
+        const CompPercentage: number[] = []; // Initialize the array
+        const student = await this.userModel.findOne({ username:Username }).exec();
+        console.log(student)
+        if (!student ) {
+          throw new Error('Student not found .');
+        }
+        if( !student.courses || student.courses.length === 0){
+          throw new Error('Student notr enrolled in any courses.');
 
-        for(const course of courses){
-            const modules= await this.moduleModel.find({_id:{ $in:course.modules}}).exec();
-            if(modules.length==0){
-              await this.progressModel.findOneAndUpdate(
-                { Username, course_code: course._id }, // Ensure you have course._id if tracking per course
-                { completion_percentage: 0, last_accessed: new Date() },
-                { upsert: true },
-              );
+        }
+        const courses = await this.courseModel.find({ _id: { $in: student.courses } }).exec();
+      
+        for (const course of courses) {
+          let ModulesCompleted = 0; // Reset for each course
+          const modules = await this.moduleModel.find({ _id: { $in: course.modules } }).exec();
+      
+          if (modules.length === 0) {
+            // No modules in this course
             CompPercentage.push(0);
-            }
-            else{
-                          var noOfModules = modules.length;
-            for(const module of modules){
-                const quizzes= await this.quizModel.find({_id:{ $in: module.quizzes}}).exec();
-                if(quizzes.length>0){
-                    const quiz = quizzes[0];
-                    const checkStat=await this.quizzesService.checkStudentQuizStatus( quiz._id, Username);
-                    if(checkStat===true){
-                        ModulesCompleted++;
-                    }
+            await this.progressModel.findOneAndUpdate(
+              { Username, course_code: course._id },
+              { completion_percentage: 0, last_accessed: new Date() },
+              { upsert: true },
+            );
+          } else {
+            const noOfModules = modules.length;
+      
+            for (const module of modules) {
+              const quizzes = await this.quizModel.find({ _id: { $in: module.quizzes } }).exec();
+      
+              if (quizzes.length > 0) {
+                for (const quiz of quizzes) {
+                  const checkStat = await this.quizzesService.checkStudentQuizStatus(quiz._id, Username);
+                  if (checkStat === true) {
+                    ModulesCompleted++;
+                    break; // Break to avoid counting multiple quizzes in the same module
                   }
                 }
-            
-
-            const completionPercentage = (ModulesCompleted / noOfModules) * 100 ;
+              }
+            }
+      
+            const completionPercentage = (ModulesCompleted / noOfModules) ;
             CompPercentage.push(completionPercentage);
+      
             await this.progressModel.findOneAndUpdate(
-                { Username, course_code: course._id }, // Ensure you have course._id if tracking per course
-                { completion_percentage: completionPercentage, last_accessed: new Date() },
-                { upsert: true },
-                  );
+              { Username, course_code: course._id },
+              { completion_percentage: completionPercentage, last_accessed: new Date() },
+              { upsert: true },
+            );
+          }
         }
       
+        return CompPercentage;
       }
-      return await CompPercentage;
-        
-      }
-
+      
       
       async AvgCompletionForAll(course_code: string): Promise<number> {
         // Fetch all progress documents for the given course
