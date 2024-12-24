@@ -12,6 +12,7 @@ interface CourseData {
   category: string;
   created_by: string;
   average_rating?: string;
+  course_code: string;
 }
 
 const CoursesPage = () => {
@@ -33,6 +34,8 @@ const CoursesPage = () => {
     if (username) fetchCourses();
   }, [searchQuery, username]);
 
+
+  
   const fetchCookieData = async () => {
     try {
       const response = await fetch("http://localhost:3002/auth/get-cookie-data", {
@@ -101,6 +104,11 @@ const CoursesPage = () => {
     }
   };
 
+  const handleClick = async (course_code: string) =>{
+     const course = course_code
+    router.push(`/student/${course}`)
+  }
+
   const displayedCourses =
     displayCategory === "enrolled"
       ? enrolledCourses.slice(0, 3)
@@ -159,6 +167,7 @@ const CoursesPage = () => {
                   username={username}
                   displayCategory={displayCategory}
                   handleEnroll={handleEnroll}
+                  handleClick={handleClick}
                 />
               ))
             ) : (
@@ -178,11 +187,13 @@ function CourseCard({
   username,
   displayCategory,
   handleEnroll,
+  handleClick,
 }: {
   course: CourseData;
   username: string | null;
   displayCategory: "enrolled" | "notEnrolled";
   handleEnroll: (courseId: string) => void;
+  handleClick: (course_code: string) => void;
 }) {
   return (
     <div className="relative bg-white rounded-xl shadow-md hover:shadow-lg overflow-hidden transition-transform transform hover:scale-105">
@@ -200,9 +211,12 @@ function CourseCard({
       {/* Enroll Button */}
       <div className="flex justify-center pb-4">
         {displayCategory === "enrolled" ? (
-          <span className="mt-4 px-4 py-2 bg-green-800 text-white font-bold rounded-full">
-            Enrolled
-          </span>
+
+        <button
+            onClick={() => handleClick(course.course_code)}
+            className="mt-4 px-4 py-2 bg-blue-800 text-white font-bold rounded-full hover:bg-blue-700 transition duration-300"
+          >            Go to courses
+          </button>
         ) : (
           <button
             onClick={() => handleEnroll(course._id)}

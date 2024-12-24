@@ -1,4 +1,4 @@
-"use client";
+"use client"; // Ensure this is placed at the top of the file to indicate client-side rendering
 
 import React, { useState, useEffect } from "react";
 import axiosInstance from "@/app/utils/axiosInstance";
@@ -68,6 +68,10 @@ const StudentPage = () => {
     }
   };
 
+  const handleUsernameClick = (username: string) => {
+    router.push(`/profile/${username}`);
+  };
+
   const handleRedirectToChat = (receiverUsername: string | undefined) => {
     if (username && receiverUsername) {
       router.push(`/student/private-chats/${username}/${receiverUsername}`);
@@ -110,6 +114,7 @@ const StudentPage = () => {
                   student={student}
                   username={username}
                   handleRedirectToChat={handleRedirectToChat}
+                  handleUsernameClick={handleUsernameClick} // Pass the function as a prop
                 />
               ))
             ) : (
@@ -136,22 +141,26 @@ const StudentPage = () => {
   );
 };
 
+interface StudentCardProps {
+  student: UserorCourseData;
+  username: string | null;
+  handleUsernameClick: (username: string) => void;
+  handleRedirectToChat: (receiverUsername: string | undefined) => void;
+}
+
 function StudentCard({
   student,
   username,
   handleRedirectToChat,
-}: {
-  student: UserorCourseData;
-  username: string | null;
-  handleRedirectToChat: (receiverUsername: string | undefined) => void;
-}) {
+  handleUsernameClick,
+}: StudentCardProps) {
   return (
     <div className="relative bg-white rounded-xl shadow-md hover:shadow-lg overflow-hidden transition-transform transform hover:scale-105">
       {/* Profile Image */}
       <div className="relative w-full h-40 bg-gray-100 flex items-center justify-center">
         <img
           className="object-cover w-24 h-24 rounded-full shadow"
-           src= "https://static.vecteezy.com/system/resources/thumbnails/020/765/399/small/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg"
+          src="https://static.vecteezy.com/system/resources/thumbnails/020/765/399/small/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg"
           alt={student.name || "Student"}
         />
       </div>
@@ -161,8 +170,15 @@ function StudentCard({
         <h5 className="text-lg font-semibold text-gray-800 mb-2">
           {student.name}
         </h5>
-        <p className="text-sm text-gray-600">Username: {student.username}</p>
-        <p className="text-sm text-gray-600">Email: {student.email}</p>
+        <p className="text-gray-600">
+          Username:{" "}
+          <span
+            className="font-bold text-blue-600 cursor-pointer hover:underline"
+            onClick={() => handleUsernameClick(student.username || "")}
+          >
+            {student.username}
+          </span>
+        </p>         <p className="text-sm text-gray-600">Email: {student.email}</p>
       </div>
 
       {/* Chat Button */}

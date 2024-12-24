@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import axiosInstance from "@/app/utils/axiosInstance";
 import { useRouter } from "next/navigation"; // Use the App Router's navigation hook
+import Link from 'next/link';
 
 const backend_url = "http://localhost:3002";
 
@@ -144,7 +145,7 @@ export default function RegisterPage() {
                                         <option value="" disabled>Select a Role</option>
                                         <option value="student">Student</option>
                                         <option value="instructor">Instructor</option>
-                                        <option value="admin">Admin</option>
+                                   {/* //     <option value="admin">Admin</option> */}
                                     </select>
                                     <label
                                         htmlFor="role"
@@ -161,6 +162,19 @@ export default function RegisterPage() {
                                     >
                                         Register
                                     </button>
+
+                                    <p className="mt-4 text-center text-gray-600">
+                                                                    Have an account?{' '}
+                                                                    <Link
+                                                                        href="/login"
+                                                                        className="text-orange-500 hover:text-blue-600 font-semibold"
+                                                                    >
+                                                                        Login
+                                                                    </Link>
+                                                                </p>
+
+
+
                                 </div>
                             </div>
                             </form>

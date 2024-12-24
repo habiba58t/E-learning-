@@ -24,6 +24,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { ScheduleModule } from '@nestjs/schedule';
 import { BackupModule } from './backups/backup.module';
 import { ConfigModule } from '@nestjs/config';
+import { ContentModule } from './content/content.module';
 
 @Module({
   imports: [PrivateChatModule, MessageModule, ProgressModule, UsersModule, CoursesModule, ModulesModule, ResponsesModule, QuizzesModule, QuestionsModule,StudentModule,NotesModule,LogModule,
@@ -33,7 +34,7 @@ import { ConfigModule } from '@nestjs/config';
     }),GroupChatModule,ScheduleModule.forRoot(), BackupModule, ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env', // Makes the config accessible throughout the app
-    }),],
+    }),ContentModule],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -196,7 +196,7 @@ const CourseDetailsAdmin = () => {
           level: updatedCourse.level || currentCourse.level,
         };
   ``
-        await axiosInstance.put(`${backend_url}/courses/updateCourse/${username}/${courseCode}, updatedData`);
+        await axiosInstance.put(`${backend_url}/courses/updateCourse/${username}/${courseCode}`, updatedData);
         setUpdateMode(false); // Hide the form
         fetchCourseAndModules(); // Refresh data
   
@@ -232,7 +232,7 @@ const CourseDetailsAdmin = () => {
         title: moduleTitle,
         level: moduleLevel,
        }
-       const response = await axiosInstance.put(`${backend_url}/courses/${username}/${courseCode}/modules,moduleDto`);
+       const response = await axiosInstance.put(`${backend_url}/courses/${username}/${courseCode}/modules`,moduleDto);
        const moduleCreated= response.data;
       await setModules((prev) => [...prev, moduleCreated]);
 
@@ -273,7 +273,7 @@ const CourseDetailsAdmin = () => {
   };
 
   const handleUserClick = (username: string) => {
-    router.push(`/profiles/${username}`);
+    router.push(`/profile/${username}`);
   };
 
   if (error) {

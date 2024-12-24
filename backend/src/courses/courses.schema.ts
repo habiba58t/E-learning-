@@ -49,6 +49,11 @@ averageRating: number;
 
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Threads' }] ,default: [] })
 threads: mongoose.Types.ObjectId[];
+
+
+@Prop({ required: false }) // Optional field
+  imageUrl: string; // The URL for the course image
+
 }
 
 export const CoursesSchema = SchemaFactory.createForClass(Courses);

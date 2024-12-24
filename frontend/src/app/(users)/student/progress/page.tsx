@@ -22,8 +22,12 @@ export default function ProgressPage() {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [username, setUsername] = useState<string>('');
-
+    const [completionPercentages, setCompletionPercentages] = useState<Record<string, number>>({});
     const router = useRouter();
+
+
+
+
 
     async function fetchCookieData() {
         try {
@@ -63,31 +67,34 @@ export default function ProgressPage() {
                         
                     );
 
-                    const completionPercentage = await axiosInstance.get(`http://localhost:3002/progress/completionPercentage/${username}`)
-                    
+                     await axiosInstance.get(`http://localhost:3002/progress/completionPercentage/${username}`)
 
-                    console.log("completetion Percentage", completionPercentage.data);
-                    console.log("Average Score Response:", avgScoreResponse.data);
-                    console.log("Level Response:", levelResponse.data);
-                    console.log("completion Response:", completionPercentage.data);
+                    
+                     const completion_percentage = await handleCompletionPercentage(username, course.course_code);
+
+
+                    // console.log("completetion Percentage", completionPercentage.data);
+                    // console.log("Average Score Response:", avgScoreResponse.data);
+                    // console.log("Level Response:", levelResponse.data);
+                    // console.log("completion Response:", completionPercentage.data);
 
 
                     // Check for null or undefined values
                     const avgScore = avgScoreResponse.data ?? "No score available";
                     const level = levelResponse.data ?? "No level available";
-                    const completion_percentage = completionPercentage.data ?? "No percentage available";
+                  //  const completion_percentage = completionPercentage.data ?? "No percentage available";
 
 
                     console.log("Fetched score:", avgScore);
                     console.log("Fetched level:", level);
-                    console.log("Fetched percentage:", completion_percentage);
+                //    console.log("Fetched percentage:", completion_percentage);
 
 
                     progressWithAdditionalData.push({
                         ...course,
                         avgScore,  // Set avgScore from response
                         level,     // Set level from response
-                        completion_percentage
+                      completion_percentage
                     });
                 } catch (err) {
                     console.error(`Error fetching additional data for course:`, err);
@@ -109,6 +116,28 @@ export default function ProgressPage() {
         fetchCookieData();
     }, []);
 
+
+    const handleCompletionPercentage = async (username: string, course_code: string) => {
+        try {
+            const response = await axiosInstance.get(
+                `http://localhost:3002/progress/user-course/${username}/${course_code}`
+            );
+            setCompletionPercentages(prevState => ({
+                ...prevState,
+                [course_code]: response.data.completion_percentage *100
+            }));
+        } catch (error) {
+            console.error("Error fetching completion percentage:", error);
+            setCompletionPercentages(prevState => ({
+                ...prevState,
+                [course_code]: 0 // Default to 0 in case of error
+            }));
+        }
+    };
+
+
+
+
     if (loading) {
         return <div>Loading progress data...</div>;
     }
@@ -116,6 +145,12 @@ export default function ProgressPage() {
     if (error) {
         return <div className="text-red-500">{error}</div>;
     }
+
+    
+   
+
+
+
 
     return (
         <div>
@@ -147,19 +182,19 @@ export default function ProgressPage() {
                                         </p> */}
                                         <p className="text-gray-800">Average Score: {course.avgScore}</p>
                                         <p>Level: {course.level}</p>
-                                    </div>
+                                        <p>Completion Percentage: {completionPercentages[course.course_code]}</p>                                    </div>
                                     <div className="text-gray-700 font-bold ">
-                                        {course.completion_percentage}
+                                    
                                     </div>
                                 </div>
 
                                 <div className="relative w-full h-4 bg-gray-300 rounded-full mt-4">
-                                    {/* <div
+                                    <div
                                         className="absolute h-4 bg-blue-500 rounded-full "
                                         style={{
-                                            width: `${course.completion_percentage}%`,
+                                            width: `${completionPercentages[course.course_code] }%`, // Fallback to 0% if undefined                                        }}
                                         }}
-                                    ></div> */}
+                                            ></div>
                                 </div>
                             </div>
                         ))}

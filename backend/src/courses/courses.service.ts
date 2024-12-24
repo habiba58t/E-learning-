@@ -40,7 +40,7 @@ export class CoursesService {
   async findAll(): Promise<{ title: string; description: string }[]> {
     return this.courseModel
       .find({ Unavailable: false }) // Filter to get only available courses
-      .select('title description averageRating created_by category')  // Select only title and description fields
+      .select('title description averageRating created_by category course_code')  // Select only title and description fields
       .exec();
   }
 
@@ -502,6 +502,19 @@ async getcoursesforuser(username: string): Promise<courseDocument[]> {
   .exec();
   return courses;
 }
+
+
+  // Search courses by query
+  async searchCourses(query: string): Promise<courseDocument[]> {
+    return this.courseModel.find({
+      $or: [
+        { title: { $regex: query, $options: 'i' } },  // Search by title (case-insensitive)
+        { category: { $regex: query, $options: 'i' } },  // Search by category (case-insensitive)
+        { created_by: { $regex: query, $options: 'i' } },  // Search by instructor (case-insensitive)
+      ],
+    }).exec();
+  }
+
 
 
 

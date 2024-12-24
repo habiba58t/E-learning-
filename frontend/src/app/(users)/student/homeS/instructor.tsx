@@ -1,13 +1,14 @@
-"use client";
+"use client"; // Ensure this is placed at the top of the file to indicate client-side rendering
 
 import React, { useState, useEffect } from "react";
 import axiosInstance from "@/app/utils/axiosInstance";
 import Sidebar from "@/app/components/student-sidebar/page";
+import { useRouter } from "next/navigation";
 
 interface InstructorData {
   _id: string;
   name?: string; // For instructors
-  username?: string; // For instructors
+  username: string; // For instructors
   email?: string; // For instructors
 }
 
@@ -15,6 +16,7 @@ const InstructorPage = () => {
   const [instructors, setInstructors] = useState<InstructorData[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     fetchInstructors();
@@ -37,6 +39,10 @@ const InstructorPage = () => {
       console.error("Error fetching instructors:", err);
       setError("Error fetching instructors");
     }
+  };
+
+  const handleUsernameClick = (username: string) => {
+    router.push(`/profile/${username}`);
   };
 
   // Limit displayed instructors to the first three unless searching
@@ -72,6 +78,7 @@ const InstructorPage = () => {
                 <InstructorCard
                   key={instructor._id}
                   instructor={instructor}
+                  handleUsernameClick={handleUsernameClick} // Pass the function as a prop
                 />
               ))
             ) : (
@@ -98,14 +105,19 @@ const InstructorPage = () => {
   );
 };
 
-function InstructorCard({ instructor }: { instructor: InstructorData }) {
+interface InstructorCardProps {
+  instructor: InstructorData;
+  handleUsernameClick: (username: string) => void; // Define the prop type for handleUsernameClick
+}
+
+function InstructorCard({ instructor, handleUsernameClick }: InstructorCardProps) {
   return (
     <div className="relative bg-white rounded-xl shadow-md hover:shadow-lg overflow-hidden transition-transform transform hover:scale-105">
       {/* Profile Image */}
       <div className="relative w-full h-40 bg-gray-100 flex items-center justify-center">
         <img
           className="object-cover w-24 h-24 rounded-full shadow"
-          src= "https://static.vecteezy.com/system/resources/thumbnails/020/765/399/small/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg"
+          src="https://static.vecteezy.com/system/resources/thumbnails/020/765/399/small/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg"
           alt={instructor.name || "Instructor"}
         />
       </div>
@@ -115,7 +127,17 @@ function InstructorCard({ instructor }: { instructor: InstructorData }) {
         <h5 className="text-lg font-semibold text-gray-800 mb-2">
           {instructor.name}
         </h5>
-        <p className="text-sm text-gray-600">Username: {instructor.username}</p>
+
+        <p className="text-gray-600">
+          Username:{" "}
+          <span
+            className="font-bold text-blue-600 cursor-pointer hover:underline"
+            onClick={() => handleUsernameClick(instructor.username || "")}
+          >
+            {instructor.username}
+          </span>
+        </p>  
+
         <p className="text-sm text-gray-600">Email: {instructor.email}</p>
       </div>
     </div>

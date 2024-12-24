@@ -128,33 +128,34 @@ async deleteProgressByUsername(Username: string) {
       }
 
 
-      async setCompletionPercentage(Username: string): Promise<number[]> {
+      async setCompletionPercentage(Username: string): Promise<void>{
         const CompPercentage: number[] = []; // Initialize the array
         const student = await this.userModel.findOne({ username:Username }).exec();
         console.log(student)
         if (!student ) {
-          throw new Error('Student not found .');
+          throw new Error('Student not found.');
         }
         if( !student.courses || student.courses.length === 0){
-          throw new Error('Student notr enrolled in any courses.');
+          throw new Error('student not enrolled in any courses.');
 
         }
         const courses = await this.courseModel.find({ _id: { $in: student.courses } }).exec();
       
         for (const course of courses) {
           let ModulesCompleted = 0; // Reset for each course
-          const modules = await this.moduleModel.find({ _id: { $in: course.modules } }).exec();
+          const modules = await this.coursesService.getModulesForCourseStudent2(course.course_code,student);
       
           if (modules.length === 0) {
             // No modules in this course
             CompPercentage.push(0);
             await this.progressModel.findOneAndUpdate(
-              { Username, course_code: course._id },
+              { Username, course_code: course.course_code },
               { completion_percentage: 0, last_accessed: new Date() },
               { upsert: true },
             );
           } else {
             const noOfModules = modules.length;
+            console.log("moulesno", noOfModules);
       
             for (const module of modules) {
               const quizzes = await this.quizModel.find({ _id: { $in: module.quizzes } }).exec();
@@ -164,24 +165,26 @@ async deleteProgressByUsername(Username: string) {
                   const checkStat = await this.quizzesService.checkStudentQuizStatus(quiz._id, Username);
                   if (checkStat === true) {
                     ModulesCompleted++;
-                    break; // Break to avoid counting multiple quizzes in the same module
+                  //  break; // Break to avoid counting multiple quizzes in the same module
                   }
                 }
               }
             }
       
-            const completionPercentage = (ModulesCompleted / noOfModules) ;
-            CompPercentage.push(completionPercentage);
+            console.log("no of modules", ModulesCompleted);
+
+            const completionPercentage = ModulesCompleted / noOfModules ;
+        //    CompPercentage.push(completionPercentage);
       
             await this.progressModel.findOneAndUpdate(
-              { Username, course_code: course._id },
+              { Username, course_code: course.course_code },
               { completion_percentage: completionPercentage, last_accessed: new Date() },
               { upsert: true },
             );
           }
         }
       
-        return CompPercentage;
+        //return CompPercentage;
       }
       
       

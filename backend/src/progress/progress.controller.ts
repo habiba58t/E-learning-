@@ -124,7 +124,7 @@ async updateProgress(@Param('course_code') course_code: string,@Param('Username'
   }
 
   @Get('completionPercentage/:Username')
-  async getCompletionPercentage(@Param('Username') Username: string): Promise<number []>{
+  async getCompletionPercentage(@Param('Username') Username: string): Promise< void>{
     return await this.progressService.setCompletionPercentage(Username);
   }
 

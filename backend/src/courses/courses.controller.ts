@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Put, Delete,NotFoundException, InternalServerErrorException,UseGuards,Req} from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete,NotFoundException, InternalServerErrorException,UseGuards,Req, Query} from '@nestjs/common';
 import { CoursesService } from './courses.service';
 import { Courses} from './courses.schema';
 import { CreateCourseDto } from './dto/CreateCourse.dto';
@@ -18,6 +18,20 @@ import {notificationDocument} from 'src/notification/notification.schema';
 export class CoursesController {
     constructor(private readonly coursesService: CoursesService) {}
 
+
+
+    @Get('search')
+    async searchCourses(@Query('query') query: string) {
+      if (!query) {
+        return []; // Handle case where query is not provided
+      }
+      return this.coursesService.searchCourses(query);
+    }
+
+    
+
+
+    
   //GET ALL COURSES //PUBLIC 
   @Public() 
 @Get()

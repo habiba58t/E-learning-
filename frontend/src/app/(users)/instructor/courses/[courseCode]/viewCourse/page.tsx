@@ -275,7 +275,7 @@ const CourseDetails = () => {
   };
 
   const handleUserClick = (username: string) => {
-    router.push(`/profiles/${username}`);
+    router.push(`/profile/${username}`);
   };
 
   const handleChat= () => {

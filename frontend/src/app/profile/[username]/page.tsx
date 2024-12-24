@@ -209,8 +209,13 @@ const ProfilePage = () => {
     try {
       await axiosInstance.delete(`${backendUrl}/users/delete/${profile?.username}`);
       alert("Account deleted successfully!");
-      window.location.reload();
-    } catch (err) {
+      if(isOwnProfile)
+        router.push("/")
+      else
+       window.location.reload();
+      
+    }
+     catch (err) {
       alert("Failed to delete account.");
     }
   };
@@ -222,7 +227,10 @@ const ProfilePage = () => {
           `${backendUrl}/instructor/deleteInstructor/${profile?.username}`
         );
         alert("Instructor account deleted successfully!");
-        window.location.reload();
+        if(isOwnProfile)
+          router.push("/")
+        else
+         window.location.reload();
       } catch (err) {
         alert("Failed to delete instructor account.");
       }
