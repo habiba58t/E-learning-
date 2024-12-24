@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import axiosInstance from "@/app/utils/axiosInstance";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/app/components/student-sidebar/page";
+import { FaStar } from "react-icons/fa";
 
 interface CourseData {
   _id: string;
@@ -23,6 +24,8 @@ const CoursesPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [username, setUsername] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [totalRating, setTotalRating] =  useState<number | 0>();
+
 
   const router = useRouter();
 
@@ -31,11 +34,10 @@ const CoursesPage = () => {
   }, []);
 
   useEffect(() => {
-    if (username) fetchCourses();
+    if (username) 
+      fetchCourses();
   }, [searchQuery, username]);
 
-
-  
   const fetchCookieData = async () => {
     try {
       const response = await fetch("http://localhost:3002/auth/get-cookie-data", {
@@ -93,6 +95,15 @@ const CoursesPage = () => {
     }
   };
 
+
+
+  const handleClick = async (course_code: string) =>{
+    const course = course_code
+   router.push(`/student/${course}`)
+ }
+
+
+
   const handleEnroll = async (courseId: string) => {
     try {
       await axiosInstance.put(`http://localhost:3002/student/enroll/${courseId}`);
@@ -103,16 +114,32 @@ const CoursesPage = () => {
       alert("Failed to enroll in course.");
     }
   };
-
-  const handleClick = async (course_code: string) =>{
-     const course = course_code
-    router.push(`/student/${course}`)
-  }
-
+  const handleRating = async (id: string): Promise<number> => {
+    try {
+      const ratingResponse = await axiosInstance.get<number>(
+        `http://localhost:3002/courses/getavg/${id}`
+      );
+      const averageRating = ratingResponse.data;
+      console.log("Average Rating:", averageRating);
+      return averageRating;
+    } catch (ratingError) {
+      console.error("Failed to fetch course rating:", ratingError);
+      // Return a default value or throw an error
+      return 0; // Example: return a default rating value
+      // Alternatively, you can throw an error to let the caller handle it
+      // throw new Error("Failed to fetch course rating.");
+    }
+  };
+  
   const displayedCourses =
     displayCategory === "enrolled"
-      ? enrolledCourses.slice(0, 3)
-      : notEnrolledCourses.slice(0, 3);
+      ? enrolledCourses.filter((course) =>
+          course.title.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      : notEnrolledCourses.filter((course) =>
+          course.title.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
@@ -167,6 +194,7 @@ const CoursesPage = () => {
                   username={username}
                   displayCategory={displayCategory}
                   handleEnroll={handleEnroll}
+                  handleRating={handleRating}
                   handleClick={handleClick}
                 />
               ))
@@ -181,41 +209,74 @@ const CoursesPage = () => {
     </div>
   );
 };
-
 function CourseCard({
   course,
   username,
   displayCategory,
   handleEnroll,
   handleClick,
+  handleRating,
 }: {
   course: CourseData;
   username: string | null;
   displayCategory: "enrolled" | "notEnrolled";
   handleEnroll: (courseId: string) => void;
   handleClick: (course_code: string) => void;
+  handleRating: (id: string) => Promise<number>; // Add handleViewModule as a prop
 }) {
+  const [rating, setRating] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchRating = async () => {
+      try {
+        const response = await axiosInstance.get<number>(
+          `http://localhost:3002/courses/getavg/${course._id}`
+        );
+        setRating(response.data);
+      } catch (err) {
+        console.error("Failed to fetch course rating:", err);
+        setError("Error fetching course rating.");
+      }
+    };
+
+    fetchRating();
+  }, [course._id]);
+
   return (
     <div className="relative bg-white rounded-xl shadow-md hover:shadow-lg overflow-hidden transition-transform transform hover:scale-105">
       {/* Course Details */}
       <div className="p-6">
-        <h5 className="text-lg font-semibold text-gray-800 mb-2">{course.title}</h5>
+        <h5 className="text-lg font-semibold text-gray-800 mb-2">
+          {course.title}
+        </h5>
         <p className="text-sm text-gray-600">Category: {course.category}</p>
         <p className="text-sm text-gray-600">Instructor: {course.created_by}</p>
         <p className="text-sm text-gray-600">
-          Average Rating: {course.average_rating || "N/A"}
+        <p className="text-sm text-gray-600 flex items-center">
+          <strong className="mr-2">Course Rating:</strong>
+          {rating !== null ? (
+            <>
+              {Number.isInteger(rating) ? rating.toString() : rating.toFixed(2)}
+              <FaStar className="ml-1 text-yellow-500" />
+            </>
+          ) : (
+            "Loading..."
+          )}
+        </p>
+
         </p>
         <p className="text-sm text-gray-600">{course.description}</p>
       </div>
 
-      {/* Enroll Button */}
-      <div className="flex justify-center pb-4">
+   {/* Enroll Button */}
+   <div className="flex justify-center pb-4">
         {displayCategory === "enrolled" ? (
 
         <button
             onClick={() => handleClick(course.course_code)}
             className="mt-4 px-4 py-2 bg-blue-800 text-white font-bold rounded-full hover:bg-blue-700 transition duration-300"
-          >            Go to courses
+          >            Go to course
           </button>
         ) : (
           <button

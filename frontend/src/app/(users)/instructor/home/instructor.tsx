@@ -2,13 +2,21 @@
 
 import React, { useState, useEffect } from "react";
 import axiosInstance from "@/app/utils/axiosInstance";
-import Sidebar from "@/app/components/instructor/instructor-sidebar/page";
+import Sidebar from "@/app/components/student-sidebar/page";
+import { FaStar } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
 interface InstructorData {
   _id: string;
-  name?: string;
-  username?: string;
-  email?: string;
+  name?: string; // For instructors
+  username?: string; // For instructors
+  email?: string; // For instructors
+  averageRating?: number; // For instructor
+}
+
+interface InstructorCardProps {
+  instructor: InstructorData;
+  handleUsernameClick: (username: string) => void;
 }
 
 const InstructorPage = () => {
@@ -16,9 +24,15 @@ const InstructorPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
 
+  const router = useRouter();
+
   useEffect(() => {
     fetchInstructors();
   }, [searchQuery]);
+
+  const handleUsernameClick = (username: string) => {
+    router.push(`/profile/${username}`);
+  };
 
   const fetchInstructors = async () => {
     setError("");
@@ -39,14 +53,13 @@ const InstructorPage = () => {
     }
   };
 
-  // Limit displayed instructors to the first three unless searching
   const displayedInstructors =
     searchQuery.trim() === ""
       ? instructors.slice(0, 3) // Only show the first three instructors
       : instructors;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-teal-100">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       <Sidebar />
       <section className="py-20" id="section_instructors">
         <div className="container mx-auto px-4">
@@ -72,6 +85,7 @@ const InstructorPage = () => {
                 <InstructorCard
                   key={instructor._id}
                   instructor={instructor}
+                  handleUsernameClick={handleUsernameClick}
                 />
               ))
             ) : (
@@ -98,7 +112,10 @@ const InstructorPage = () => {
   );
 };
 
-function InstructorCard({ instructor }: { instructor: InstructorData }) {
+const InstructorCard: React.FC<InstructorCardProps> = ({
+  instructor,
+  handleUsernameClick,
+}) => {
   return (
     <div className="relative bg-white rounded-xl shadow-md hover:shadow-lg overflow-hidden transition-transform transform hover:scale-105">
       {/* Profile Image */}
@@ -115,11 +132,33 @@ function InstructorCard({ instructor }: { instructor: InstructorData }) {
         <h5 className="text-lg font-semibold text-gray-800 mb-2">
           {instructor.name}
         </h5>
-        <p className="text-sm text-gray-600">Username: {instructor.username}</p>
+        <p className="text-gray-600">
+          Username:{" "}
+          <span
+            className="font-bold text-blue-600 cursor-pointer hover:underline"
+            onClick={() => handleUsernameClick(instructor.username || "")}
+          >
+            {instructor.username}
+          </span>
+        </p>
         <p className="text-sm text-gray-600">Email: {instructor.email}</p>
+        <p className="text-sm text-gray-600 flex items-center">
+          <strong className="mr-2">Instructor Rating:</strong>
+          {instructor?.averageRating !== undefined &&
+          instructor?.averageRating !== null ? (
+            <>
+              {Number.isInteger(instructor.averageRating)
+                ? instructor.averageRating.toString()
+                : instructor.averageRating.toFixed(2)}
+              <FaStar className="ml-1 text-yellow-500" />
+            </>
+          ) : (
+            "Not Rated"
+          )}
+        </p>
       </div>
     </div>
   );
-}
+};
 
 export default InstructorPage;

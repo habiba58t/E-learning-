@@ -8,7 +8,7 @@ import { AxiosResponse } from 'axios';
 const backend_url = 'http://localhost:3002';
 
 type LogEntry = {
-  id: number;
+  _id: number;
   username: {
     _id: string;
     username: string;
@@ -284,23 +284,51 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {filteredLogs.map((log) => (
-                  <tr
-                    key={log.id}
-                    className={`${
-                      log.success ? 'bg-green-100 dark:bg-green-400' : 'bg-red-100 dark:bg-red-400'
-                    } border-b dark:border-gray-700`}
-                  >
-                    <td className={`px-4 py-2 ${log.success ? 'text-green-100 dark:text-green-100' : 'text-red-100 dark:text-red-100'}`}>{getUsername(log.username)}</td>
-                    <td className={`px-4 py-2 ${log.success ? 'text-green-100 dark:text-green-100' : 'text-red-100 dark:text-red-100'}`}>{log.role}</td>
-                    <td className={`px-4 py-2 ${log.success ? 'text-green-100 dark:text-green-100' : 'text-red-100 dark:text-red-100'}`}>{log.action}</td>
-                    <td className={`px-4 py-2 ${log.success ? 'text-green-100 dark:text-green-100' : 'text-red-100 dark:text-red-100'}`}>{log.success ? 'Yes' : 'No'}</td>
-                    <td className={`px-4 py-2 ${log.success ? 'text-green-100 dark:text-green-100' : 'text-red-100 dark:text-red-100'}`}>
-                      {new Date(log.timestamp).toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
+        {filteredLogs.map((log) => (
+          <tr
+            key={log._id}
+            className={`${
+              log.success ? 'bg-green-100 dark:bg-green-400' : 'bg-red-100 dark:bg-red-400'
+            } border-b dark:border-gray-700`}
+          >
+            <td
+              className={`px-4 py-2 ${
+                log.success ? 'text-green-700 dark:text-green-100' : 'text-red-700 dark:text-red-100'
+              }`}
+            >
+              {getUsername(log.username)}
+            </td>
+            <td
+              className={`px-4 py-2 ${
+                log.success ? 'text-green-700 dark:text-green-100' : 'text-red-700 dark:text-red-100'
+              }`}
+            >
+              {log.role}
+            </td>
+            <td
+              className={`px-4 py-2 ${
+                log.success ? 'text-green-700 dark:text-green-100' : 'text-red-700 dark:text-red-100'
+              }`}
+            >
+              {log.action}
+            </td>
+            <td
+              className={`px-4 py-2 ${
+                log.success ? 'text-green-700 dark:text-green-100' : 'text-red-700 dark:text-red-100'
+              }`}
+            >
+              {log.success ? 'Yes' : 'No'}
+            </td>
+            <td
+              className={`px-4 py-2 ${
+                log.success ? 'text-green-700 dark:text-green-100' : 'text-red-700 dark:text-red-100'
+              }`}
+            >
+              {new Date(log.timestamp).toLocaleString()}
+            </td>
+          </tr>
+        ))}
+      </tbody>
             </table>
           </div>
         </div>

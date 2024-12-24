@@ -102,7 +102,7 @@ const ChatPage = () => {
         `http://localhost:3002/private-chat/${currentChatId}/message`,
         { content: inputMessage, sentBy: currentUsername }
       );  
-      console.log("aaa")
+      
       const response2 =await axiosInstance.post(`http://localhost:3002/notification/private-chatsent/${currentUsername}/${selectedUser}`);    
       console.log(response2.data)
 

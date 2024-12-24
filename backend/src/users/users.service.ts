@@ -33,6 +33,12 @@ async findUserByUsername( username: string): Promise<userDocument> {
   return await this.userModel.findOne({username});
 }
 
+
+async findAll():Promise<Users[]>{
+  const users = await this.userModel.find();
+  return users;
+}
+
 // //GET ENROLLED STUDENTS in a specific course 
 async getEnrolledStudents(objectId:mongoose.Types.ObjectId): Promise<string[]>{  // i have course objectid 
 const course= await this.coursesService.getcoursebyid(objectId);

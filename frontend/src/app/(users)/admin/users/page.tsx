@@ -1,17 +1,19 @@
 "use client";
+
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 
-interface users {
-    _id: string;
-    name: string;
-    username: string;
-    email: string;
+interface User {
+  _id: string;
+  name: string;
+  username: string;
+  email: string;
+  role: string; // Added role field
 }
 
 const UsersPage = () => {
-  const [users, setUsers] = useState<users[]>([]);
-  const [username, setUsername] = useState("");
+  const [users, setUsers] = useState<User[]>([]);
+  const [loggedInUsername, setLoggedInUsername] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
 
@@ -34,9 +36,8 @@ const UsersPage = () => {
           return;
         }
 
-        const user = userData.payload.username;
-        setUsername(user);
-        console.log("User logged in:", user);
+        setLoggedInUsername(userData.payload.username);
+        console.log("User logged in:", userData.payload.username);
       } catch (err) {
         console.error("Error fetching cookie data:", err);
         setError("Error fetching cookie data");
@@ -76,9 +77,9 @@ const UsersPage = () => {
 
         {error && <div className="text-red-500">{error}</div>}
 
-        {username && (
+        {loggedInUsername && (
           <div className="text-gray-700 mb-6">
-            Logged in as: <span className="font-bold">{username}</span>
+            Logged in as: <span className="font-bold">{loggedInUsername}</span>
           </div>
         )}
 
@@ -89,15 +90,18 @@ const UsersPage = () => {
             {users.map((user) => (
               <li
                 key={user._id}
-                className="py-2 border-b last:border-b-0 text-gray-600"
+                className="py-2 border-b last:border-b-0 text-gray-600 flex justify-between items-center"
               >
-                {user.name} - {user.email} - 
-                <span 
-                  className="text-blue-600 cursor-pointer hover:underline"
-                  onClick={() => handleUsernameClick(user.username)}
-                >
-                  {user.username}
-                </span>
+                <span>{user.name}</span>
+                <div>
+                  <span 
+                    className="text-blue-600 cursor-pointer hover:underline mr-4"
+                    onClick={() => handleUsernameClick(user.username)}
+                  >
+                    {user.username}
+                  </span>
+                  <span className="text-gray-500">{user.role}</span>
+                </div>
               </li>
             ))}
           </ul>

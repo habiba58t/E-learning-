@@ -177,6 +177,15 @@ async setRating(@Param('studentUsername') studentUsername: string,@Param('Object
 } //instructor rating
 
 
+
+@UseGuards(AuthorizationGuard)
+@Roles(Role.Admin)
+@Get('getAll')
+async findAll(): Promise<Users[]>{
+return this.usersService.findAll();
+}
+
+
   @Get('InstructorRating/:instructorId')
   async getAvgRating(@Param('instructorId') instructorId: string): Promise<number> {
     const objectId = new mongoose.Types.ObjectId(instructorId)

@@ -107,6 +107,15 @@ const TakeQuizPage = () => {
     }
   }, [username]);
 
+
+// useEffect(() => {
+//   const checkStatusOnMount = async () => {
+//     await checkQuizStatus(username);
+//   };
+//   checkStatusOnMount();
+// }, [username]);
+
+
   const handleOptionChange = (questionId: string, selectedOption: string) => {
     setAnswers((prev) => {
       const updatedAnswers = [...prev];
@@ -125,32 +134,39 @@ const TakeQuizPage = () => {
       // Get course code
       const course = await axiosInstance.get<CourseData>(`http://localhost:3002/courses/module/${openModule}`);
       console.log(course.data);
-
+  
       // Prepare answers for submission
       const transformedAnswers = Object.fromEntries(
         answers.map(({ questionId, answer }) => [questionId, answer])
       );
-
+  
       // Submit quiz answers
       const response1 = await axiosInstance.post<ResponseData>(
         `http://localhost:3002/quizzes/${course.data.course_code}/${quizId}/${username}/submit`,
         transformedAnswers,
         { withCredentials: true }
       );
-     // setResponse(response1.data.response._id)
+      const responseId = response1.data.response._id;
       console.log(response1.data.response._id);
-      const responseId = response1.data.response._id;      alert("Your responses have been submitted successfully!");
-
-      // After submission, check if the student has taken the quiz and show rating popup if applicable
-      await checkQuizStatus(); // Ensure this is awaited to properly update the state
+  
+      alert("Your responses have been submitted successfully!");
+  
+      // Re-check if the student has taken the quiz
+      await checkQuizStatus();
+  
+      // Show the rating popup after submission if the quiz wasn't taken before
+      if (!hasTakenQuiz) {
+        setIsRatingPopupVisible(true);
+      }
+  
+      // Navigate to the result page
       router.push(`/student/quizzes/${quizId}/${openModule}/${responseId}`);
-      // If the student hasn't taken the quiz before, show the rating popup
     } catch (err: any) {
       console.error("Error submitting responses:", err);
       alert(err.response?.data?.message || "Failed to submit your responses");
     }
-
   };
+  
 
   const handleRateQuiz = async (rating: number) => {
     // Logic for handling the rating (e.g., save to the server)

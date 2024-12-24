@@ -15,7 +15,7 @@ interface UserorCourseData {
 const StudentPage = () => {
   const [students, setStudents] = useState<UserorCourseData[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [username, setUsername] = useState<string | null>(null);
+  const [username, setUsername] = useState("");
   const [error, setError] = useState("");
 
   const router = useRouter();
@@ -24,9 +24,6 @@ const StudentPage = () => {
     fetchCookieData();
   }, []);
 
-  useEffect(() => {
-    fetchStudents();
-  }, [searchQuery]);
 
   const fetchCookieData = async () => {
     try {
@@ -41,15 +38,21 @@ const StudentPage = () => {
         return;
       }
 
-      const user = userData.payload.username;
-      setUsername(user);
+      setUsername(userData.payload.username)
+
     } catch (err) {
       console.error("Error fetching cookie data:", err);
       setError("Error fetching cookie data");
     }
   };
 
-  const fetchStudents = async () => {
+  useEffect(() => {
+    if (username) {
+      fetchStudents(username);
+    }
+  }, [searchQuery, username]); // Added username to the dependency array
+
+  const fetchStudents = async (username: string) => {
     setError("");
     try {
       const response = await axiosInstance.get<UserorCourseData[]>(
@@ -61,7 +64,15 @@ const StudentPage = () => {
           },
         }
       );
-      setStudents(response.data || []);
+
+      const allStudents = response.data || [];
+      // Filter out the logged-in student
+      const filteredStudents = allStudents.filter(
+        (student) => student.username !== username
+      );
+      setStudents(filteredStudents);
+      console.log(filteredStudents)
+      console.log(username)
     } catch (err) {
       console.error("Error fetching students:", err);
       setError("Error fetching students");
@@ -80,7 +91,6 @@ const StudentPage = () => {
     }
   };
 
-  // Limit displayed students to the first three unless searching
   const displayedStudents =
     searchQuery.trim() === ""
       ? students.slice(0, 3) // Only show the first three students
@@ -114,7 +124,7 @@ const StudentPage = () => {
                   student={student}
                   username={username}
                   handleRedirectToChat={handleRedirectToChat}
-                  handleUsernameClick={handleUsernameClick} // Pass the function as a prop
+                  handleUsernameClick={handleUsernameClick}
                 />
               ))
             ) : (
@@ -156,7 +166,6 @@ function StudentCard({
 }: StudentCardProps) {
   return (
     <div className="relative bg-white rounded-xl shadow-md hover:shadow-lg overflow-hidden transition-transform transform hover:scale-105">
-      {/* Profile Image */}
       <div className="relative w-full h-40 bg-gray-100 flex items-center justify-center">
         <img
           className="object-cover w-24 h-24 rounded-full shadow"
@@ -164,8 +173,6 @@ function StudentCard({
           alt={student.name || "Student"}
         />
       </div>
-
-      {/* Student Details */}
       <div className="p-6">
         <h5 className="text-lg font-semibold text-gray-800 mb-2">
           {student.name}
@@ -178,10 +185,9 @@ function StudentCard({
           >
             {student.username}
           </span>
-        </p>         <p className="text-sm text-gray-600">Email: {student.email}</p>
+        </p>
+        <p className="text-sm text-gray-600">Email: {student.email}</p>
       </div>
-
-      {/* Chat Button */}
       <div className="flex justify-center pb-4">
         <button
           onClick={() => handleRedirectToChat(student.username)}

@@ -210,8 +210,8 @@ const ChatPage: React.FC = () => {
       // Hide the menu after deletion
    
     } catch (error) {
-      console.error("Error deleting message:", error);
-      alert("Failed to delete the message.");
+      console.error("Error deleting group:", error);
+      alert("Failed to delete the group.");
     }
   };
 
